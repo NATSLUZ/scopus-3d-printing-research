@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pesquisa Scopus: Impressão 3D</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --primary: #0f172a;
+            --secondary: #3b82f6;
+            --accent: #10b981;
+            --bg: #f1f5f9;
+            --text-main: #1e293b;
+            --white: #ffffff;
+        }
+
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background-color: var(--bg); color: var(--text-main); margin: 0; display: flex; height: 100vh; overflow: hidden; }
+
+        /* Menu Lateral */
+        nav { width: 280px; background: var(--primary); color: white; padding: 25px; display: flex; flex-direction: column; gap: 12px; box-shadow: 4px 0 10px rgba(0,0,0,0.1); }
+        nav h2 { font-size: 1.4rem; margin-bottom: 30px; color: var(--secondary); border-bottom: 1px solid #334155; padding-bottom: 10px; }
+        nav button { 
+            background: transparent; border: 1px solid #334155; color: #cbd5e1; 
+            padding: 14px; text-align: left; border-radius: 10px; cursor: pointer; transition: 0.3s; font-size: 1rem;
+        }
+        nav button:hover { background: var(--secondary); color: white; border-color: var(--secondary); transform: translateX(5px); }
+        nav button.active { background: var(--secondary); color: white; }
+
+        /* Área de Conteúdo */
+        main { flex: 1; padding: 40px; overflow-y: auto; display: flex; flex-direction: column; }
+        
+        /* Tela Inicial */
+        .welcome-screen { text-align: center; margin: auto; max-width: 600px; }
+        .welcome-screen h1 { font-size: 2.5rem; color: var(--primary); margin-bottom: 15px; }
+        .welcome-screen p { font-size: 1.1rem; color: #64748b; line-height: 1.6; }
+
+        /* Cards de Dados */
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 25px; margin-top: 20px; }
+        .card { background: var(--white); padding: 25px; border-radius: 15px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); border-top: 5px solid var(--secondary); transition: 0.3s; }
+        .card:hover { transform: translateY(-5px); }
+        .card h3 { margin-top: 0; font-size: 1.2rem; color: var(--primary); }
+        
+        .badge { background: #dbeafe; color: #1e40af; padding: 5px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; display: inline-block; margin-bottom: 10px; }
+        .data-info { font-size: 0.95rem; margin: 8px 0; display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 5px; }
+        
+        .loading { text-align: center; font-weight: bold; color: var(--secondary); margin-top: 50px; }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <h2>📊 Scopus 3D</h2>
+        <button onclick="showHome()">🏠 Início</button>
+        <button onclick="fetchData('Artigo')">📑 Artigos</button>
+        <button onclick="fetchData('Autor')">👥 Autores</button>
+        <button onclick="fetchData('Palavras_chaves')">🔑 Palavras-Chave</button>
+        <button onclick="fetchData('Referencia')">📚 Referências</button>
+    </nav>
+
+    <main id="main-content">
+        <div class="welcome-screen">
+            <h1>Portal de Pesquisa Acadêmica</h1>
+            <p>Este sistema exibe os dados estruturados do banco de dados PostgreSQL (Supabase) sobre a extração de artigos do Scopus relacionados à <b>Impressão 3D</b>.</p>
+            <p>Utilize o menu lateral para explorar as tabelas e relacionamentos.</p>
+        </div>
+    </main>
+
+<script>
+    // --- SUA CONFIGURAÇÃO REAL DO SUPABASE ---
+    const SUPABASE_URL = 'https://kdtazqmfbnaethrpkshz.supabase.co'
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkdGF6cW1mYm5hZXRocnBrc2h6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2MzcwMjUsImV4cCI6MjA5NDIxMzAyNX0.Rd-i2suGjKmaWjBDo9HwFwAaoiOYdQJCNU_NGfgRJ5A'
+    
+    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
+
+    function showHome() {
+        location.reload(); // Recarrega para voltar à tela inicial limpa
+    }
+
+    async function fetchData(tableName) {
+        const main = document.getElementById('main-content');
+        main.innerHTML = `<div class="loading">⌛ Conectando ao PostgreSQL e buscando dados de ${tableName}...</div>`;
+
+        const { data, error } = await _supabase.from(tableName).select('*');
+
+        if (error) {
+            main.innerHTML = `<h1>Erro ao carregar dados</h1><p>${error.message}</p>`;
+            return;
+        }
+
+        let html = `<h1>Tabela: ${tableName}</h1>`;
+        html += `<p>Foram encontrados <b>${data.length}</b> registros cadastrados.</p>`;
+        
+        if (data.length === 0) {
+            html += `<div class="card"><p>Nenhum dado encontrado nesta tabela. Vá ao Supabase Table Editor para inserir registros.</p></div>`;
+        } else {
+            html += `<div class="grid">`;
+            data.forEach(item => {
+                html += `<div class="card">`;
+                
+                if(tableName === 'Artigo') {
+                    html += `<span class="badge">Ano: ${item.Ano}</span>
+                             <h3>${item.Titulo || 'Sem Título'}</h3>
+                             <div class="data-info"><span>Citações:</span> <b>${item.qtd_citacao || 0}</b></div>
+                             <div class="data-info"><span>DOI:</span> <b>${item.DOI || 'N/A'}</b></div>
+                             <p style="font-size:0.85rem; color:#64748b">${item.Resumo ? item.Resumo.substring(0, 150) + '...' : 'Sem resumo.'}</p>`;
+                } else if(tableName === 'Autor') {
+                    html += `<h3>👤 ${item.NomeCompleto || item.Nome}</h3>
+                             <div class="data-info"><span>ID Autor:</span> <b>${item.ID}</b></div>`;
+                } else if(tableName === 'Palavras_chaves') {
+                    html += `<h3>🔑 ${item.Palavras_Chaves}</h3>
+                             <div class="data-info"><span>ID:</span> <b>${item.ID}</b></div>`;
+                } else if(tableName === 'Referencia') {
+                    html += `<p>📚 ${item.Referencia}</p>`;
+                }
+
+                html += `</div>`;
+            });
+            html += `</div>`;
+        }
+        main.innerHTML = html;
+    }
+</script>
+</body>
+</html>
