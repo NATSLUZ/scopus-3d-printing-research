@@ -4,39 +4,30 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pesquisa Scopus: Impressão 3D</title>
+    <!-- Bibliotecas: Supabase e PapaParse (para CSV) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <style>
-        :root {
-            --primary: #0f172a;
-            --secondary: #3b82f6;
-            --accent: #10b981;
-            --bg: #f1f5f9;
-            --text-main: #1e293b;
-            --white: #ffffff;
-        }
-
-        body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg); color: var(--text-main); margin: 0; display: flex; height: 100vh; overflow: hidden; }
-
-        nav { width: 280px; background: var(--primary); color: white; padding: 25px; display: flex; flex-direction: column; gap: 12px; box-shadow: 4px 0 10px rgba(0,0,0,0.1); }
-        nav h2 { font-size: 1.4rem; margin-bottom: 30px; color: var(--secondary); border-bottom: 1px solid #334155; padding-bottom: 10px; }
+        :root { --primary: #0f172a; --secondary: #3b82f6; --accent: #10b981; --bg: #f1f5f9; --white: #ffffff; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg); margin: 0; display: flex; height: 100vh; }
+        
+        nav { width: 280px; background: var(--primary); color: white; padding: 25px; display: flex; flex-direction: column; gap: 12px; }
+        nav h2 { font-size: 1.4rem; color: var(--secondary); border-bottom: 1px solid #334155; padding-bottom: 10px; }
         nav button { 
             background: transparent; border: 1px solid #334155; color: #cbd5e1; 
-            padding: 14px; text-align: left; border-radius: 10px; cursor: pointer; transition: 0.3s; font-size: 1rem;
+            padding: 14px; text-align: left; border-radius: 10px; cursor: pointer; transition: 0.3s;
         }
-        nav button:hover { background: var(--secondary); color: white; border-color: var(--secondary); transform: translateX(5px); }
+        nav button:hover { background: var(--secondary); color: white; }
+        .btn-import { background: var(--accent) !important; color: white !important; border: none !important; margin-top: auto; font-weight: bold; text-align: center !important; }
 
-        main { flex: 1; padding: 40px; overflow-y: auto; display: flex; flex-direction: column; }
-        
+        main { flex: 1; padding: 40px; overflow-y: auto; }
         .welcome-screen { text-align: center; margin: auto; max-width: 600px; }
-        .welcome-screen h1 { font-size: 2.5rem; color: var(--primary); margin-bottom: 15px; }
-
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 25px; margin-top: 20px; }
-        .card { background: var(--white); padding: 25px; border-radius: 15px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); border-top: 5px solid var(--secondary); }
-        .card h3 { margin-top: 0; font-size: 1.2rem; color: var(--primary); }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 25px; }
+        .card { background: var(--white); padding: 25px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-top: 5px solid var(--secondary); }
+        .loading { text-align: center; font-weight: bold; color: var(--secondary); }
         
-        .badge { background: #dbeafe; color: #1e40af; padding: 5px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; display: inline-block; margin-bottom: 10px; }
-        .data-info { font-size: 0.95rem; margin: 8px 0; display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 5px; }
-        .loading { text-align: center; font-weight: bold; color: var(--secondary); margin-top: 50px; }
+        /* Esconder o input de arquivo real */
+        #csv-input { display: none; }
     </style>
 </head>
 <body>
@@ -44,68 +35,79 @@
     <nav>
         <h2>📊 Scopus 3D</h2>
         <button onclick="location.reload()">🏠 Início</button>
-        <!-- Nomes das tabelas em minúsculo aqui nos botões -->
         <button onclick="fetchData('artigo')">📑 Artigos</button>
         <button onclick="fetchData('autor')">👥 Autores</button>
         <button onclick="fetchData('palavras_chaves')">🔑 Palavras-Chave</button>
-        <button onclick="fetchData('referencia')">📚 Referências</button>
+        
+        <!-- Botão de Importar -->
+        <input type="file" id="csv-input" accept=".csv">
+        <button class="btn-import" onclick="document.getElementById('csv-input').click()">📤 Importar CSV Scopus</button>
     </nav>
 
     <main id="main-content">
         <div class="welcome-screen">
             <h1>Portal de Pesquisa Acadêmica</h1>
-            <p>Selecione uma tabela no menu ao lado para visualizar os dados do Scopus sobre <b>Impressão 3D</b>.</p>
+            <p>Clique em <b>Importar CSV</b> para subir os dados extraídos do Scopus.</p>
         </div>
     </main>
 
 <script>
     const SUPABASE_URL = 'https://kdtazqmfbnaethrpkshz.supabase.co'
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkdGF6cW1mYm5hZXRocnBrc2h6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2MzcwMjUsImV4cCI6MjA5NDIxMzAyNX0.Rd-i2suGjKmaWjBDo9HwFwAaoiOYdQJCNU_NGfgRJ5A'
-    
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
 
+    // FUNÇÃO PARA BUSCAR DADOS
     async function fetchData(tableName) {
         const main = document.getElementById('main-content');
         main.innerHTML = `<div class="loading">⌛ Buscando dados em ${tableName}...</div>`;
-
-        // Busca usando o nome da tabela em minúsculo
         const { data, error } = await _supabase.from(tableName).select('*');
-
-        if (error) {
-            main.innerHTML = `<h1>Erro ao carregar dados</h1><p>${error.message}</p>`;
-            return;
-        }
-
-        let html = `<h1>Tabela: ${tableName}</h1>`;
-        html += `<p>Foram encontrados <b>${data.length}</b> registros.</p>`;
+        if (error) { main.innerHTML = `<h1>Erro</h1><p>${error.message}</p>`; return; }
         
-        if (data.length === 0) {
-            html += `<div class="card"><p>Nenhum dado encontrado. <br> Adicione uma linha na tabela '<b>${tableName}</b>' no Supabase!</p></div>`;
-        } else {
-            html += `<div class="grid">`;
-            data.forEach(item => {
-                html += `<div class="card">`;
-                
-                if(tableName === 'artigo') {
-                    html += `<span class="badge">Ano: ${item.ano || 'N/A'}</span>
-                             <h3>${item.titulo || 'Sem Título'}</h3>
-                             <div class="data-info"><span>Citações:</span> <b>${item.qtd_citacao || 0}</b></div>
-                             <p style="font-size:0.85rem; color:#64748b">${item.resumo ? item.resumo.substring(0, 100) + '...' : 'Sem resumo.'}</p>`;
-                } else if(tableName === 'autor') {
-                    html += `<h3>👤 ${item.nomecompleto || item.nome || 'N/A'}</h3>
-                             <div class="data-info"><span>ID:</span> <b>${item.id}</b></div>`;
-                } else if(tableName === 'palavras_chaves') {
-                    html += `<h3>🔑 ${item.palavras_chaves}</h3>`;
-                } else if(tableName === 'referencia') {
-                    html += `<p>📚 ${item.referencia}</p>`;
-                }
-
-                html += `</div>`;
-            });
-            html += `</div>`;
-        }
+        let html = `<h1>Tabela: ${tableName} (Total: ${data.length})</h1><div class="grid">`;
+        data.forEach(item => {
+            html += `<div class="card"><h3>${item.titulo || item.nome || item.palavras_chaves || 'Dado'}</h3><p>Ano: ${item.ano || '-'}</p></div>`;
+        });
+        html += `</div>`;
         main.innerHTML = html;
     }
+
+    // LÓGICA DE IMPORTAÇÃO DO CSV
+    document.getElementById('csv-input').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        document.getElementById('main-content').innerHTML = `<div class="loading">🚀 Processando arquivo CSV... aguarde.</div>`;
+
+        Papa.parse(file, {
+            header: true,
+            skipEmptyLines: true,
+            complete: async function(results) {
+                const rows = results.data;
+                
+                // Mapear colunas do Scopus para o Banco de Dados
+                const formattedData = rows.map(row => ({
+                    titulo: row["Title"] || row["Document Title"],
+                    ano: parseInt(row["Year"]),
+                    qtd_citacao: parseInt(row["Cited by"]) || 0,
+                    doi: row["DOI"],
+                    link: row["Link"],
+                    resumo: row["Abstract"],
+                    tipo_documento: row["Document Type"]
+                }));
+
+                // Enviar para o Supabase
+                const { error } = await _supabase.from('artigo').insert(formattedData);
+
+                if (error) {
+                    alert("Erro no upload: " + error.message);
+                    console.error(error);
+                } else {
+                    alert("Sucesso! " + formattedData.length + " artigos importados.");
+                    fetchData('artigo'); // Recarrega a tela com os novos dados
+                }
+            }
+        });
+    });
 </script>
 </body>
 </html>
