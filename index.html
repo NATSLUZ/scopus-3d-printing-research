@@ -70,55 +70,60 @@
         const file = e.target.files[0];
         if (!file) return;
 
-        document.getElementById('main-content').innerHTML = `<div class="loading">🚀 Processando Relacionamentos... Isso pode levar um minuto para arquivos grandes.</div>`;
+        const main = document.getElementById('main-content');
 
         Papa.parse(file, {
             header: true,
             skipEmptyLines: true,
             complete: async function(results) {
+                const total = results.data.length;
+                let cont = 0;
+
                 for (const row of results.data) {
+                    cont++;
+                    main.innerHTML = `<div class="loading">🚀 Importando registro ${cont} de ${total}...<br>Processando Autores e Referências.</div>`;
+
                     // 1. Inserir Artigo
-                    const { data: art, error: errArt } = await _supabase.from('artigo').insert([{
+                    const { data: art } = await _supabase.from('artigo').insert([{
                         titulo: row["Title"] || row["Document Title"],
-                        ano: parseInt(row["Year"]),
+                        ano: parseInt(row["Year"]) || 0,
                         qtd_citacao: parseInt(row["Cited by"]) || 0,
-                        doi: row["DOI"],
-                        resumo: row["Abstract"],
-                        tipo_documento: row["Document Type"]
+                        doi: row["DOI"] || "",
+                        resumo: row["Abstract"] || "",
+                        tipo_documento: row["Document Type"] || ""
                     }]).select();
 
                     if (art && art[0]) {
                         const artigoId = art[0].id;
 
-                        // 2. Processar Autores (Quebrar por ;)
+                        // 2. Autores
                         const autoresRaw = row["Authors"] || row["Author(s)"] || "";
                         const listaAutores = autoresRaw.split(';').map(a => a.trim()).filter(a => a);
                         for (const nome of listaAutores) {
-                            // Usamos upsert para não duplicar autor se ele já existir
-                            const authId = nome.replace(/\s/g, '_').toLowerCase(); 
+                            const authId = nome.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase(); 
                             await _supabase.from('autor').upsert([{ id: authId, nome: nome, nomecompleto: nome }]);
                             await _supabase.from('artigo_autor').upsert([{ id_artigo: artigoId, id_autor: authId }]);
                         }
 
-                        // 3. Processar Palavras-Chave
+                        // 3. Palavras-Chave
                         const keysRaw = row["Author Keywords"] || "";
                         const listaKeys = keysRaw.split(';').map(k => k.trim()).filter(k => k);
                         for (const p of listaKeys) {
                             const { data: kData } = await _supabase.from('palavras_chaves').upsert([{ palavras_chaves: p }], { onConflict: 'palavras_chaves' }).select();
-                            if (kData) await _supabase.from('artigo_palavrachave').upsert([{ id_artigo: artigoId, id_palavrachave: kData[0].id }]);
+                            if (kData && kData[0]) await _supabase.from('artigo_palavrachave').upsert([{ id_artigo: artigoId, id_palavrachave: kData[0].id }]);
                         }
 
-                        // 4. Processar Referências
+                        // 4. Referências (Limitado a 5 por artigo para ser mais rápido)
                         const refsRaw = row["References"] || "";
-                        const listaRefs = refsRaw.split(';').map(r => r.trim()).filter(r => r.length > 10);
+                        const listaRefs = refsRaw.split(';').map(r => r.trim()).filter(r => r.length > 10).slice(0, 5);
                         for (const r of listaRefs) {
                             const { data: rData } = await _supabase.from('referencia').insert([{ referencia: r }]).select();
-                            if (rData) await _supabase.from('artigo_referencia').insert([{ id_artigo: artigoId, id_referencia: rData[0].id }]);
+                            if (rData && rData[0]) await _supabase.from('artigo_referencia').insert([{ id_artigo: artigoId, id_referencia: rData[0].id }]);
                         }
                     }
                 }
-                alert("Importação Relacional concluída!");
-                fetchData('artigo');
+                alert("Importação concluída com sucesso!");
+                fetchData('artigo'); // Recarrega os dados na tela automaticamente
             }
         });
     });
