@@ -95,29 +95,39 @@
         main.innerHTML = html;
     }
 
-    async function toggleRow(rowId, type, id, contentId) {
+  async function toggleRow(rowId, type, id, contentId) {
         const row = document.getElementById(rowId);
         const container = document.getElementById(contentId);
         const isOpening = !row.classList.contains('active');
 
+        // Fecha outras linhas abertas para o dashboard ficar limpo
         document.querySelectorAll('.expandable-content').forEach(r => r.classList.remove('active'));
         
         if (isOpening) {
             row.classList.add('active');
             
+            // 1. Lógica para ARTIGOS (Mostra Resumo e DOI)
             if (type === 'artigo') {
                 const { data } = await _supabase.from('artigo').select('resumo, doi').eq('id', id).single();
-                container.innerHTML = `<strong>Abstract:</strong><br><em>${data.resumo || 'Sem resumo'}</em><br><br><strong>DOI:</strong> ${data.doi || 'N/A'}`;
+                container.innerHTML = `<strong>Abstract (Resumo):</strong><br><em>${data.resumo || 'Sem resumo cadastrado'}</em><br><br><strong>DOI:</strong> ${data.doi || 'N/A'}`;
             } 
+            // 2. Lógica para AUTORES (Mostra Artigos que ele escreveu)
             else if (type === 'autor') {
                 const { data } = await _supabase.from('artigo_autor').select('artigo(titulo, ano)').eq('id_autor', id);
                 container.innerHTML = `<strong>Artigos relacionados a este autor:</strong>` + 
                     (data && data.length ? data.map(d => `<div class="related-item">📄 ${d.artigo.titulo} (${d.artigo.ano})</div>`).join('') : '<p>Nenhuma conexão encontrada.</p>');
             }
+            // 3. Lógica para PALAVRAS-CHAVE (Mostra Artigos com essa tag)
             else if (type === 'palavras_chaves') {
                 const { data } = await _supabase.from('artigo_palavrachave').select('artigo(titulo, ano)').eq('id_palavrachave', id);
-                container.innerHTML = `<strong>Artigos com esta palavra-chave:</strong>` + 
+                container.innerHTML = `<strong>Artigos que usam esta palavra-chave:</strong>` + 
                     (data && data.length ? data.map(d => `<div class="related-item">📄 ${d.artigo.titulo} (${d.artigo.ano})</div>`).join('') : '<p>Nenhuma conexão encontrada.</p>');
+            }
+            // 4. Lógica para REFERÊNCIAS (Mostra qual artigo citou essa referência)
+            else if (type === 'referencia') {
+                const { data } = await _supabase.from('artigo_referencia').select('artigo(titulo, ano)').eq('id_referencia', id);
+                container.innerHTML = `<strong>Artigos que citam esta referência:</strong>` + 
+                    (data && data.length ? data.map(d => `<div class="related-item">📄 ${d.artigo.titulo} (${d.artigo.ano})</div>`).join('') : '<p>Este item ainda não possui conexões mapeadas no banco.</p>');
             }
         }
     }
