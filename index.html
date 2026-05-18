@@ -9,23 +9,31 @@
     <style>
         :root { --primary: #0f172a; --secondary: #3b82f6; --bg: #f8fafc; --border: #e2e8f0; --white: #ffffff; }
         body { font-family: 'Segoe UI', system-ui, sans-serif; background-color: var(--bg); margin: 0; display: flex; height: 100vh; color: #1e293b; }
+        
+        /* Menu Lateral */
         nav { width: 260px; background: var(--primary); color: white; padding: 25px; display: flex; flex-direction: column; gap: 10px; flex-shrink: 0; }
         nav h2 { font-size: 1.2rem; color: var(--secondary); margin-bottom: 20px; border-bottom: 1px solid #334155; padding-bottom: 10px; }
         nav button { background: transparent; border: 1px solid #334155; color: #cbd5e1; padding: 12px; text-align: left; border-radius: 8px; cursor: pointer; transition: 0.3s; }
         nav button:hover { background: var(--secondary); color: white; }
+        
         .btn-import { background: #10b981 !important; border: none !important; margin-top: auto; font-weight: bold; text-align: center !important; color: white !important; }
+        #csv-input { display: none; } /* Isso esconde o botão feio do sistema */
+
         main { flex: 1; padding: 40px; overflow-y: auto; }
         .table-container { background: var(--white); border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: 1px solid var(--border); }
         table { width: 100%; border-collapse: collapse; }
         th { background: #f1f5f9; padding: 15px; text-align: left; font-weight: 600; border-bottom: 2px solid var(--border); }
         td { padding: 15px; border-bottom: 1px solid var(--border); }
+        
         .clickable-row { cursor: pointer; }
         .clickable-row:hover { background-color: #f1f5f9; }
+        
         .expandable-content { display: none; background: #f9fafb; }
         .expandable-content.active { display: table-row; }
         .details-wrapper { padding: 20px; border-left: 4px solid var(--secondary); }
+        
         .loading { text-align: center; padding: 50px; font-weight: bold; color: var(--secondary); }
-        .related-item { margin: 5px 0; padding: 5px; background: #fff; border: 1px solid #eee; border-radius: 4px; font-size: 0.9rem; }
+        .related-item { margin: 5px 0; padding: 8px; background: #fff; border: 1px solid #eee; border-radius: 4px; font-size: 0.9rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
     </style>
 </head>
 <body>
@@ -37,6 +45,8 @@
         <button onclick="fetchData('autor', 'nome')">👥 Autores</button>
         <button onclick="fetchData('palavras_chaves', 'palavras_chaves')">🔑 Palavras-Chave</button>
         <button onclick="fetchData('referencia', 'referencia')">📚 Referências</button>
+        
+        <!-- O input fica escondido e o botão verde chama ele -->
         <input type="file" id="csv-input" accept=".csv">
         <button class="btn-import" onclick="document.getElementById('csv-input').click()">📤 Importar CSV</button>
     </nav>
@@ -44,7 +54,8 @@
     <main id="main-content">
         <div style="text-align: center; margin-top: 100px;">
             <h1>Dashboard Relacional Scopus</h1>
-            <p>Clique em qualquer linha das tabelas para ver os detalhes e conexões.</p>
+            <p>Selecione uma tabela ao lado para explorar os dados.</p>
+            <p>Clique nas linhas para expandir os detalhes e <b>conexões relacionais</b>.</p>
         </div>
     </main>
 
@@ -56,7 +67,9 @@
     async function fetchData(tableName, orderColumn) {
         const main = document.getElementById('main-content');
         main.innerHTML = `<div class="loading">⌛ Carregando ${tableName}...</div>`;
+        
         const { data, error } = await _supabase.from(tableName).select('*').order(orderColumn, { ascending: true });
+        
         if (error) { main.innerHTML = `<h1>Erro</h1><p>${error.message}</p>`; return; }
 
         let html = `<h1>Tabela: ${tableName} (${data.length} registros)</h1><div class="table-container"><table><thead><tr>`;
@@ -88,27 +101,32 @@
         const isOpening = !row.classList.contains('active');
 
         document.querySelectorAll('.expandable-content').forEach(r => r.classList.remove('active'));
+        
         if (isOpening) {
             row.classList.add('active');
-            // Busca conexões baseada no tipo de tabela
+            
             if (type === 'artigo') {
                 const { data } = await _supabase.from('artigo').select('resumo, doi').eq('id', id).single();
                 container.innerHTML = `<strong>Abstract:</strong><br><em>${data.resumo || 'Sem resumo'}</em><br><br><strong>DOI:</strong> ${data.doi || 'N/A'}`;
             } 
             else if (type === 'autor') {
                 const { data } = await _supabase.from('artigo_autor').select('artigo(titulo, ano)').eq('id_autor', id);
-                container.innerHTML = `<strong>Artigos deste autor:</strong>` + (data.length ? data.map(d => `<div class="related-item">📄 ${d.artigo.titulo} (${d.artigo.ano})</div>`).join('') : '<p>Nenhuma conexão encontrada.</p>');
+                container.innerHTML = `<strong>Artigos relacionados a este autor:</strong>` + 
+                    (data && data.length ? data.map(d => `<div class="related-item">📄 ${d.artigo.titulo} (${d.artigo.ano})</div>`).join('') : '<p>Nenhuma conexão encontrada.</p>');
             }
             else if (type === 'palavras_chaves') {
                 const { data } = await _supabase.from('artigo_palavrachave').select('artigo(titulo, ano)').eq('id_palavrachave', id);
-                container.innerHTML = `<strong>Artigos com esta palavra-chave:</strong>` + (data.length ? data.map(d => `<div class="related-item">📄 ${d.artigo.titulo} (${d.artigo.ano})</div>`).join('') : '<p>Nenhuma conexão encontrada.</p>');
+                container.innerHTML = `<strong>Artigos com esta palavra-chave:</strong>` + 
+                    (data && data.length ? data.map(d => `<div class="related-item">📄 ${d.artigo.titulo} (${d.artigo.ano})</div>`).join('') : '<p>Nenhuma conexão encontrada.</p>');
             }
         }
-    
+    }
+
     document.getElementById('csv-input').addEventListener('change', function(e) {
         const file = e.target.files[0];
         if (!file) return;
         const main = document.getElementById('main-content');
+        
         Papa.parse(file, {
             header: true,
             skipEmptyLines: true,
@@ -130,7 +148,6 @@
 
                     if (art && art[0]) {
                         const artigoId = art[0].id;
-                        // Autores
                         const autoresRaw = row["Authors"] || row["Author(s)"] || "";
                         const listaAutores = autoresRaw.split(';').map(a => a.trim()).filter(a => a);
                         for (const nome of listaAutores) {
@@ -138,7 +155,6 @@
                             await _supabase.from('autor').upsert([{ id: authId, nome: nome, nomecompleto: nome }]);
                             await _supabase.from('artigo_autor').upsert([{ id_artigo: artigoId, id_autor: authId }]);
                         }
-                        // Keywords
                         const keysRaw = row["Author Keywords"] || "";
                         const listaKeys = keysRaw.split(';').map(k => k.trim()).filter(k => k);
                         for (const p of listaKeys) {
