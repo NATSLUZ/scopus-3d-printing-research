@@ -139,7 +139,6 @@
                 const total = results.data.length;
                 let cont = 0;
 
-                // Função auxiliar para achar colunas mesmo com nomes variados
                 const findVal = (row, search) => {
                     const key = Object.keys(row).find(k => k.toLowerCase().includes(search.toLowerCase()));
                     return key ? row[key] : "";
@@ -157,8 +156,6 @@
                         link: findVal(row, "Link"),
                         resumo: findVal(row, "Abstract"),
                         tipo_documento: findVal(row, "Document Type"),
-                        
-                        // Campos que estavam dando NULL
                         issn: findVal(row, "ISSN"),
                         volume: findVal(row, "Volume"),
                         issue: findVal(row, "Issue"),
@@ -169,7 +166,6 @@
 
                     if (art && art[0]) {
                         const artigoId = art[0].id;
-                        // Lógica de Autores
                         const autoresRaw = findVal(row, "Author") || "";
                         const listaAutores = autoresRaw.split(';').map(a => a.trim()).filter(a => a);
                         for (const nome of listaAutores) {
@@ -177,14 +173,12 @@
                             await _supabase.from('autor').upsert([{ id: authId, nome: nome, nomecompleto: nome }]);
                             await _supabase.from('artigo_autor').upsert([{ id_artigo: artigoId, id_autor: authId }]);
                         }
-                        // Lógica de Keywords
                         const keysRaw = findVal(row, "Keywords") || "";
                         const listaKeys = keysRaw.split(';').map(k => k.trim()).filter(k => k);
                         for (const p of listaKeys) {
                             const { data: kData } = await _supabase.from('palavras_chaves').upsert([{ palavras_chaves: p }], { onConflict: 'palavras_chaves' }).select();
                             if (kData && kData[0]) await _supabase.from('artigo_palavrachave').upsert([{ id_artigo: artigoId, id_palavrachave: kData[0].id }]);
                         }
-                        // Lógica de Referências
                         const refsRaw = findVal(row, "References") || "";
                         const listaRefs = refsRaw.split(';').map(r => r.trim()).filter(r => r.length > 10).slice(0, 5);
                         for (const r of listaRefs) {
@@ -193,11 +187,9 @@
                         }
                     }
                 }
-                alert("Importação Concluída! Verifique os dados agora.");
+                alert("Importação Concluída!");
                 fetchData('artigo', 'titulo');
             }
-        });
-    });
         });
     });
 </script>
