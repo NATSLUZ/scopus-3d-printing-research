@@ -3,75 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Scopus 3D - Final Fixed</title>
+    <title>Dashboard Scopus 3D - Pro com Filtros</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <style>
         :root { --primary: #0f172a; --secondary: #3b82f6; --bg: #f8fafc; --border: #e2e8f0; --white: #ffffff; --accent: #10b981; }
-        
         body { font-family: 'Segoe UI', system-ui, sans-serif; background-color: var(--bg); margin: 0; display: flex; height: 100vh; overflow: hidden; color: #1e293b; }
-        
-        nav { width: 260px; background: var(--primary); color: white; padding: 25px; display: flex; flex-direction: column; gap: 10px; flex-shrink: 0; z-index: 100; }
+        nav { width: 260px; background: var(--primary); color: white; padding: 25px; display: flex; flex-direction: column; gap: 10px; flex-shrink: 0; }
         nav h2 { font-size: 1.2rem; color: var(--secondary); margin-bottom: 20px; border-bottom: 1px solid #334155; padding-bottom: 10px; }
         nav button { background: transparent; border: 1px solid #334155; color: #cbd5e1; padding: 12px; text-align: left; border-radius: 8px; cursor: pointer; transition: 0.3s; font-size: 0.9rem; }
         nav button:hover { background: var(--secondary); color: white; }
         .btn-import { background: var(--accent) !important; border: none !important; margin-top: auto; font-weight: bold; text-align: center !important; color: white !important; }
         #csv-input { display: none; }
 
-        main { flex: 1; padding: 40px; overflow-y: auto; display: block; position: relative; }
+        main { flex: 1; padding: 30px; overflow-y: auto; display: block; }
         
-        .grid-table { background: var(--white); border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid var(--border); min-width: 950px; }
-        
-        /* GRID FIXO (NÃO MOVE) */
-        .grid-row { 
-            display: grid; 
-            grid-template-columns: 1fr 70px 85px 110px 90px 115px; 
-            gap: 0; 
-            align-items: center;
-            border-bottom: 1px solid var(--border);
-        }
-        
-        /* Cabeçalho Fixo apenas no topo da lista */
-        .grid-header { 
-            background: #f1f5f9; 
-            font-weight: 700; 
-            font-size: 0.7rem; 
-            text-transform: uppercase; 
-            color: #64748b; 
-            position: sticky; 
-            top: -40px; /* Alinha com o padding do main */
-            z-index: 20; 
-        }
-        
-        .grid-row > div { padding: 15px; overflow: hidden; text-overflow: ellipsis; }
+        /* BARRA DE FILTROS */
+        .filter-bar { background: white; padding: 15px; border-radius: 10px; border: 1px solid var(--border); margin-bottom: 20px; display: flex; gap: 15px; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+        .filter-bar select, .filter-bar input { padding: 8px; border-radius: 6px; border: 1px solid var(--border); font-size: 0.9rem; }
+        .filter-bar input { flex: 1; }
 
-        .data-row { cursor: pointer; transition: background 0.2s; }
+        /* TABELA GRID */
+        .grid-table { background: var(--white); border-radius: 12px; border: 1px solid var(--border); min-width: 950px; }
+        .grid-row { display: grid; grid-template-columns: 1fr 70px 85px 110px 90px 115px; gap: 0; align-items: center; border-bottom: 1px solid var(--border); }
+        .grid-header { background: #f1f5f9; font-weight: 700; font-size: 0.7rem; text-transform: uppercase; color: #64748b; position: sticky; top: 0; z-index: 10; }
+        .grid-row > div { padding: 12px 15px; }
+
+        .data-row { cursor: pointer; }
         .data-row:hover { background-color: #f1f5f9; }
+        .expandable-panel { max-height: 0; overflow: hidden; transition: max-height 0.4s ease-out; background: #fafbfc; }
+        .expandable-panel.active { max-height: 1000px; border-bottom: 1px solid var(--border); }
+        .details-content { padding: 20px; border-left: 5px solid var(--secondary); margin: 10px; background: white; border-radius: 5px; }
 
-        /* EXPANSÃO SUAVE E REALMENTE RECOLHÍVEL */
-        .expandable-panel { 
-            max-height: 0; 
-            overflow: hidden; 
-            transition: max-height 0.5s ease-in-out, opacity 0.3s ease; 
-            opacity: 0;
-            background: #fafbfc;
-            border-bottom: 0px solid transparent;
-        }
-        
-        .expandable-panel.active { 
-            max-height: 1500px;
-            opacity: 1;
-            border-bottom: 1px solid var(--border);
-        }
+        /* PAGINAÇÃO */
+        .pagination { display: flex; justify-content: center; gap: 5px; margin-top: 20px; padding-bottom: 40px; }
+        .pagination button { padding: 8px 12px; border: 1px solid var(--border); background: white; border-radius: 5px; cursor: pointer; }
+        .pagination button.active { background: var(--secondary); color: white; border-color: var(--secondary); }
 
-        .details-content { padding: 30px; border-left: 5px solid var(--secondary); margin: 15px; background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-
-        .badge-type { background: #e2e8f0; color: #475569; padding: 3px 8px; border-radius: 4px; font-size: 0.65rem; font-weight: bold; }
-        .loading-container { display: flex; align-items: center; justify-content: center; min-height: 300px; width: 100%; }
-        .loading-box { text-align: center; padding: 30px; background: white; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-        .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--secondary); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 15px; }
+        .loading-container { text-align: center; padding: 50px; }
+        .spinner { width: 30px; height: 30px; border: 3px solid #f3f3f3; border-top: 3px solid var(--secondary); border-radius: 50%; animation: spin 1s linear infinite; margin: auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .btn-web { display: inline-block; background: var(--secondary); color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-size: 0.85rem; margin-top: 20px; font-weight: bold; }
+        .btn-web { display: inline-block; background: var(--secondary); color: white; padding: 8px 12px; border-radius: 5px; text-decoration: none; font-size: 0.8rem; margin-top: 10px; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -79,10 +51,10 @@
     <nav>
         <h2>📊 Scopus 3D</h2>
         <button onclick="location.reload()">🏠 Início</button>
-        <button onclick="fetchData('artigo', 'titulo')">📑 Artigos</button>
-        <button onclick="fetchData('autor', 'nome')">👥 Autores</button>
-        <button onclick="fetchData('palavras_chaves', 'palavras_chaves')">🔑 Palavras-Chave</button>
-        <button onclick="fetchData('referencia', 'referencia')">📚 Referências</button>
+        <button onclick="loadSection('artigo', 'titulo')">📑 Artigos</button>
+        <button onclick="loadSection('autor', 'nome')">👥 Autores</button>
+        <button onclick="loadSection('palavras_chaves', 'palavras_chaves')">🔑 Palavras-Chave</button>
+        <button onclick="loadSection('referencia', 'referencia')">📚 Referências</button>
         <input type="file" id="csv-input" accept=".csv">
         <button class="btn-import" onclick="document.getElementById('csv-input').click()">📤 Importar CSV</button>
     </nav>
@@ -90,7 +62,7 @@
     <main id="main-content">
         <div style="text-align: center; margin-top: 100px;">
             <h1>Dashboard Acadêmico Pro</h1>
-            <p>Selecione uma tabela ao lado. Clique em uma linha para expandir/recolher.</p>
+            <p>Selecione uma tabela para filtrar e navegar pelos dados.</p>
         </div>
     </main>
 
@@ -99,21 +71,85 @@
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkdGF6cW1mYm5hZXRocnBrc2h6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2MzcwMjUsImV4cCI6MjA5NDIxMzAyNX0.Rd-i2suGjKmaWjBDo9HwFwAaoiOYdQJCNU_NGfgRJ5A'
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
 
-    async function fetchData(tableName, orderColumn) {
+    let allData = [];
+    let filteredData = [];
+    let currentTable = '';
+    let currentPage = 1;
+    const pageSize = 20;
+
+    async function loadSection(tableName, orderCol) {
+        currentTable = tableName;
+        currentPage = 1;
         const main = document.getElementById('main-content');
-        main.innerHTML = `<div class="loading-container"><div class="loading-box"><div class="spinner"></div>Carregando ${tableName}...</div></div>`;
-        const { data, error } = await _supabase.from(tableName).select('*').order(orderColumn, { ascending: true });
-        if (error) { main.innerHTML = `<h1>Erro</h1><p>${error.message}</p>`; return; }
+        main.innerHTML = `<div class="loading-container"><div class="spinner"></div><br>Buscando dados...</div>`;
+        
+        const { data, error } = await _supabase.from(tableName).select('*').order(orderCol, { ascending: true }).limit(2000);
+        if (error) return main.innerHTML = `<h1>Erro</h1><p>${error.message}</p>`;
+        
+        allData = data;
+        filteredData = data;
+        renderDashboard();
+    }
 
-        let html = `<h1>Tabela: ${tableName} (${data.length})</h1><div class="grid-table">`;
-        if(tableName === 'artigo') html += `<div class="grid-row grid-header"><div>Título</div><div>Ano</div><div>Citações</div><div>ISSN</div><div>Vol/Iss</div><div>Tipo</div></div>`;
-        else html += `<div class="grid-row grid-header" style="grid-template-columns: 1fr 150px"><div>Descrição</div><div>ID do Banco</div></div>`;
+    function renderDashboard() {
+        const main = document.getElementById('main-content');
+        let filterHTML = '';
 
-        data.forEach((item, index) => {
+        if(currentTable === 'artigo') {
+            const years = [...new Set(allData.map(d => d.ano))].sort((a,b) => b-a);
+            const types = [...new Set(allData.map(d => d.tipo_documento))].filter(Boolean);
+            
+            filterHTML = `
+            <div class="filter-bar">
+                <input type="text" id="search-box" placeholder="Buscar por título..." oninput="applyFilters()">
+                <select id="filter-year" onchange="applyFilters()">
+                    <option value="">Todos os Anos</option>
+                    ${years.map(y => `<option value="${y}">${y}</option>`).join('')}
+                </select>
+                <select id="filter-type" onchange="applyFilters()">
+                    <option value="">Todos os Tipos</option>
+                    ${types.map(t => `<option value="${t}">${t}</option>`).join('')}
+                </select>
+            </div>`;
+        }
+
+        main.innerHTML = `<h1>Tabela: ${currentTable}</h1>${filterHTML}<div id="table-results"></div><div id="pagination-controls"></div>`;
+        updateTable();
+    }
+
+    function applyFilters() {
+        const search = document.getElementById('search-box')?.value.toLowerCase() || '';
+        const year = document.getElementById('filter-year')?.value || '';
+        const type = document.getElementById('filter-type')?.value || '';
+
+        filteredData = allData.filter(d => {
+            const matchSearch = (d.titulo || d.nome || d.palavras_chaves || d.referencia).toLowerCase().includes(search);
+            const matchYear = year === '' || String(d.ano) === year;
+            const matchType = type === '' || d.tipo_documento === type;
+            return matchSearch && matchYear && matchType;
+        });
+        
+        currentPage = 1;
+        updateTable();
+    }
+
+    function updateTable() {
+        const container = document.getElementById('table-results');
+        const start = (currentPage - 1) * pageSize;
+        const pageItems = filteredData.slice(start, start + pageSize);
+
+        let html = `<div class="grid-table">`;
+        if(currentTable === 'artigo') {
+            html += `<div class="grid-row grid-header"><div>Título</div><div>Ano</div><div>Citações</div><div>ISSN</div><div>Vol/Iss</div><div>Tipo</div></div>`;
+        } else {
+            html += `<div class="grid-row grid-header" style="grid-template-columns: 1fr 150px"><div>Descrição</div><div>ID</div></div>`;
+        }
+
+        pageItems.forEach((item, index) => {
             const pId = `p-${index}`, cId = `c-${index}`;
-            if(tableName === 'artigo') {
+            if(currentTable === 'artigo') {
                 html += `
-                <div class="grid-row data-row" onclick="togglePanel('${pId}','artigo','${item.id}','${cId}')">
+                <div class="grid-row data-row" onclick="toggleRow('${pId}','artigo','${item.id}','${cId}')">
                     <div style="font-weight:600; white-space:normal;">${item.titulo}</div>
                     <div>${item.ano}</div>
                     <div style="font-weight:bold; color:var(--secondary)">${item.qtd_citacao || 0}</div>
@@ -124,45 +160,54 @@
                 <div id="${pId}" class="expandable-panel"><div class="details-content" id="${cId}"></div></div>`;
             } else {
                 html += `
-                <div class="grid-row data-row" style="grid-template-columns: 1fr 150px" onclick="togglePanel('${pId}','${tableName}','${item.id}','${cId}')">
-                    <div style="white-space:normal;">${item.nome || item.palavras_chaves || item.referencia}</div>
+                <div class="grid-row data-row" style="grid-template-columns: 1fr 150px" onclick="toggleRow('${pId}','${currentTable}','${item.id}','${cId}')">
+                    <div style="white-space: normal;">${item.nome || item.palavras_chaves || item.referencia}</div>
                     <div style="color:#94a3b8; font-size:0.8rem">${item.id}</div>
                 </div>
                 <div id="${pId}" class="expandable-panel"><div class="details-content" id="${cId}"></div></div>`;
             }
         });
-        main.innerHTML = html + `</div>`;
+        container.innerHTML = html + `</div>`;
+        renderPagination();
     }
 
-    async function togglePanel(pId, type, id, cId) {
-        const panel = document.getElementById(pId), cont = document.getElementById(cId);
-        const isCurrentlyActive = panel.classList.contains('active');
+    function renderPagination() {
+        const controls = document.getElementById('pagination-controls');
+        const totalPages = Math.ceil(filteredData.length / pageSize);
+        if (totalPages <= 1) { controls.innerHTML = ''; return; }
 
-        // 1. Recolhe todos os outros
+        let html = `<div class="pagination">`;
+        for (let i = 1; i <= totalPages; i++) {
+            if (i > 10 && i < totalPages) { if (i === 11) html += `<span>...</span>`; continue; } // Limita exibição
+            html += `<button class="${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">${i}</button>`;
+        }
+        controls.innerHTML = html + `</div>`;
+    }
+
+    function changePage(p) { currentPage = i = p; updateTable(); document.querySelector('main').scrollTop = 0; }
+
+    async function toggleRow(pId, type, id, cId) {
+        const panel = document.getElementById(pId), cont = document.getElementById(cId);
+        const isOpen = panel.classList.contains('active');
         document.querySelectorAll('.expandable-panel').forEach(p => p.classList.remove('active'));
-        
-        // 2. Se o clicado não estava ativo, abre ele
-        if (!isCurrentlyActive) {
+        if (!isOpen) {
             panel.classList.add('active');
             if(cont.innerHTML === "") {
-                cont.innerHTML = "<em>Buscando conexões no banco de dados...</em>";
                 const { data } = await _supabase.from(type).select('*').eq('id', id).single();
                 if (type === 'artigo') {
                     const lk = data.link || (data.doi ? `https://doi.org/${data.doi}` : null);
-                    cont.innerHTML = `<h3>Abstract:</h3><p style="line-height:1.7; text-align:justify; color: #475569;">${data.resumo || 'Sem resumo.'}</p>
-                                      <strong>DOI:</strong> ${data.doi || 'N/A'} | <strong>Citações:</strong> ${data.qtd_citacao || 0}<br>
-                                      ${lk ? `<a href="${lk}" target="_blank" class="btn-web">🌐 Ver Artigo no Scopus</a>` : ''}`;
+                    cont.innerHTML = `<h3>Abstract:</h3><p style="line-height:1.7; text-align:justify;">${data.resumo || 'Sem resumo'}</p><strong>DOI:</strong> ${data.doi || 'N/A'}<br>${lk ? `<a href="${lk}" target="_blank" class="btn-web">🌐 Ver Artigo no Scopus</a>` : ''}`;
                 } else {
                     let tb = type==='autor'?'artigo_autor':(type==='palavras_chaves'?'artigo_palavrachave':'artigo_referencia');
                     let fl = type==='autor'?'id_autor':(type==='palavras_chaves'?'id_palavrachave':'id_referencia');
                     const { data: rel } = await _supabase.from(tb).select('artigo(titulo, ano, doi, link)').eq(fl, id);
-                    cont.innerHTML = `<h3>Artigos Conectados:</h3>` + (rel?.length ? rel.map(d => `<div style="margin:10px 0; padding:12px; background:#f8fafc; border-radius:8px; border:1px solid #e2e8f0">📄 <a href="${d.artigo.link || (d.artigo.doi ? 'https://doi.org/'+d.artigo.doi : '#')}" target="_blank" style="color:#3b82f6; text-decoration:none; font-weight:bold;">${d.artigo.titulo}</a> (${d.artigo.ano})</div>`).join('') : '<p>Sem conexões encontradas.</p>');
+                    cont.innerHTML = `<h3>Artigos Relacionados:</h3>` + (rel?.length ? rel.map(d => `<div style="margin:8px 0; padding:10px; background:#f8fafc; border-radius:8px; border:1px solid #e2e8f0">📄 <a href="${d.artigo.link || (d.artigo.doi ? 'https://doi.org/'+d.artigo.doi : '#')}" target="_blank" style="color:#3b82f6; text-decoration:none; font-weight:bold;">${d.artigo.titulo}</a> (${d.artigo.ano})</div>`).join('') : '<p>Sem conexões.</p>');
                 }
             }
         }
     }
 
-    // IMPORTAÇÃO CORRIGIDA (AUTORES PRIMEIRO, VÍNCULO DEPOIS)
+    // IMPORTAÇÃO TURBO (MANTIDA)
     document.getElementById('csv-input').addEventListener('change', function(e) {
         const file = e.target.files[0]; if (!file) return;
         const main = document.getElementById('main-content');
@@ -172,9 +217,8 @@
                 const total = results.data.length;
                 for (let i = 0; i < total; i++) {
                     const row = results.data[i];
-                    main.innerHTML = `<div class="loading-container"><div class="loading-box"><div class="spinner"></div>🚀 <b>Importando ${i+1} de ${total}</b><br><small>Garantindo integridade dos relacionamentos...</small></div></div>`;
+                    main.innerHTML = `<div class="loading-container"><div class="spinner"></div>🚀 <b>Importando ${i+1} de ${total}</b></div>`;
                     await new Promise(r => setTimeout(r, 1));
-
                     const { data: art } = await _supabase.from('artigo').insert([{
                         titulo: row["Title"] || row["Document Title"], ano: parseInt(row["Year"]) || 0,
                         qtd_citacao: parseInt(row["Cited by"]) || 0, doi: row["DOI"] || "",
@@ -182,31 +226,22 @@
                         tipo_documento: row["Document Type"] || "", issn: row["ISSN"] || "",
                         volume: row["Volume"] || "", issue: row["Issue"] || ""
                     }]).select();
-
                     if (art && art[0]) {
                         const aId = art[0].id;
-                        // 1. Processar Autores (Sequencial para evitar erro de conexão)
                         const auts = (row["Authors"] || row["Author(s)"] || "").split(';').map(s=>s.trim()).filter(s=>s);
                         for(const n of auts) {
                             const idAuth = n.replace(/[^a-z0-9]/gi,'_').toLowerCase();
                             await _supabase.from('autor').upsert({id: idAuth, nome:n, nomecompleto:n});
                             await _supabase.from('artigo_autor').insert({id_artigo:aId, id_autor:idAuth});
                         }
-                        // 2. Keywords
                         const keys = (row["Author Keywords"] || "").split(';').map(s=>s.trim()).filter(s=>s);
                         for(const k of keys) {
                             const { data: kData } = await _supabase.from('palavras_chaves').upsert({palavras_chaves:k}, {onConflict:'palavras_chaves'}).select();
                             if(kData && kData[0]) await _supabase.from('artigo_palavrachave').insert({id_artigo:aId, id_palavrachave:kData[0].id});
                         }
-                        // 3. Referências
-                        const refs = (row["References"] || "").split(';').map(s=>s.trim()).filter(s=>s.length > 15).slice(0, 5);
-                        for(const r of refs) {
-                            const { data: rData } = await _supabase.from('referencia').insert({referencia:r}).select();
-                            if(rData && rData[0]) await _supabase.from('artigo_referencia').insert({id_artigo:aId, id_referencia:rData[0].id});
-                        }
                     }
                 }
-                alert("Importação Concluída com Sucesso!"); fetchData('artigo', 'titulo');
+                alert("Sucesso!"); loadSection('artigo', 'titulo');
             }
         });
     });
