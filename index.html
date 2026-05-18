@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Scopus 3D Relacional</title>
+    <title>Dashboard Scopus 3D Pro</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <style>
@@ -11,25 +11,23 @@
         body { font-family: 'Segoe UI', system-ui, sans-serif; background-color: var(--bg); margin: 0; display: flex; height: 100vh; color: #1e293b; }
         nav { width: 260px; background: var(--primary); color: white; padding: 25px; display: flex; flex-direction: column; gap: 10px; flex-shrink: 0; }
         nav h2 { font-size: 1.2rem; color: var(--secondary); margin-bottom: 20px; border-bottom: 1px solid #334155; padding-bottom: 10px; }
-        nav button { background: transparent; border: 1px solid #334155; color: #cbd5e1; padding: 12px; text-align: left; border-radius: 8px; cursor: pointer; transition: 0.3s; }
+        nav button { background: transparent; border: 1px solid #334155; color: #cbd5e1; padding: 12px; text-align: left; border-radius: 8px; cursor: pointer; transition: 0.3s; font-size: 0.9rem; }
         nav button:hover { background: var(--secondary); color: white; }
         .btn-import { background: var(--accent) !important; border: none !important; margin-top: auto; font-weight: bold; text-align: center !important; color: white !important; }
         #csv-input { display: none; }
         main { flex: 1; padding: 40px; overflow-y: auto; }
         .table-container { background: var(--white); border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: 1px solid var(--border); }
         table { width: 100%; border-collapse: collapse; }
-        th { background: #f1f5f9; padding: 15px; text-align: left; font-weight: 600; border-bottom: 2px solid var(--border); }
-        td { padding: 15px; border-bottom: 1px solid var(--border); }
+        th { background: #f1f5f9; padding: 12px; text-align: left; font-weight: 600; font-size: 0.8rem; text-transform: uppercase; border-bottom: 2px solid var(--border); color: #64748b; }
+        td { padding: 12px; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
         .clickable-row { cursor: pointer; transition: 0.2s; }
         .clickable-row:hover { background-color: #f1f5f9; }
         .expandable-content { display: none; background: #f9fafb; }
         .expandable-content.active { display: table-row; }
-        .details-wrapper { padding: 20px; border-left: 4px solid var(--secondary); }
-        .loading { text-align: center; padding: 50px; font-weight: bold; color: var(--secondary); }
-        .related-item { margin: 5px 0; padding: 10px; background: #fff; border: 1px solid #eee; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-        .article-link { color: var(--secondary); text-decoration: none; font-weight: 500; }
-        .article-link:hover { text-decoration: underline; }
-        .btn-web { display: inline-block; background: var(--secondary); color: white; padding: 8px 15px; border-radius: 5px; text-decoration: none; font-size: 0.85rem; margin-top: 10px; font-weight: bold; }
+        .details-wrapper { padding: 20px; border-left: 4px solid var(--secondary); background: #fff; }
+        .badge-type { background: #f1f5f9; color: #475569; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; border: 1px solid #e2e8f0; }
+        .related-item { margin: 5px 0; padding: 10px; background: #fff; border: 1px solid #eee; border-radius: 6px; font-size: 0.85rem; }
+        .btn-web { display: inline-block; background: var(--secondary); color: white; padding: 8px 15px; border-radius: 5px; text-decoration: none; font-size: 0.8rem; margin-top: 10px; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -47,8 +45,8 @@
 
     <main id="main-content">
         <div style="text-align: center; margin-top: 100px;">
-            <h1>Dashboard Relacional Scopus</h1>
-            <p>Clique nas linhas para expandir os detalhes e acessar os <b>Links Diretos</b>.</p>
+            <h1>Dashboard Acadêmico Completo</h1>
+            <p>Os dados agora incluem ISSN, Volume, Issue e Tipo de Documento.</p>
         </div>
     </main>
 
@@ -64,23 +62,40 @@
         if (error) { main.innerHTML = `<h1>Erro</h1><p>${error.message}</p>`; return; }
 
         let html = `<h1>Tabela: ${tableName} (${data.length} registros)</h1><div class="table-container"><table><thead><tr>`;
-        if(tableName === 'artigo') html += `<th>Título</th><th>Ano</th>`;
-        else if(tableName === 'autor') html += `<th>Nome do Autor</th>`;
-        else if(tableName === 'palavras_chaves') html += `<th>Palavra-Chave</th>`;
-        else if(tableName === 'referencia') html += `<th>Referência</th>`;
+        
+        if(tableName === 'artigo') {
+            html += `<th>Título</th><th>Ano</th><th>ISSN</th><th>Vol/Iss</th><th>Tipo</th>`;
+        } else {
+            html += `<th>Descrição</th><th>ID do Banco</th>`;
+        }
         html += `</tr></thead><tbody>`;
 
         data.forEach((item, index) => {
             const detailId = `detail-${index}`;
             const contentId = `content-${index}`;
-            html += `
-                <tr class="clickable-row" onclick="toggleRow('${detailId}', '${tableName}', '${item.id}', '${contentId}')">
-                    <td><b>${item.titulo || item.nome || item.palavras_chaves || item.referencia}</b></td>
-                    ${item.ano ? `<td>${item.ano}</td>` : ''}
+            
+            if(tableName === 'artigo') {
+                html += `
+                <tr class="clickable-row" onclick="toggleRow('${detailId}', 'artigo', '${item.id}', '${contentId}')">
+                    <td style="max-width:400px"><b>${item.titulo}</b></td>
+                    <td>${item.ano}</td>
+                    <td><small>${item.issn || '-'}</small></td>
+                    <td><small>${item.volume || '-'}/${item.issue || '-'}</small></td>
+                    <td><span class="badge-type">${item.tipo_documento || 'Article'}</span></td>
                 </tr>
                 <tr id="${detailId}" class="expandable-content">
-                    <td colspan="3"><div class="details-wrapper" id="${contentId}">Carregando conexões...</div></td>
+                    <td colspan="5"><div class="details-wrapper" id="${contentId}">Carregando conexões...</div></td>
                 </tr>`;
+            } else {
+                html += `
+                <tr class="clickable-row" onclick="toggleRow('${detailId}', '${tableName}', '${item.id}', '${contentId}')">
+                    <td>${item.nome || item.palavras_chaves || item.referencia}</td>
+                    <td style="color:#94a3b8; font-size:0.8rem">${item.id}</td>
+                </tr>
+                <tr id="${detailId}" class="expandable-content">
+                    <td colspan="2"><div class="details-wrapper" id="${contentId}">Carregando conexões...</div></td>
+                </tr>`;
+            }
         });
         html += `</tbody></table></div>`;
         main.innerHTML = html;
@@ -93,25 +108,22 @@
         document.querySelectorAll('.expandable-content').forEach(r => r.classList.remove('active'));
         row.classList.add('active');
         
+        const { data } = await _supabase.from(type).select('*').eq('id', id).single();
+        
         if (type === 'artigo') {
-            const { data } = await _supabase.from('artigo').select('resumo, doi, link').eq('id', id).single();
-            // Cria um link automático se o campo 'link' estiver vazio mas tiver 'doi'
             const linkFinal = data.link || (data.doi ? `https://doi.org/${data.doi}` : null);
-            
-            container.innerHTML = `<strong>Abstract:</strong><br><em>${data.resumo || 'Sem resumo'}</em><br><br>
-                                   <strong>DOI:</strong> ${data.doi || 'N/A'}<br>
+            container.innerHTML = `<strong>Abstract (Resumo):</strong><br><em>${data.resumo || 'Sem resumo'}</em><br><br>
+                                   <strong>DOI:</strong> ${data.doi || 'N/A'} | <strong>Citações:</strong> ${data.qtd_citacao || 0}<br>
                                    ${linkFinal ? `<a href="${linkFinal}" target="_blank" class="btn-web">🌐 Acessar Artigo Completo</a>` : ''}`;
-        } 
-        else if (type === 'autor' || type === 'palavras_chaves' || type === 'referencia') {
+        } else {
             let joinTable = type === 'autor' ? 'artigo_autor' : (type === 'palavras_chaves' ? 'artigo_palavrachave' : 'artigo_referencia');
             let filterCol = type === 'autor' ? 'id_autor' : (type === 'palavras_chaves' ? 'id_palavrachave' : 'id_referencia');
+            const { data: related } = await _supabase.from(joinTable).select('artigo(titulo, ano, doi, link)').eq(filterCol, id);
             
-            const { data } = await _supabase.from(joinTable).select('artigo(titulo, ano, link, doi)').eq(filterCol, id);
-            container.innerHTML = `<strong>Artigos relacionados (Clique para abrir):</strong>` + 
-                (data?.length ? data.map(d => {
-                    const lk = d.artigo.link || (d.artigo.doi ? `https://doi.org/${d.artigo.doi}` : '#');
-                    return `<div class="related-item">📄 <a href="${lk}" target="_blank" class="article-link">${d.artigo.titulo}</a> (${d.artigo.ano})</div>`;
-                }).join('') : '<p>Sem conexões.</p>');
+            container.innerHTML = `<strong>Artigos relacionados:</strong>` + 
+                (related?.length ? related.map(d => `<div class="related-item">
+                    📄 <a href="${d.artigo.link || (d.artigo.doi ? 'https://doi.org/'+d.artigo.doi : '#')}" target="_blank" style="color:#3b82f6; text-decoration:none;">${d.artigo.titulo}</a> (${d.artigo.ano})
+                </div>`).join('') : '<p>Sem conexões.</p>');
         }
     }
 
@@ -128,7 +140,6 @@
                 for (const row of results.data) {
                     cont++;
                     main.innerHTML = `<div class="loading">🚀 Importando ${cont} de ${total}...</div>`;
-                    
                     const { data: art } = await _supabase.from('artigo').insert([{
                         titulo: row["Title"] || row["Document Title"],
                         ano: parseInt(row["Year"]) || 0,
@@ -136,30 +147,33 @@
                         doi: row["DOI"] || "",
                         link: row["Link"] || "",
                         resumo: row["Abstract"] || "",
-                        tipo_documento: row["Document Type"] || ""
+                        tipo_documento: row["Document Type"] || "",
+                        issn: row["ISSN"] || "",
+                        volume: row["Volume"] || "",
+                        issue: row["Issue"] || ""
                     }]).select();
 
                     if (art && art[0]) {
                         const artigoId = art[0].id;
                         const autores = (row["Authors"] || row["Author(s)"] || "").split(';').map(a => a.trim()).filter(a => a);
-                        if (autores.length) {
-                            const authObjs = autores.map(nome => ({ id: nome.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase(), nome: nome, nomecompleto: nome }));
-                            await _supabase.from('autor').upsert(authObjs);
-                            await _supabase.from('artigo_autor').insert(authObjs.map(o => ({ id_artigo: artigoId, id_autor: o.id })));
+                        for (const nome of autores) {
+                            const authId = nome.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase(); 
+                            await _supabase.from('autor').upsert([{ id: authId, nome: nome, nomecompleto: nome }]);
+                            await _supabase.from('artigo_autor').upsert([{ id_artigo: artigoId, id_autor: authId }]);
                         }
                         const keys = (row["Author Keywords"] || "").split(';').map(k => k.trim()).filter(k => k);
-                        if (keys.length) {
-                            const { data: kData } = await _supabase.from('palavras_chaves').upsert(keys.map(p => ({ palavras_chaves: p })), { onConflict: 'palavras_chaves' }).select();
-                            if (kData) await _supabase.from('artigo_palavrachave').insert(kData.map(k => ({ id_artigo: artigoId, id_palavrachave: k.id })));
+                        for (const p of keys) {
+                            const { data: kData } = await _supabase.from('palavras_chaves').upsert([{ palavras_chaves: p }], { onConflict: 'palavras_chaves' }).select();
+                            if (kData) await _supabase.from('artigo_palavrachave').upsert([{ id_artigo: artigoId, id_palavrachave: kData[0].id }]);
                         }
                         const refs = (row["References"] || "").split(';').map(r => r.trim()).filter(r => r.length > 10).slice(0, 5);
-                        if (refs.length) {
-                            const { data: rData } = await _supabase.from('referencia').insert(refs.map(r => ({ referencia: r }))).select();
-                            if (rData) await _supabase.from('artigo_referencia').insert(rData.map(r => ({ id_artigo: artigoId, id_referencia: r.id })));
+                        for (const r of refs) {
+                            const { data: rData } = await _supabase.from('referencia').insert([{ referencia: r }]).select();
+                            if (rData) await _supabase.from('artigo_referencia').insert([{ id_artigo: artigoId, id_referencia: rData[0].id }]);
                         }
                     }
                 }
-                alert("Importação com Links concluída!");
+                alert("Importação Concluída com novos campos!");
                 fetchData('artigo', 'titulo');
             }
         });
