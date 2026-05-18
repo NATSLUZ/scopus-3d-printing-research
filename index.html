@@ -3,51 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Scopus 3D</title>
+    <title>Dashboard Scopus 3D Relacional</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <style>
-        :root {
-            --primary: #0f172a;
-            --secondary: #3b82f6;
-            --bg: #f8fafc;
-            --border: #e2e8f0;
-            --white: #ffffff;
-        }
-
+        :root { --primary: #0f172a; --secondary: #3b82f6; --bg: #f8fafc; --border: #e2e8f0; --white: #ffffff; }
         body { font-family: 'Segoe UI', system-ui, sans-serif; background-color: var(--bg); margin: 0; display: flex; height: 100vh; color: #1e293b; }
-
-        /* Menu Lateral */
         nav { width: 260px; background: var(--primary); color: white; padding: 25px; display: flex; flex-direction: column; gap: 10px; flex-shrink: 0; }
         nav h2 { font-size: 1.2rem; color: var(--secondary); margin-bottom: 20px; border-bottom: 1px solid #334155; padding-bottom: 10px; }
-        nav button { 
-            background: transparent; border: 1px solid #334155; color: #cbd5e1; 
-            padding: 12px; text-align: left; border-radius: 8px; cursor: pointer; transition: 0.3s;
-        }
+        nav button { background: transparent; border: 1px solid #334155; color: #cbd5e1; padding: 12px; text-align: left; border-radius: 8px; cursor: pointer; transition: 0.3s; }
         nav button:hover { background: var(--secondary); color: white; }
         .btn-import { background: #10b981 !important; border: none !important; margin-top: auto; font-weight: bold; text-align: center !important; color: white !important; }
-
-        /* Área Principal */
         main { flex: 1; padding: 40px; overflow-y: auto; }
-        h1 { margin-top: 0; font-size: 1.8rem; }
-
-        /* Estilo da Tabela */
-        .table-container { background: var(--white); border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border: 1px solid var(--border); }
+        .table-container { background: var(--white); border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: 1px solid var(--border); }
         table { width: 100%; border-collapse: collapse; }
         th { background: #f1f5f9; padding: 15px; text-align: left; font-weight: 600; border-bottom: 2px solid var(--border); }
         td { padding: 15px; border-bottom: 1px solid var(--border); }
-        
-        .clickable-row { cursor: pointer; transition: 0.2s; }
+        .clickable-row { cursor: pointer; }
         .clickable-row:hover { background-color: #f1f5f9; }
-        
-        /* Linha de Detalhes (Escondida por padrão) */
         .expandable-content { display: none; background: #f9fafb; }
         .expandable-content.active { display: table-row; }
-        .details-wrapper { padding: 20px; border-left: 4px solid var(--secondary); line-height: 1.6; }
-
+        .details-wrapper { padding: 20px; border-left: 4px solid var(--secondary); }
         .loading { text-align: center; padding: 50px; font-weight: bold; color: var(--secondary); }
-        #csv-input { display: none; }
-        .badge { background: #dbeafe; color: #1e40af; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; }
+        .related-item { margin: 5px 0; padding: 5px; background: #fff; border: 1px solid #eee; border-radius: 4px; font-size: 0.9rem; }
     </style>
 </head>
 <body>
@@ -59,15 +37,14 @@
         <button onclick="fetchData('autor', 'nome')">👥 Autores</button>
         <button onclick="fetchData('palavras_chaves', 'palavras_chaves')">🔑 Palavras-Chave</button>
         <button onclick="fetchData('referencia', 'referencia')">📚 Referências</button>
-        
         <input type="file" id="csv-input" accept=".csv">
         <button class="btn-import" onclick="document.getElementById('csv-input').click()">📤 Importar CSV</button>
     </nav>
 
     <main id="main-content">
         <div style="text-align: center; margin-top: 100px;">
-            <h1>Portal de Pesquisa Acadêmica</h1>
-            <p>Selecione uma tabela no menu para visualizar os dados em formato tabular.</p>
+            <h1>Dashboard Relacional Scopus</h1>
+            <p>Clique em qualquer linha das tabelas para ver os detalhes e conexões.</p>
         </div>
     </main>
 
@@ -78,71 +55,56 @@
 
     async function fetchData(tableName, orderColumn) {
         const main = document.getElementById('main-content');
-        main.innerHTML = `<div class="loading">⌛ Buscando ${tableName} em ordem alfabética...</div>`;
-
-        const { data, error } = await _supabase
-            .from(tableName)
-            .select('*')
-            .order(orderColumn, { ascending: true });
-
+        main.innerHTML = `<div class="loading">⌛ Carregando ${tableName}...</div>`;
+        const { data, error } = await _supabase.from(tableName).select('*').order(orderColumn, { ascending: true });
         if (error) { main.innerHTML = `<h1>Erro</h1><p>${error.message}</p>`; return; }
 
-        let html = `<h1>Tabela: ${tableName} (${data.length} registros)</h1>`;
-        html += `<div class="table-container"><table><thead><tr>`;
-
-        if(tableName === 'artigo') {
-            html += `<th>Título do Artigo</th><th style="width:100px">Ano</th><th style="width:100px">Citações</th>`;
-        } else if(tableName === 'autor') {
-            html += `<th>Nome Completo</th><th style="width:120px">ID</th>`;
-        } else if(tableName === 'palavras_chaves') {
-            html += `<th>Palavra-Chave</th><th style="width:80px">ID</th>`;
-        } else if(tableName === 'referencia') {
-            html += `<th>Referência Completa</th><th style="width:80px">ID</th>`;
-        }
-
+        let html = `<h1>Tabela: ${tableName} (${data.length} registros)</h1><div class="table-container"><table><thead><tr>`;
+        if(tableName === 'artigo') html += `<th>Título</th><th>Ano</th>`;
+        else if(tableName === 'autor') html += `<th>Nome do Autor</th>`;
+        else if(tableName === 'palavras_chaves') html += `<th>Palavra-Chave</th>`;
+        else if(tableName === 'referencia') html += `<th>Referência</th>`;
         html += `</tr></thead><tbody>`;
 
         data.forEach((item, index) => {
             const detailId = `detail-${index}`;
-            
-            if(tableName === 'artigo') {
-                html += `
-                <tr class="clickable-row" onclick="toggleRow('${detailId}')">
-                    <td><b>${item.titulo}</b></td>
-                    <td><span class="badge">${item.ano}</span></td>
-                    <td>${item.qtd_citacao || 0}</td>
+            const contentId = `content-${index}`;
+            html += `
+                <tr class="clickable-row" onclick="toggleRow('${detailId}', '${tableName}', '${item.id}', '${contentId}')">
+                    <td><b>${item.titulo || item.nome || item.palavras_chaves || item.referencia}</b></td>
+                    ${item.ano ? `<td>${item.ano}</td>` : ''}
                 </tr>
                 <tr id="${detailId}" class="expandable-content">
-                    <td colspan="3">
-                        <div class="details-wrapper">
-                            <h4 style="margin:0">Resumo (Abstract):</h4>
-                            <p style="text-align:justify; font-style: italic;">"${item.resumo || 'Nenhum resumo cadastrado.'}"</p>
-                            <hr style="border:0.5px solid #eee; margin: 15px 0;">
-                            <p><b>DOI:</b> ${item.doi || 'N/A'} | <b>ID do Banco:</b> ${item.id}</p>
-                        </div>
-                    </td>
+                    <td colspan="3"><div class="details-wrapper" id="${contentId}">Carregando conexões...</div></td>
                 </tr>`;
-            } else {
-                html += `<tr>
-                            <td>${item.nome || item.palavras_chaves || item.referencia}</td>
-                            <td style="color: #94a3b8; font-size: 0.8rem;">${item.id}</td>
-                         </tr>`;
-            }
         });
-
         html += `</tbody></table></div>`;
         main.innerHTML = html;
     }
 
-    function toggleRow(id) {
-        const row = document.getElementById(id);
-        // Fecha outras linhas abertas para ficar organizado
-        document.querySelectorAll('.expandable-content').forEach(r => {
-            if (r.id !== id) r.classList.remove('active');
-        });
-        row.classList.toggle('active');
-    }
+    async function toggleRow(rowId, type, id, contentId) {
+        const row = document.getElementById(rowId);
+        const container = document.getElementById(contentId);
+        const isOpening = !row.classList.contains('active');
 
+        document.querySelectorAll('.expandable-content').forEach(r => r.classList.remove('active'));
+        if (isOpening) {
+            row.classList.add('active');
+            // Busca conexões baseada no tipo de tabela
+            if (type === 'artigo') {
+                const { data } = await _supabase.from('artigo').select('resumo, doi').eq('id', id).single();
+                container.innerHTML = `<strong>Abstract:</strong><br><em>${data.resumo || 'Sem resumo'}</em><br><br><strong>DOI:</strong> ${data.doi || 'N/A'}`;
+            } 
+            else if (type === 'autor') {
+                const { data } = await _supabase.from('artigo_autor').select('artigo(titulo, ano)').eq('id_autor', id);
+                container.innerHTML = `<strong>Artigos deste autor:</strong>` + (data.length ? data.map(d => `<div class="related-item">📄 ${d.artigo.titulo} (${d.artigo.ano})</div>`).join('') : '<p>Nenhuma conexão encontrada.</p>');
+            }
+            else if (type === 'palavras_chaves') {
+                const { data } = await _supabase.from('artigo_palavrachave').select('artigo(titulo, ano)').eq('id_palavrachave', id);
+                container.innerHTML = `<strong>Artigos com esta palavra-chave:</strong>` + (data.length ? data.map(d => `<div class="related-item">📄 ${d.artigo.titulo} (${d.artigo.ano})</div>`).join('') : '<p>Nenhuma conexão encontrada.</p>');
+            }
+        }
+    
     document.getElementById('csv-input').addEventListener('change', function(e) {
         const file = e.target.files[0];
         if (!file) return;
