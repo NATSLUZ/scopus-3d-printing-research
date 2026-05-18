@@ -9,31 +9,24 @@
     <style>
         :root { --primary: #0f172a; --secondary: #3b82f6; --bg: #f8fafc; --border: #e2e8f0; --white: #ffffff; }
         body { font-family: 'Segoe UI', system-ui, sans-serif; background-color: var(--bg); margin: 0; display: flex; height: 100vh; color: #1e293b; }
-        
-        /* Menu Lateral */
         nav { width: 260px; background: var(--primary); color: white; padding: 25px; display: flex; flex-direction: column; gap: 10px; flex-shrink: 0; }
         nav h2 { font-size: 1.2rem; color: var(--secondary); margin-bottom: 20px; border-bottom: 1px solid #334155; padding-bottom: 10px; }
         nav button { background: transparent; border: 1px solid #334155; color: #cbd5e1; padding: 12px; text-align: left; border-radius: 8px; cursor: pointer; transition: 0.3s; }
         nav button:hover { background: var(--secondary); color: white; }
-        
         .btn-import { background: #10b981 !important; border: none !important; margin-top: auto; font-weight: bold; text-align: center !important; color: white !important; }
-        #csv-input { display: none; } /* Isso esconde o botão feio do sistema */
-
+        #csv-input { display: none; }
         main { flex: 1; padding: 40px; overflow-y: auto; }
         .table-container { background: var(--white); border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: 1px solid var(--border); }
         table { width: 100%; border-collapse: collapse; }
         th { background: #f1f5f9; padding: 15px; text-align: left; font-weight: 600; border-bottom: 2px solid var(--border); }
         td { padding: 15px; border-bottom: 1px solid var(--border); }
-        
         .clickable-row { cursor: pointer; }
         .clickable-row:hover { background-color: #f1f5f9; }
-        
         .expandable-content { display: none; background: #f9fafb; }
         .expandable-content.active { display: table-row; }
         .details-wrapper { padding: 20px; border-left: 4px solid var(--secondary); }
-        
         .loading { text-align: center; padding: 50px; font-weight: bold; color: var(--secondary); }
-        .related-item { margin: 5px 0; padding: 8px; background: #fff; border: 1px solid #eee; border-radius: 4px; font-size: 0.9rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .related-item { margin: 5px 0; padding: 8px; background: #fff; border: 1px solid #eee; border-radius: 4px; font-size: 0.85rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
     </style>
 </head>
 <body>
@@ -45,8 +38,6 @@
         <button onclick="fetchData('autor', 'nome')">👥 Autores</button>
         <button onclick="fetchData('palavras_chaves', 'palavras_chaves')">🔑 Palavras-Chave</button>
         <button onclick="fetchData('referencia', 'referencia')">📚 Referências</button>
-        
-        <!-- O input fica escondido e o botão verde chama ele -->
         <input type="file" id="csv-input" accept=".csv">
         <button class="btn-import" onclick="document.getElementById('csv-input').click()">📤 Importar CSV</button>
     </nav>
@@ -55,7 +46,6 @@
         <div style="text-align: center; margin-top: 100px;">
             <h1>Dashboard Relacional Scopus</h1>
             <p>Selecione uma tabela ao lado para explorar os dados.</p>
-            <p>Clique nas linhas para expandir os detalhes e <b>conexões relacionais</b>.</p>
         </div>
     </main>
 
@@ -67,16 +57,16 @@
     async function fetchData(tableName, orderColumn) {
         const main = document.getElementById('main-content');
         main.innerHTML = `<div class="loading">⌛ Carregando ${tableName}...</div>`;
-        
         const { data, error } = await _supabase.from(tableName).select('*').order(orderColumn, { ascending: true });
-        
         if (error) { main.innerHTML = `<h1>Erro</h1><p>${error.message}</p>`; return; }
 
         let html = `<h1>Tabela: ${tableName} (${data.length} registros)</h1><div class="table-container"><table><thead><tr>`;
-        if(tableName === 'artigo') html += `<th>Título</th><th>Ano</th>`;
-        else if(tableName === 'autor') html += `<th>Nome do Autor</th>`;
-        else if(tableName === 'palavras_chaves') html += `<th>Palavra-Chave</th>`;
-        else if(tableName === 'referencia') html += `<th>Referência</th>`;
+        
+        if(tableName === 'artigo') html += `<th>Título</th><th style="width:80px">Ano</th><th style="width:80px">Citações</th>`;
+        else if(tableName === 'autor') html += `<th>Nome do Autor</th><th style="width:100px">ID</th>`;
+        else if(tableName === 'palavras_chaves') html += `<th>Palavra-Chave</th><th style="width:80px">ID</th>`;
+        else if(tableName === 'referencia') html += `<th>Referência</th><th style="width:80px">ID</th>`;
+        
         html += `</tr></thead><tbody>`;
 
         data.forEach((item, index) => {
@@ -85,49 +75,41 @@
             html += `
                 <tr class="clickable-row" onclick="toggleRow('${detailId}', '${tableName}', '${item.id}', '${contentId}')">
                     <td><b>${item.titulo || item.nome || item.palavras_chaves || item.referencia}</b></td>
-                    ${item.ano ? `<td>${item.ano}</td>` : ''}
+                    ${tableName === 'artigo' ? `<td>${item.ano}</td><td>${item.qtd_citacao || 0}</td>` : `<td style="color:#94a3b8; font-size:0.8rem">${item.id}</td>`}
                 </tr>
                 <tr id="${detailId}" class="expandable-content">
-                    <td colspan="3"><div class="details-wrapper" id="${contentId}">Carregando conexões...</div></td>
+                    <td colspan="4"><div class="details-wrapper" id="${contentId}">Carregando conexões...</div></td>
                 </tr>`;
         });
         html += `</tbody></table></div>`;
         main.innerHTML = html;
     }
 
-  async function toggleRow(rowId, type, id, contentId) {
+    async function toggleRow(rowId, type, id, contentId) {
         const row = document.getElementById(rowId);
         const container = document.getElementById(contentId);
         const isOpening = !row.classList.contains('active');
 
-        // Fecha outras linhas abertas para o dashboard ficar limpo
         document.querySelectorAll('.expandable-content').forEach(r => r.classList.remove('active'));
         
         if (isOpening) {
             row.classList.add('active');
             
-            // 1. Lógica para ARTIGOS (Mostra Resumo e DOI)
             if (type === 'artigo') {
                 const { data } = await _supabase.from('artigo').select('resumo, doi').eq('id', id).single();
-                container.innerHTML = `<strong>Abstract (Resumo):</strong><br><em>${data.resumo || 'Sem resumo cadastrado'}</em><br><br><strong>DOI:</strong> ${data.doi || 'N/A'}`;
+                container.innerHTML = `<strong>Abstract:</strong><br><em>${data.resumo || 'Sem resumo'}</em><br><br><strong>DOI:</strong> ${data.doi || 'N/A'}`;
             } 
-            // 2. Lógica para AUTORES (Mostra Artigos que ele escreveu)
             else if (type === 'autor') {
                 const { data } = await _supabase.from('artigo_autor').select('artigo(titulo, ano)').eq('id_autor', id);
-                container.innerHTML = `<strong>Artigos relacionados a este autor:</strong>` + 
-                    (data && data.length ? data.map(d => `<div class="related-item">📄 ${d.artigo.titulo} (${d.artigo.ano})</div>`).join('') : '<p>Nenhuma conexão encontrada.</p>');
+                container.innerHTML = `<strong>Artigos deste autor:</strong>` + (data && data.length ? data.map(d => `<div class="related-item">📄 ${d.artigo.titulo} (${d.artigo.ano})</div>`).join('') : '<p>Sem conexões.</p>');
             }
-            // 3. Lógica para PALAVRAS-CHAVE (Mostra Artigos com essa tag)
             else if (type === 'palavras_chaves') {
                 const { data } = await _supabase.from('artigo_palavrachave').select('artigo(titulo, ano)').eq('id_palavrachave', id);
-                container.innerHTML = `<strong>Artigos que usam esta palavra-chave:</strong>` + 
-                    (data && data.length ? data.map(d => `<div class="related-item">📄 ${d.artigo.titulo} (${d.artigo.ano})</div>`).join('') : '<p>Nenhuma conexão encontrada.</p>');
+                container.innerHTML = `<strong>Artigos com esta palavra-chave:</strong>` + (data && data.length ? data.map(d => `<div class="related-item">📄 ${d.artigo.titulo} (${d.artigo.ano})</div>`).join('') : '<p>Sem conexões.</p>');
             }
-            // 4. Lógica para REFERÊNCIAS (Mostra qual artigo citou essa referência)
             else if (type === 'referencia') {
                 const { data } = await _supabase.from('artigo_referencia').select('artigo(titulo, ano)').eq('id_referencia', id);
-                container.innerHTML = `<strong>Artigos que citam esta referência:</strong>` + 
-                    (data && data.length ? data.map(d => `<div class="related-item">📄 ${d.artigo.titulo} (${d.artigo.ano})</div>`).join('') : '<p>Este item ainda não possui conexões mapeadas no banco.</p>');
+                container.innerHTML = `<strong>Artigos que citam esta referência:</strong>` + (data && data.length ? data.map(d => `<div class="related-item">📄 ${d.artigo.titulo} (${d.artigo.ano})</div>`).join('') : '<p>Sem conexões.</p>');
             }
         }
     }
@@ -145,7 +127,7 @@
                 let cont = 0;
                 for (const row of results.data) {
                     cont++;
-                    main.innerHTML = `<div class="loading">🚀 Importando ${cont} de ${total}...</div>`;
+                    main.innerHTML = `<div class="loading">🚀 Importando ${cont} de ${total}...<br>Criando relacionamentos.</div>`;
                     
                     const { data: art } = await _supabase.from('artigo').insert([{
                         titulo: row["Title"] || row["Document Title"],
@@ -158,6 +140,7 @@
 
                     if (art && art[0]) {
                         const artigoId = art[0].id;
+                        // 1. Autores
                         const autoresRaw = row["Authors"] || row["Author(s)"] || "";
                         const listaAutores = autoresRaw.split(';').map(a => a.trim()).filter(a => a);
                         for (const nome of listaAutores) {
@@ -165,15 +148,23 @@
                             await _supabase.from('autor').upsert([{ id: authId, nome: nome, nomecompleto: nome }]);
                             await _supabase.from('artigo_autor').upsert([{ id_artigo: artigoId, id_autor: authId }]);
                         }
+                        // 2. Keywords
                         const keysRaw = row["Author Keywords"] || "";
                         const listaKeys = keysRaw.split(';').map(k => k.trim()).filter(k => k);
                         for (const p of listaKeys) {
                             const { data: kData } = await _supabase.from('palavras_chaves').upsert([{ palavras_chaves: p }], { onConflict: 'palavras_chaves' }).select();
                             if (kData && kData[0]) await _supabase.from('artigo_palavrachave').upsert([{ id_artigo: artigoId, id_palavrachave: kData[0].id }]);
                         }
+                        // 3. Referências (NOVO: Lógica restaurada)
+                        const refsRaw = row["References"] || "";
+                        const listaRefs = refsRaw.split(';').map(r => r.trim()).filter(r => r.length > 10).slice(0, 5);
+                        for (const r of listaRefs) {
+                            const { data: rData } = await _supabase.from('referencia').insert([{ referencia: r }]).select();
+                            if (rData && rData[0]) await _supabase.from('artigo_referencia').insert([{ id_artigo: artigoId, id_referencia: rData[0].id }]);
+                        }
                     }
                 }
-                alert("Importação concluída!");
+                alert("Importação completa!");
                 fetchData('artigo', 'titulo');
             }
         });
