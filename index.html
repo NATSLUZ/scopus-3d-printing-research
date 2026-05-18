@@ -131,51 +131,73 @@
         const file = e.target.files[0];
         if (!file) return;
         const main = document.getElementById('main-content');
+        
         Papa.parse(file, {
             header: true,
             skipEmptyLines: true,
             complete: async function(results) {
                 const total = results.data.length;
                 let cont = 0;
+
+                // Função auxiliar para achar colunas mesmo com nomes variados
+                const findVal = (row, search) => {
+                    const key = Object.keys(row).find(k => k.toLowerCase().includes(search.toLowerCase()));
+                    return key ? row[key] : "";
+                };
+
                 for (const row of results.data) {
                     cont++;
-                    main.innerHTML = `<div class="loading">🚀 Importando ${cont} de ${total}...</div>`;
+                    main.innerHTML = `<div class="loading">🚀 Importando ${cont} de ${total}...<br>Mapeando dados do Scopus.</div>`;
+                    
                     const { data: art } = await _supabase.from('artigo').insert([{
-                        titulo: row["Title"] || row["Document Title"],
-                        ano: parseInt(row["Year"]) || 0,
-                        qtd_citacao: parseInt(row["Cited by"]) || 0,
-                        doi: row["DOI"] || "",
-                        link: row["Link"] || "",
-                        resumo: row["Abstract"] || "",
-                        tipo_documento: row["Document Type"] || "",
-                        issn: row["ISSN"] || "",
-                        volume: row["Volume"] || "",
-                        issue: row["Issue"] || ""
+                        titulo: findVal(row, "Title"),
+                        ano: parseInt(findVal(row, "Year")) || 0,
+                        qtd_citacao: parseInt(findVal(row, "Cited by")) || 0,
+                        doi: findVal(row, "DOI"),
+                        link: findVal(row, "Link"),
+                        resumo: findVal(row, "Abstract"),
+                        tipo_documento: findVal(row, "Document Type"),
+                        
+                        // Campos que estavam dando NULL
+                        issn: findVal(row, "ISSN"),
+                        volume: findVal(row, "Volume"),
+                        issue: findVal(row, "Issue"),
+                        tipo_acesso: findVal(row, "Open Access"),
+                        linguagem: findVal(row, "Language of Original Document"),
+                        stagio_publicacao: findVal(row, "Publication Stage")
                     }]).select();
 
                     if (art && art[0]) {
                         const artigoId = art[0].id;
-                        const autores = (row["Authors"] || row["Author(s)"] || "").split(';').map(a => a.trim()).filter(a => a);
-                        for (const nome of autores) {
+                        // Lógica de Autores
+                        const autoresRaw = findVal(row, "Author") || "";
+                        const listaAutores = autoresRaw.split(';').map(a => a.trim()).filter(a => a);
+                        for (const nome of listaAutores) {
                             const authId = nome.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase(); 
                             await _supabase.from('autor').upsert([{ id: authId, nome: nome, nomecompleto: nome }]);
                             await _supabase.from('artigo_autor').upsert([{ id_artigo: artigoId, id_autor: authId }]);
                         }
-                        const keys = (row["Author Keywords"] || "").split(';').map(k => k.trim()).filter(k => k);
-                        for (const p of keys) {
+                        // Lógica de Keywords
+                        const keysRaw = findVal(row, "Keywords") || "";
+                        const listaKeys = keysRaw.split(';').map(k => k.trim()).filter(k => k);
+                        for (const p of listaKeys) {
                             const { data: kData } = await _supabase.from('palavras_chaves').upsert([{ palavras_chaves: p }], { onConflict: 'palavras_chaves' }).select();
-                            if (kData) await _supabase.from('artigo_palavrachave').upsert([{ id_artigo: artigoId, id_palavrachave: kData[0].id }]);
+                            if (kData && kData[0]) await _supabase.from('artigo_palavrachave').upsert([{ id_artigo: artigoId, id_palavrachave: kData[0].id }]);
                         }
-                        const refs = (row["References"] || "").split(';').map(r => r.trim()).filter(r => r.length > 10).slice(0, 5);
-                        for (const r of refs) {
+                        // Lógica de Referências
+                        const refsRaw = findVal(row, "References") || "";
+                        const listaRefs = refsRaw.split(';').map(r => r.trim()).filter(r => r.length > 10).slice(0, 5);
+                        for (const r of listaRefs) {
                             const { data: rData } = await _supabase.from('referencia').insert([{ referencia: r }]).select();
-                            if (rData) await _supabase.from('artigo_referencia').insert([{ id_artigo: artigoId, id_referencia: rData[0].id }]);
+                            if (rData && rData[0]) await _supabase.from('artigo_referencia').insert([{ id_artigo: artigoId, id_referencia: rData[0].id }]);
                         }
                     }
                 }
-                alert("Importação Concluída com novos campos!");
+                alert("Importação Concluída! Verifique os dados agora.");
                 fetchData('artigo', 'titulo');
             }
+        });
+    });
         });
     });
 </script>
