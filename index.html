@@ -9,34 +9,27 @@
     <style>
         :root { --primary: #0f172a; --secondary: #3b82f6; --bg: #f8fafc; --border: #e2e8f0; --white: #ffffff; --accent: #10b981; }
         body { font-family: 'Segoe UI', system-ui, sans-serif; background-color: var(--bg); margin: 0; display: flex; height: 100vh; color: #1e293b; }
-        
         nav { width: 260px; background: var(--primary); color: white; padding: 25px; display: flex; flex-direction: column; gap: 10px; flex-shrink: 0; }
         nav h2 { font-size: 1.2rem; color: var(--secondary); margin-bottom: 20px; border-bottom: 1px solid #334155; padding-bottom: 10px; }
         nav button { background: transparent; border: 1px solid #334155; color: #cbd5e1; padding: 12px; text-align: left; border-radius: 8px; cursor: pointer; transition: 0.3s; }
         nav button:hover { background: var(--secondary); color: white; }
         .btn-import { background: var(--accent) !important; border: none !important; margin-top: auto; font-weight: bold; text-align: center !important; color: white !important; }
         #csv-input { display: none; }
-
         main { flex: 1; padding: 40px; overflow-y: auto; }
         .table-container { background: var(--white); border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: 1px solid var(--border); }
         table { width: 100%; border-collapse: collapse; }
         th { background: #f1f5f9; padding: 15px; text-align: left; font-weight: 600; border-bottom: 2px solid var(--border); }
         td { padding: 15px; border-bottom: 1px solid var(--border); }
-        
-        .clickable-row { cursor: pointer; }
+        .clickable-row { cursor: pointer; transition: 0.2s; }
         .clickable-row:hover { background-color: #f1f5f9; }
         .expandable-content { display: none; background: #f9fafb; }
         .expandable-content.active { display: table-row; }
         .details-wrapper { padding: 20px; border-left: 4px solid var(--secondary); }
-        
         .loading { text-align: center; padding: 50px; font-weight: bold; color: var(--secondary); }
-        
-        /* Estilo dos Links e Botões de Acesso */
         .related-item { margin: 5px 0; padding: 10px; background: #fff; border: 1px solid #eee; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
         .article-link { color: var(--secondary); text-decoration: none; font-weight: 500; }
         .article-link:hover { text-decoration: underline; }
         .btn-web { display: inline-block; background: var(--secondary); color: white; padding: 8px 15px; border-radius: 5px; text-decoration: none; font-size: 0.85rem; margin-top: 10px; font-weight: bold; }
-        .btn-web:hover { opacity: 0.9; }
     </style>
 </head>
 <body>
@@ -54,8 +47,8 @@
 
     <main id="main-content">
         <div style="text-align: center; margin-top: 100px;">
-            <h1>Dashboard Relacional com Links Externos</h1>
-            <p>Navegue pelos artigos e clique nos links para acessar a fonte original no Scopus.</p>
+            <h1>Dashboard Relacional Scopus</h1>
+            <p>Clique nas linhas para expandir os detalhes e acessar os <b>Links Diretos</b>.</p>
         </div>
     </main>
 
@@ -102,28 +95,30 @@
         
         if (type === 'artigo') {
             const { data } = await _supabase.from('artigo').select('resumo, doi, link').eq('id', id).single();
+            // Cria um link automático se o campo 'link' estiver vazio mas tiver 'doi'
+            const linkFinal = data.link || (data.doi ? `https://doi.org/${data.doi}` : null);
+            
             container.innerHTML = `<strong>Abstract:</strong><br><em>${data.resumo || 'Sem resumo'}</em><br><br>
                                    <strong>DOI:</strong> ${data.doi || 'N/A'}<br>
-                                   ${data.link ? `<a href="${data.link}" target="_blank" class="btn-web">🌐 Acessar no Scopus</a>` : ''}`;
+                                   ${linkFinal ? `<a href="${linkFinal}" target="_blank" class="btn-web">🌐 Acessar Artigo Completo</a>` : ''}`;
         } 
         else if (type === 'autor' || type === 'palavras_chaves' || type === 'referencia') {
             let joinTable = type === 'autor' ? 'artigo_autor' : (type === 'palavras_chaves' ? 'artigo_palavrachave' : 'artigo_referencia');
             let filterCol = type === 'autor' ? 'id_autor' : (type === 'palavras_chaves' ? 'id_palavrachave' : 'id_referencia');
             
-            const { data } = await _supabase.from(joinTable).select('artigo(titulo, ano, link)').eq(filterCol, id);
-            container.innerHTML = `<strong>Artigos relacionados (Clique no título para abrir):</strong>` + 
-                (data?.length ? data.map(d => `<div class="related-item">
-                    📄 <a href="${d.artigo.link || '#'}" target="_blank" class="article-link">${d.artigo.titulo}</a> (${d.artigo.ano})
-                </div>`).join('') : '<p>Sem conexões.</p>');
+            const { data } = await _supabase.from(joinTable).select('artigo(titulo, ano, link, doi)').eq(filterCol, id);
+            container.innerHTML = `<strong>Artigos relacionados (Clique para abrir):</strong>` + 
+                (data?.length ? data.map(d => {
+                    const lk = d.artigo.link || (d.artigo.doi ? `https://doi.org/${d.artigo.doi}` : '#');
+                    return `<div class="related-item">📄 <a href="${lk}" target="_blank" class="article-link">${d.artigo.titulo}</a> (${d.artigo.ano})</div>`;
+                }).join('') : '<p>Sem conexões.</p>');
         }
     }
 
-    // LÓGICA DE IMPORTAÇÃO (Mapeando a coluna 'Link')
     document.getElementById('csv-input').addEventListener('change', function(e) {
         const file = e.target.files[0];
         if (!file) return;
         const main = document.getElementById('main-content');
-        
         Papa.parse(file, {
             header: true,
             skipEmptyLines: true,
@@ -139,14 +134,13 @@
                         ano: parseInt(row["Year"]) || 0,
                         qtd_citacao: parseInt(row["Cited by"]) || 0,
                         doi: row["DOI"] || "",
-                        link: row["Link"] || "", // MAPEAMENTO DO LINK AQUI
+                        link: row["Link"] || "",
                         resumo: row["Abstract"] || "",
                         tipo_documento: row["Document Type"] || ""
                     }]).select();
 
                     if (art && art[0]) {
                         const artigoId = art[0].id;
-                        // ... Lógica Turbo de Autores/Keywords/Refs (Mantida igual ao anterior para não quebrar)
                         const autores = (row["Authors"] || row["Author(s)"] || "").split(';').map(a => a.trim()).filter(a => a);
                         if (autores.length) {
                             const authObjs = autores.map(nome => ({ id: nome.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase(), nome: nome, nomecompleto: nome }));
