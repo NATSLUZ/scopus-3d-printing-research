@@ -15,7 +15,8 @@
         nav button:hover { background: var(--secondary); color: white; }
         .btn-import { background: var(--accent) !important; border: none !important; margin-top: auto; font-weight: bold; text-align: center !important; color: white !important; }
         #csv-input { display: none; }
-        main { flex: 1; padding: 40px; overflow-y: auto; }
+        
+        main { flex: 1; padding: 40px; overflow-y: auto; display: flex; flex-direction: column; }
         .table-container { background: var(--white); border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: 1px solid var(--border); }
         table { width: 100%; border-collapse: collapse; }
         th { background: #f1f5f9; padding: 12px; text-align: left; font-weight: 600; font-size: 0.8rem; text-transform: uppercase; border-bottom: 2px solid var(--border); color: #64748b; }
@@ -25,6 +26,23 @@
         .expandable-content { display: none; background: #f9fafb; }
         .expandable-content.active { display: table-row; }
         .details-wrapper { padding: 20px; border-left: 4px solid var(--secondary); background: #fff; }
+        
+        /* CSS PARA CENTRALIZAR O CARREGAMENTO */
+        .loading-box { 
+            margin: auto; 
+            text-align: center; 
+            padding: 40px; 
+            background: white; 
+            border-radius: 15px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            max-width: 400px;
+        }
+        .spinner {
+            width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--secondary);
+            border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
         .badge-type { background: #f1f5f9; color: #475569; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; border: 1px solid #e2e8f0; }
         .related-item { margin: 5px 0; padding: 10px; background: #fff; border: 1px solid #eee; border-radius: 6px; font-size: 0.85rem; }
         .btn-web { display: inline-block; background: var(--secondary); color: white; padding: 8px 15px; border-radius: 5px; text-decoration: none; font-size: 0.8rem; margin-top: 10px; font-weight: bold; }
@@ -44,9 +62,9 @@
     </nav>
 
     <main id="main-content">
-        <div style="text-align: center; margin-top: 100px;">
-            <h1>Dashboard Acadêmico Completo</h1>
-            <p>Os dados agora incluem ISSN, Volume, Issue e Tipo de Documento.</p>
+        <div style="text-align: center; margin: auto;">
+            <h1>Dashboard Acadêmico Pro</h1>
+            <p>Selecione uma tabela ou realize uma nova importação.</p>
         </div>
     </main>
 
@@ -57,44 +75,27 @@
 
     async function fetchData(tableName, orderColumn) {
         const main = document.getElementById('main-content');
-        main.innerHTML = `<div class="loading">⌛ Carregando ${tableName}...</div>`;
+        main.innerHTML = `<div class="loading-box"><div class="spinner"></div><b>Carregando ${tableName}...</b></div>`;
         const { data, error } = await _supabase.from(tableName).select('*').order(orderColumn, { ascending: true });
         if (error) { main.innerHTML = `<h1>Erro</h1><p>${error.message}</p>`; return; }
 
         let html = `<h1>Tabela: ${tableName} (${data.length} registros)</h1><div class="table-container"><table><thead><tr>`;
-        
-        if(tableName === 'artigo') {
-            html += `<th>Título</th><th>Ano</th><th>ISSN</th><th>Vol/Iss</th><th>Tipo</th>`;
-        } else {
-            html += `<th>Descrição</th><th>ID do Banco</th>`;
-        }
+        if(tableName === 'artigo') html += `<th>Título</th><th>Ano</th><th>ISSN</th><th>Vol/Iss</th><th>Tipo</th>`;
+        else html += `<th>Descrição</th><th>ID</th>`;
         html += `</tr></thead><tbody>`;
 
         data.forEach((item, index) => {
             const detailId = `detail-${index}`;
             const contentId = `content-${index}`;
-            
             if(tableName === 'artigo') {
-                html += `
-                <tr class="clickable-row" onclick="toggleRow('${detailId}', 'artigo', '${item.id}', '${contentId}')">
-                    <td style="max-width:400px"><b>${item.titulo}</b></td>
-                    <td>${item.ano}</td>
-                    <td><small>${item.issn || '-'}</small></td>
-                    <td><small>${item.volume || '-'}/${item.issue || '-'}</small></td>
-                    <td><span class="badge-type">${item.tipo_documento || 'Article'}</span></td>
-                </tr>
-                <tr id="${detailId}" class="expandable-content">
-                    <td colspan="5"><div class="details-wrapper" id="${contentId}">Carregando conexões...</div></td>
-                </tr>`;
+                html += `<tr class="clickable-row" onclick="toggleRow('${detailId}', 'artigo', '${item.id}', '${contentId}')">
+                    <td style="max-width:400px"><b>${item.titulo}</b></td><td>${item.ano}</td><td><small>${item.issn || '-'}</small></td>
+                    <td><small>${item.volume || '-'}/${item.issue || '-'}</small></td><td><span class="badge-type">${item.tipo_documento || 'Article'}</span></td>
+                </tr><tr id="${detailId}" class="expandable-content"><td colspan="5"><div class="details-wrapper" id="${contentId}">Carregando conexões...</div></td></tr>`;
             } else {
-                html += `
-                <tr class="clickable-row" onclick="toggleRow('${detailId}', '${tableName}', '${item.id}', '${contentId}')">
-                    <td>${item.nome || item.palavras_chaves || item.referencia}</td>
-                    <td style="color:#94a3b8; font-size:0.8rem">${item.id}</td>
-                </tr>
-                <tr id="${detailId}" class="expandable-content">
-                    <td colspan="2"><div class="details-wrapper" id="${contentId}">Carregando conexões...</div></td>
-                </tr>`;
+                html += `<tr class="clickable-row" onclick="toggleRow('${detailId}', '${tableName}', '${item.id}', '${contentId}')">
+                    <td>${item.nome || item.palavras_chaves || item.referencia}</td><td style="color:#94a3b8; font-size:0.8rem">${item.id}</td>
+                </tr><tr id="${detailId}" class="expandable-content"><td colspan="2"><div class="details-wrapper" id="${contentId}">Carregando conexões...</div></td></tr>`;
             }
         });
         html += `</tbody></table></div>`;
@@ -107,23 +108,15 @@
         if (row.classList.contains('active')) { row.classList.remove('active'); return; }
         document.querySelectorAll('.expandable-content').forEach(r => r.classList.remove('active'));
         row.classList.add('active');
-        
         const { data } = await _supabase.from(type).select('*').eq('id', id).single();
-        
         if (type === 'artigo') {
             const linkFinal = data.link || (data.doi ? `https://doi.org/${data.doi}` : null);
-            container.innerHTML = `<strong>Abstract (Resumo):</strong><br><em>${data.resumo || 'Sem resumo'}</em><br><br>
-                                   <strong>DOI:</strong> ${data.doi || 'N/A'} | <strong>Citações:</strong> ${data.qtd_citacao || 0}<br>
-                                   ${linkFinal ? `<a href="${linkFinal}" target="_blank" class="btn-web">🌐 Acessar Artigo Completo</a>` : ''}`;
+            container.innerHTML = `<strong>Abstract:</strong><br><em>${data.resumo || 'Sem resumo'}</em><br><br><strong>DOI:</strong> ${data.doi || 'N/A'} | <strong>Citações:</strong> ${data.qtd_citacao || 0}<br>${linkFinal ? `<a href="${linkFinal}" target="_blank" class="btn-web">🌐 Acessar Artigo Completo</a>` : ''}`;
         } else {
             let joinTable = type === 'autor' ? 'artigo_autor' : (type === 'palavras_chaves' ? 'artigo_palavrachave' : 'artigo_referencia');
             let filterCol = type === 'autor' ? 'id_autor' : (type === 'palavras_chaves' ? 'id_palavrachave' : 'id_referencia');
             const { data: related } = await _supabase.from(joinTable).select('artigo(titulo, ano, doi, link)').eq(filterCol, id);
-            
-            container.innerHTML = `<strong>Artigos relacionados:</strong>` + 
-                (related?.length ? related.map(d => `<div class="related-item">
-                    📄 <a href="${d.artigo.link || (d.artigo.doi ? 'https://doi.org/'+d.artigo.doi : '#')}" target="_blank" style="color:#3b82f6; text-decoration:none;">${d.artigo.titulo}</a> (${d.artigo.ano})
-                </div>`).join('') : '<p>Sem conexões.</p>');
+            container.innerHTML = `<strong>Artigos relacionados:</strong>` + (related?.length ? related.map(d => `<div class="related-item">📄 <a href="${d.artigo.link || (d.artigo.doi ? 'https://doi.org/'+d.artigo.doi : '#')}" target="_blank" style="color:#3b82f6; text-decoration:none;">${d.artigo.titulo}</a> (${d.artigo.ano})</div>`).join('') : '<p>Sem conexões.</p>');
         }
     }
 
@@ -131,63 +124,48 @@
         const file = e.target.files[0];
         if (!file) return;
         const main = document.getElementById('main-content');
-        
         Papa.parse(file, {
-            header: true,
-            skipEmptyLines: true,
+            header: true, skipEmptyLines: true,
             complete: async function(results) {
                 const total = results.data.length;
                 let cont = 0;
-
                 const findVal = (row, search) => {
                     const key = Object.keys(row).find(k => k.toLowerCase().includes(search.toLowerCase()));
                     return key ? row[key] : "";
                 };
-
                 for (const row of results.data) {
                     cont++;
-                    main.innerHTML = `<div class="loading">🚀 Importando ${cont} de ${total}...<br>Mapeando dados do Scopus.</div>`;
-                    
+                    main.innerHTML = `<div class="loading-box"><div class="spinner"></div>🚀 <b>Importando ${cont} de ${total}</b><br><small>Mapeando dados relacionais...</small></div>`;
                     const { data: art } = await _supabase.from('artigo').insert([{
-                        titulo: findVal(row, "Title"),
-                        ano: parseInt(findVal(row, "Year")) || 0,
-                        qtd_citacao: parseInt(findVal(row, "Cited by")) || 0,
-                        doi: findVal(row, "DOI"),
-                        link: findVal(row, "Link"),
-                        resumo: findVal(row, "Abstract"),
-                        tipo_documento: findVal(row, "Document Type"),
-                        issn: findVal(row, "ISSN"),
-                        volume: findVal(row, "Volume"),
-                        issue: findVal(row, "Issue"),
-                        tipo_acesso: findVal(row, "Open Access"),
-                        linguagem: findVal(row, "Language of Original Document"),
-                        stagio_publicacao: findVal(row, "Publication Stage")
+                        titulo: findVal(row, "Title"), ano: parseInt(findVal(row, "Year")) || 0,
+                        qtd_citacao: parseInt(findVal(row, "Cited by")) || 0, doi: findVal(row, "DOI"),
+                        link: findVal(row, "Link"), resumo: findVal(row, "Abstract"),
+                        tipo_documento: findVal(row, "Document Type"), issn: findVal(row, "ISSN"),
+                        volume: findVal(row, "Volume"), issue: findVal(row, "Issue"),
+                        tipo_acesso: findVal(row, "Open Access"), linguagem: findVal(row, "Language"),
+                        stagio_publicacao: findVal(row, "Stage")
                     }]).select();
-
                     if (art && art[0]) {
                         const artigoId = art[0].id;
-                        const autoresRaw = findVal(row, "Author") || "";
-                        const listaAutores = autoresRaw.split(';').map(a => a.trim()).filter(a => a);
-                        for (const nome of listaAutores) {
+                        const autores = (findVal(row, "Author")).split(';').map(a => a.trim()).filter(a => a);
+                        for (const nome of autores) {
                             const authId = nome.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase(); 
                             await _supabase.from('autor').upsert([{ id: authId, nome: nome, nomecompleto: nome }]);
                             await _supabase.from('artigo_autor').upsert([{ id_artigo: artigoId, id_autor: authId }]);
                         }
-                        const keysRaw = findVal(row, "Keywords") || "";
-                        const listaKeys = keysRaw.split(';').map(k => k.trim()).filter(k => k);
-                        for (const p of listaKeys) {
+                        const keys = (findVal(row, "Keywords")).split(';').map(k => k.trim()).filter(k => k);
+                        for (const p of keys) {
                             const { data: kData } = await _supabase.from('palavras_chaves').upsert([{ palavras_chaves: p }], { onConflict: 'palavras_chaves' }).select();
                             if (kData && kData[0]) await _supabase.from('artigo_palavrachave').upsert([{ id_artigo: artigoId, id_palavrachave: kData[0].id }]);
                         }
-                        const refsRaw = findVal(row, "References") || "";
-                        const listaRefs = refsRaw.split(';').map(r => r.trim()).filter(r => r.length > 10).slice(0, 5);
-                        for (const r of listaRefs) {
+                        const refs = (findVal(row, "References")).split(';').map(r => r.trim()).filter(r => r.length > 10).slice(0, 5);
+                        for (const r of refs) {
                             const { data: rData } = await _supabase.from('referencia').insert([{ referencia: r }]).select();
                             if (rData && rData[0]) await _supabase.from('artigo_referencia').insert([{ id_artigo: artigoId, id_referencia: rData[0].id }]);
                         }
                     }
                 }
-                alert("Importação Concluída!");
+                alert("Importação Concluída com Sucesso!");
                 fetchData('artigo', 'titulo');
             }
         });
