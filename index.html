@@ -74,9 +74,9 @@
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
 
     // FUNÇÃO PARA BUSCAR DADOS COM ORDENAÇÃO
-    async function fetchData(tableName, orderColumn) {
+   async function fetchData(tableName, orderColumn) {
         const main = document.getElementById('main-content');
-        main.innerHTML = `<div class="loading">⌛ Carregando ${tableName} em ordem alfabética...</div>`;
+        main.innerHTML = `<div class="loading">⌛ Buscando ${tableName} em ordem alfabética...</div>`;
 
         const { data, error } = await _supabase
             .from(tableName)
@@ -86,40 +86,51 @@
         if (error) { main.innerHTML = `<h1>Erro</h1><p>${error.message}</p>`; return; }
 
         let html = `<h1>Tabela: ${tableName} (${data.length} registros)</h1>`;
-        html += `<table><thead><tr>`;
+        html += `<div class="table-container"><table><thead><tr>`;
 
-        // Cabeçalhos dinâmicos
-        if(tableName === 'artigo') html += `<th>Título</th><th>Ano</th><th>Citações</th>`;
-        else if(tableName === 'autor') html += `<th>Nome do Autor</th><th>ID</th>`;
-        else if(tableName === 'palavras_chaves') html += `<th>Palavra-Chave</th>`;
-        else if(tableName === 'referencia') html += `<th>Referência Bibliográfica</th>`;
-        
+        // AJUSTE NOS CABEÇALHOS (Adicionando a coluna ID para todas)
+        if(tableName === 'artigo') {
+            html += `<th>Título do Artigo</th><th style="width:100px">Ano</th><th style="width:100px">Citações</th>`;
+        } else if(tableName === 'autor') {
+            html += `<th>Nome Completo</th><th style="width:80px">ID</th>`;
+        } else if(tableName === 'palavras_chaves') {
+            html += `<th>Palavra-Chave</th><th style="width:80px">ID</th>`;
+        } else if(tableName === 'referencia') {
+            html += `<th>Referência Completa</th><th style="width:80px">ID</th>`;
+        }
+
         html += `</tr></thead><tbody>`;
 
         data.forEach((item, index) => {
-            const rowId = `row-${index}`;
+            const detailId = `detail-${index}`;
+            
             if(tableName === 'artigo') {
                 html += `
-                <tr onclick="toggleDetails('${rowId}')">
-                    <td>${item.titulo}</td>
-                    <td><span class="badge">${item.ano}</span></td>
-                    <td>${item.qtd_citacao}</td>
+                <tr class="clickable-row" onclick="toggleRow('${detailId}')">
+                    <td><b>${item.titulo}</b></td>
+                    <td>${item.ano}</td>
+                    <td>${item.qtd_citacao || 0}</td>
                 </tr>
-                <tr id="${rowId}" class="details-row">
+                <tr id="${detailId}" class="expandable-content">
                     <td colspan="3">
-                        <div class="details-content">
-                            <strong>Resumo:</strong><br>${item.resumo || 'Sem resumo disponível.'}<br><br>
-                            <strong>DOI:</strong> ${item.doi || 'N/A'} | <strong>Tipo:</strong> ${item.tipo_documento || 'N/A'}
+                        <div class="details-wrapper">
+                            <h4 style="margin-top:0">Resumo (Abstract):</h4>
+                            <p style="text-align:justify; font-style: italic;">"${item.resumo || 'Nenhum resumo cadastrado.'}"</p>
+                            <hr style="border:0.5px solid #eee">
+                            <p><b>DOI:</b> ${item.doi || 'N/A'} | <b>ID do Banco:</b> ${item.id}</p>
                         </div>
                     </td>
                 </tr>`;
             } else {
-                // Outras tabelas apenas listagem simples organizada
-                html += `<tr><td>${item.nome || item.palavras_chaves || item.referencia}</td>${item.id ? `<td>${item.id}</td>` : ''}</tr>`;
+                // AGORA TODAS AS TABELAS MOSTRARÃO O ID COM TÍTULO
+                html += `<tr>
+                            <td>${item.nome || item.palavras_chaves || item.referencia}</td>
+                            <td style="color: #94a3b8; font-size: 0.8rem;">${item.id}</td>
+                         </tr>`;
             }
         });
 
-        html += `</tbody></table>`;
+        html += `</tbody></table></div>`;
         main.innerHTML = html;
     }
 
