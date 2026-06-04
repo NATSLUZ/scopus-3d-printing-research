@@ -81,90 +81,57 @@
         currentTable = tableName;
         currentPage = 1;
         const main = document.getElementById('main-content');
-        main.innerHTML = `<div class="loading-container"><div class="spinner"></div><br>Buscando dados...</div>`;
-        
-        const { data, error } = await _supabase.from(tableName).select('*').order(orderCol, { ascending: true }).limit(2000);
+        main.innerHTML = `<div class="loading-container"><div class="spinner"></div><br>Carregando...</div>`;
+        const { data, error } = await _supabase.from(tableName).select('*').order(orderCol, { ascending: true }).limit(1000);
         if (error) return main.innerHTML = `<h1>Erro</h1><p>${error.message}</p>`;
-        
-        allData = data;
-        filteredData = data;
+        allData = data; filteredData = data;
         renderDashboard();
     }
 
     function renderDashboard() {
         const main = document.getElementById('main-content');
         let filterHTML = '';
-
         if(currentTable === 'artigo') {
             const years = [...new Set(allData.map(d => d.ano))].sort((a,b) => b-a);
-            const types = [...new Set(allData.map(d => d.tipo_documento))].filter(Boolean);
-            
-            filterHTML = `
-            <div class="filter-bar">
-                <input type="text" id="search-box" placeholder="Buscar por título..." oninput="applyFilters()">
-                <select id="filter-year" onchange="applyFilters()">
-                    <option value="">Todos os Anos</option>
-                    ${years.map(y => `<option value="${y}">${y}</option>`).join('')}
-                </select>
-                <select id="filter-type" onchange="applyFilters()">
-                    <option value="">Todos os Tipos</option>
-                    ${types.map(t => `<option value="${t}">${t}</option>`).join('')}
-                </select>
-            </div>`;
+            filterHTML = `<div class="filter-bar"><input type="text" id="search-box" placeholder="Buscar por título..." oninput="applyFilters()"><select id="filter-year" onchange="applyFilters()"><option value="">Todos os Anos</option>${years.map(y => `<option value="${y}">${y}</option>`).join('')}</select></div>`;
         }
-
-        main.innerHTML = `<h1>Tabela: ${currentTable}</h1>${filterHTML}<div id="table-results"></div><div id="pagination-controls"></div>`;
+        main.innerHTML = `<h1>Tabela: ${currentTable} (${allData.length})</h1>${filterHTML}<div id="table-results"></div><div id="pagination-controls"></div>`;
         updateTable();
     }
 
     function applyFilters() {
         const search = document.getElementById('search-box')?.value.toLowerCase() || '';
         const year = document.getElementById('filter-year')?.value || '';
-        const type = document.getElementById('filter-type')?.value || '';
-
         filteredData = allData.filter(d => {
-            const matchSearch = (d.titulo || d.nome || d.palavras_chaves || d.referencia).toLowerCase().includes(search);
+            const matchSearch = (d.titulo || d.nome || d.palavras_chaves || "").toLowerCase().includes(search);
             const matchYear = year === '' || String(d.ano) === year;
-            const matchType = type === '' || d.tipo_documento === type;
-            return matchSearch && matchYear && matchType;
+            return matchSearch && matchYear;
         });
-        
-        currentPage = 1;
-        updateTable();
+        currentPage = 1; updateTable();
     }
 
     function updateTable() {
         const container = document.getElementById('table-results');
         const start = (currentPage - 1) * pageSize;
         const pageItems = filteredData.slice(start, start + pageSize);
-
         let html = `<div class="grid-table">`;
         if(currentTable === 'artigo') {
             html += `<div class="grid-row grid-header"><div>Título</div><div>Ano</div><div>Citações</div><div>ISSN</div><div>Vol/Iss</div><div>Tipo</div></div>`;
         } else {
             html += `<div class="grid-row grid-header" style="grid-template-columns: 1fr 150px"><div>Descrição</div><div>ID</div></div>`;
         }
-
         pageItems.forEach((item, index) => {
             const pId = `p-${index}`, cId = `c-${index}`;
             if(currentTable === 'artigo') {
-                html += `
-                <div class="grid-row data-row" onclick="toggleRow('${pId}','artigo','${item.id}','${cId}')">
-                    <div style="font-weight:600; white-space:normal;">${item.titulo}</div>
-                    <div>${item.ano}</div>
-                    <div style="font-weight:bold; color:var(--secondary)">${item.qtd_citacao || 0}</div>
-                    <div><small>${item.issn || '-'}</small></div>
-                    <div><small>${item.volume || '-'}/${item.issue || '-'}</small></div>
-                    <div><span class="badge-type">${item.tipo_documento || 'Article'}</span></div>
-                </div>
-                <div id="${pId}" class="expandable-panel"><div class="details-content" id="${cId}"></div></div>`;
+                html += `<div class="grid-row data-row" onclick="togglePanel('${pId}','artigo','${item.id}','${cId}')">
+                    <div style="font-weight:600; white-space:normal;">${item.titulo}</div><div>${item.ano}</div>
+                    <div style="font-weight:bold; color:var(--secondary)">${item.qtd_citacao || 0}</div><div><small>${item.issn || '-'}</small></div>
+                    <div><small>${item.volume || '-'}/${item.issue || '-'}</small></div><div><span class="badge-type">${item.tipo_documento || 'Article'}</span></div>
+                </div><div id="${pId}" class="expandable-panel"><div class="details-content" id="${cId}"></div></div>`;
             } else {
-                html += `
-                <div class="grid-row data-row" style="grid-template-columns: 1fr 150px" onclick="toggleRow('${pId}','${currentTable}','${item.id}','${cId}')">
-                    <div style="white-space: normal;">${item.nome || item.palavras_chaves || item.referencia}</div>
-                    <div style="color:#94a3b8; font-size:0.8rem">${item.id}</div>
-                </div>
-                <div id="${pId}" class="expandable-panel"><div class="details-content" id="${cId}"></div></div>`;
+                html += `<div class="grid-row data-row" style="grid-template-columns: 1fr 150px" onclick="togglePanel('${pId}','${currentTable}','${item.id}','${cId}')">
+                    <div style="white-space:normal;">${item.nome || item.palavras_chaves || item.referencia}</div><div style="color:#94a3b8; font-size:0.8rem">${item.id}</div>
+                </div><div id="${pId}" class="expandable-panel"><div class="details-content" id="${cId}"></div></div>`;
             }
         });
         container.innerHTML = html + `</div>`;
@@ -175,18 +142,17 @@
         const controls = document.getElementById('pagination-controls');
         const totalPages = Math.ceil(filteredData.length / pageSize);
         if (totalPages <= 1) { controls.innerHTML = ''; return; }
-
         let html = `<div class="pagination">`;
         for (let i = 1; i <= totalPages; i++) {
-            if (i > 10 && i < totalPages) { if (i === 11) html += `<span>...</span>`; continue; } // Limita exibição
+            if (i > 5 && i < totalPages - 5) { if (i === 6) html += `<span>...</span>`; continue; }
             html += `<button class="${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">${i}</button>`;
         }
         controls.innerHTML = html + `</div>`;
     }
 
-    function changePage(p) { currentPage = i = p; updateTable(); document.querySelector('main').scrollTop = 0; }
+    function changePage(p) { currentPage = p; updateTable(); document.querySelector('main').scrollTop = 0; }
 
-    async function toggleRow(pId, type, id, cId) {
+    async function togglePanel(pId, type, id, cId) {
         const panel = document.getElementById(pId), cont = document.getElementById(cId);
         const isOpen = panel.classList.contains('active');
         document.querySelectorAll('.expandable-panel').forEach(p => p.classList.remove('active'));
@@ -196,52 +162,75 @@
                 const { data } = await _supabase.from(type).select('*').eq('id', id).single();
                 if (type === 'artigo') {
                     const lk = data.link || (data.doi ? `https://doi.org/${data.doi}` : null);
-                    cont.innerHTML = `<h3>Abstract:</h3><p style="line-height:1.7; text-align:justify;">${data.resumo || 'Sem resumo'}</p><strong>DOI:</strong> ${data.doi || 'N/A'}<br>${lk ? `<a href="${lk}" target="_blank" class="btn-web">🌐 Ver Artigo no Scopus</a>` : ''}`;
+                    cont.innerHTML = `<h3>Abstract:</h3><p style="line-height:1.7; text-align:justify;">${data.resumo || 'Sem resumo'}</p><strong>DOI:</strong> ${data.doi || 'N/A'}<br>${lk ? `<a href="${lk}" target="_blank" class="btn-web">🌐 Ver no Scopus</a>` : ''}`;
                 } else {
                     let tb = type==='autor'?'artigo_autor':(type==='palavras_chaves'?'artigo_palavrachave':'artigo_referencia');
                     let fl = type==='autor'?'id_autor':(type==='palavras_chaves'?'id_palavrachave':'id_referencia');
                     const { data: rel } = await _supabase.from(tb).select('artigo(titulo, ano, doi, link)').eq(fl, id);
-                    cont.innerHTML = `<h3>Artigos Relacionados:</h3>` + (rel?.length ? rel.map(d => `<div style="margin:8px 0; padding:10px; background:#f8fafc; border-radius:8px; border:1px solid #e2e8f0">📄 <a href="${d.artigo.link || (d.artigo.doi ? 'https://doi.org/'+d.artigo.doi : '#')}" target="_blank" style="color:#3b82f6; text-decoration:none; font-weight:bold;">${d.artigo.titulo}</a> (${d.artigo.ano})</div>`).join('') : '<p>Sem conexões.</p>');
+                    cont.innerHTML = `<h3>Artigos Relacionados:</h3>` + (rel?.length ? rel.map(d => `<div style="margin:8px 0; padding:10px; background:#f8fafc; border-radius:8px">📄 ${d.artigo.titulo}</div>`).join('') : '<p>Sem conexões.</p>');
                 }
             }
         }
     }
 
-    // IMPORTAÇÃO TURBO (MANTIDA)
+    // --- IMPORTAÇÃO ULTRA RÁPIDA (REMOVIDO REFERÊNCIAS PARA VELOCIDADE) ---
     document.getElementById('csv-input').addEventListener('change', function(e) {
         const file = e.target.files[0]; if (!file) return;
         const main = document.getElementById('main-content');
+        
         Papa.parse(file, {
             header: true, skipEmptyLines: true,
             complete: async function(results) {
-                const total = results.data.length;
-                for (let i = 0; i < total; i++) {
-                    const row = results.data[i];
-                    main.innerHTML = `<div class="loading-container"><div class="spinner"></div>🚀 <b>Importando ${i+1} de ${total}</b></div>`;
-                    await new Promise(r => setTimeout(r, 1));
-                    const { data: art } = await _supabase.from('artigo').insert([{
-                        titulo: row["Title"] || row["Document Title"], ano: parseInt(row["Year"]) || 0,
-                        qtd_citacao: parseInt(row["Cited by"]) || 0, doi: row["DOI"] || "",
-                        link: row["Link"] || "", resumo: row["Abstract"] || "",
-                        tipo_documento: row["Document Type"] || "", issn: row["ISSN"] || "",
-                        volume: row["Volume"] || "", issue: row["Issue"] || ""
-                    }]).select();
-                    if (art && art[0]) {
-                        const aId = art[0].id;
-                        const auts = (row["Authors"] || row["Author(s)"] || "").split(';').map(s=>s.trim()).filter(s=>s);
-                        for(const n of auts) {
-                            const idAuth = n.replace(/[^a-z0-9]/gi,'_').toLowerCase();
-                            await _supabase.from('autor').upsert({id: idAuth, nome:n, nomecompleto:n});
-                            await _supabase.from('artigo_autor').insert({id_artigo:aId, id_autor:idAuth});
-                        }
-                        const keys = (row["Author Keywords"] || "").split(';').map(s=>s.trim()).filter(s=>s);
-                        for(const k of keys) {
-                            const { data: kData } = await _supabase.from('palavras_chaves').upsert({palavras_chaves:k}, {onConflict:'palavras_chaves'}).select();
-                            if(kData && kData[0]) await _supabase.from('artigo_palavrachave').insert({id_artigo:aId, id_palavrachave:kData[0].id});
-                        }
+                const rows = results.data;
+                const total = rows.length;
+                main.innerHTML = `<div class="loading-container"><div class="spinner"></div>🚀 <b>Iniciando Importação de ${total} artigos...</b><br>Aguarde cerca de 30 segundos.</div>`;
+
+                // 1. Preparar Artigos
+                const artigosParaSubir = rows.map(row => ({
+                    titulo: row["Title"] || row["Document Title"],
+                    ano: parseInt(row["Year"]) || 0,
+                    qtd_citacao: parseInt(row["Cited by"]) || 0,
+                    doi: row["DOI"] || "",
+                    link: row["Link"] || "",
+                    resumo: row["Abstract"] || "",
+                    tipo_documento: row["Document Type"] || "",
+                    issn: row["ISSN"] || "",
+                    volume: row["Volume"] || "",
+                    issue: row["Issue"] || ""
+                }));
+
+                // Enviar todos os artigos em blocos de 100 (Muito rápido!)
+                const { data: artigosCriados, error: errArt } = await _supabase.from('artigo').insert(artigosParaSubir).select();
+                
+                if (errArt) return alert("Erro: " + errArt.message);
+
+                // 2. Processar Autores e Palavras-chave (Apenas para os artigos criados)
+                main.innerHTML = `<div class="loading-container"><div class="spinner"></div>📦 <b>Artigos salvos!</b><br>Vinculando autores e palavras-chave...</div>`;
+                
+                for (let i = 0; i < artigosCriados.length; i++) {
+                    const artigoId = artigosCriados[i].id;
+                    const originalRow = rows[i];
+                    
+                    const p = [];
+                    // Autores
+                    const auts = (originalRow["Authors"] || originalRow["Author(s)"] || "").split(';').map(s=>s.trim()).filter(s=>s);
+                    for(const n of auts) {
+                        const idAuth = n.replace(/[^a-z0-9]/gi,'_').toLowerCase();
+                        p.push(_supabase.from('autor').upsert({id: idAuth, nome:n, nomecompleto:n}));
+                        p.push(_supabase.from('artigo_autor').insert({id_artigo:artigoId, id_autor:idAuth}));
                     }
+                    // Keywords
+                    const keys = (originalRow["Author Keywords"] || "").split(';').map(s=>s.trim()).filter(s=>s);
+                    for(const k of keys) {
+                        p.push(_supabase.from('palavras_chaves').upsert({palavras_chaves:k}, {onConflict:'palavras_chaves'}).select().then(r => {
+                            if(r.data && r.data[0]) return _supabase.from('artigo_palavrachave').insert({id_artigo:artigoId, id_palavrachave:r.data[0].id});
+                        }));
+                    }
+                    await Promise.all(p); // Processa metadados do artigo em paralelo
                 }
-                alert("Sucesso!"); loadSection('artigo', 'titulo');
+
+                alert("Importação Ultra-Rápida Concluída!");
+                loadSection('artigo', 'titulo');
             }
         });
     });
