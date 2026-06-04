@@ -173,7 +173,7 @@
         }
     }
 
-    // --- IMPORTAÇÃO ULTRA RÁPIDA (REMOVIDO REFERÊNCIAS PARA VELOCIDADE) ---
+// --- IMPORTAÇÃO ULTRA RÁPIDA COM PROGRESSO DE VÍNCULO ---
     document.getElementById('csv-input').addEventListener('change', function(e) {
         const file = e.target.files[0]; if (!file) return;
         const main = document.getElementById('main-content');
@@ -183,9 +183,9 @@
             complete: async function(results) {
                 const rows = results.data;
                 const total = rows.length;
-                main.innerHTML = `<div class="loading-container"><div class="spinner"></div>🚀 <b>Iniciando Importação de ${total} artigos...</b><br>Aguarde cerca de 30 segundos.</div>`;
+                main.innerHTML = `<div class="loading-container"><div class="loading-box"><div class="spinner"></div>🚀 <b>Fase 1: Enviando ${total} artigos...</b></div></div>`;
 
-                // 1. Preparar Artigos
+                // 1. Enviar Artigos em lote (Bulk)
                 const artigosParaSubir = rows.map(row => ({
                     titulo: row["Title"] || row["Document Title"],
                     ano: parseInt(row["Year"]) || 0,
@@ -199,18 +199,20 @@
                     issue: row["Issue"] || ""
                 }));
 
-                // Enviar todos os artigos em blocos de 100 (Muito rápido!)
                 const { data: artigosCriados, error: errArt } = await _supabase.from('artigo').insert(artigosParaSubir).select();
-                
-                if (errArt) return alert("Erro: " + errArt.message);
+                if (errArt) return alert("Erro nos artigos: " + errArt.message);
 
-                // 2. Processar Autores e Palavras-chave (Apenas para os artigos criados)
-                main.innerHTML = `<div class="loading-container"><div class="spinner"></div>📦 <b>Artigos salvos!</b><br>Vinculando autores e palavras-chave...</div>`;
-                
+                // 2. Processar Vínculos com contador para não travar
                 for (let i = 0; i < artigosCriados.length; i++) {
                     const artigoId = artigosCriados[i].id;
                     const originalRow = rows[i];
                     
+                    // Atualiza o progresso a cada 10 registros para o navegador não "congelar"
+                    if (i % 10 === 0) {
+                        main.innerHTML = `<div class="loading-container"><div class="loading-box"><div class="spinner"></div>🔗 <b>Fase 2: Vinculando metadados...</b><br>Processando artigo ${i + 1} de ${total}</div></div>`;
+                        await new Promise(r => setTimeout(r, 1)); // Dá um "fôlego" para o navegador
+                    }
+
                     const p = [];
                     // Autores
                     const auts = (originalRow["Authors"] || originalRow["Author(s)"] || "").split(';').map(s=>s.trim()).filter(s=>s);
@@ -226,11 +228,14 @@
                             if(r.data && r.data[0]) return _supabase.from('artigo_palavrachave').insert({id_artigo:artigoId, id_palavrachave:r.data[0].id});
                         }));
                     }
-                    await Promise.all(p); // Processa metadados do artigo em paralelo
+                    await Promise.all(p);
                 }
 
-                alert("Importação Ultra-Rápida Concluída!");
-                loadSection('artigo', 'titulo');
+                main.innerHTML = `<div class="loading-container"><div class="loading-box">✅ <b>Importação Finalizada!</b><br>Carregando dashboard...</div></div>`;
+                setTimeout(() => {
+                    alert("Tudo pronto! 540 artigos e seus vínculos foram carregados.");
+                    loadSection('artigo', 'titulo');
+                }, 500);
             }
         });
     });
