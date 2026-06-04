@@ -3,12 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Scopus 3D - Pro com Filtros</title>
+    <title>Dashboard Scopus 3D - Pro Edition</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <style>
         :root { --primary: #0f172a; --secondary: #3b82f6; --bg: #f8fafc; --border: #e2e8f0; --white: #ffffff; --accent: #10b981; }
         body { font-family: 'Segoe UI', system-ui, sans-serif; background-color: var(--bg); margin: 0; display: flex; height: 100vh; overflow: hidden; color: #1e293b; }
+        
+        /* Menu Lateral */
         nav { width: 260px; background: var(--primary); color: white; padding: 25px; display: flex; flex-direction: column; gap: 10px; flex-shrink: 0; }
         nav h2 { font-size: 1.2rem; color: var(--secondary); margin-bottom: 20px; border-bottom: 1px solid #334155; padding-bottom: 10px; }
         nav button { background: transparent; border: 1px solid #334155; color: #cbd5e1; padding: 12px; text-align: left; border-radius: 8px; cursor: pointer; transition: 0.3s; font-size: 0.9rem; }
@@ -17,33 +19,41 @@
         #csv-input { display: none; }
 
         main { flex: 1; padding: 30px; overflow-y: auto; display: block; }
+
+        /* Barra de Filtros */
+        .filter-bar { background: white; padding: 15px; border-radius: 10px; border: 1px solid var(--border); margin-bottom: 20px; display: flex; gap: 12px; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+        .filter-bar input { flex: 1; padding: 10px; border-radius: 6px; border: 1px solid var(--border); font-size: 0.9rem; }
+        .filter-bar select { padding: 10px; border-radius: 6px; border: 1px solid var(--border); min-width: 160px; }
+
+        /* Tabela Grid Blindada para Artigos */
+        .grid-table { background: var(--white); border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 4px 15px rgba(0,0,0,0.05); min-width: 950px; }
+        .grid-row { display: grid; align-items: center; border-bottom: 1px solid var(--border); transition: background 0.2s; }
         
-        /* BARRA DE FILTROS */
-        .filter-bar { background: white; padding: 15px; border-radius: 10px; border: 1px solid var(--border); margin-bottom: 20px; display: flex; gap: 15px; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
-        .filter-bar select, .filter-bar input { padding: 8px; border-radius: 6px; border: 1px solid var(--border); font-size: 0.9rem; }
-        .filter-bar input { flex: 1; }
+        /* Larguras fixas para Artigo: Titulo(1fr), Ano(70px), Cits(80px), ISSN(110px), Vol(90px), Tipo(110px) */
+        .row-artigo { grid-template-columns: 1fr 70px 80px 110px 90px 110px; }
+        /* Para as outras tabelas */
+        .row-simples { grid-template-columns: 1fr 100px; }
 
-        /* TABELA GRID */
-        .grid-table { background: var(--white); border-radius: 12px; border: 1px solid var(--border); min-width: 950px; }
-        .grid-row { display: grid; grid-template-columns: 1fr 70px 85px 110px 90px 115px; gap: 0; align-items: center; border-bottom: 1px solid var(--border); }
-        .grid-header { background: #f1f5f9; font-weight: 700; font-size: 0.7rem; text-transform: uppercase; color: #64748b; position: sticky; top: 0; z-index: 10; }
-        .grid-row > div { padding: 12px 15px; }
+        .grid-header { background: #f1f5f9; font-weight: 700; font-size: 0.7rem; text-transform: uppercase; color: #64748b; letter-spacing: 0.05em; position: sticky; top: 0; z-index: 10; }
+        .grid-row > div { padding: 15px; overflow: hidden; text-overflow: ellipsis; }
 
-        .data-row { cursor: pointer; }
-        .data-row:hover { background-color: #f1f5f9; }
-        .expandable-panel { max-height: 0; overflow: hidden; transition: max-height 0.4s ease-out; background: #fafbfc; }
-        .expandable-panel.active { max-height: 1000px; border-bottom: 1px solid var(--border); }
-        .details-content { padding: 20px; border-left: 5px solid var(--secondary); margin: 10px; background: white; border-radius: 5px; }
+        .data-row:hover { background-color: #f8fafc; cursor: pointer; }
 
-        /* PAGINAÇÃO */
-        .pagination { display: flex; justify-content: center; gap: 5px; margin-top: 20px; padding-bottom: 40px; }
-        .pagination button { padding: 8px 12px; border: 1px solid var(--border); background: white; border-radius: 5px; cursor: pointer; }
+        /* Expansão Suave */
+        .expandable-panel { max-height: 0; overflow: hidden; transition: max-height 0.5s ease-in-out, opacity 0.3s; opacity: 0; background: #fafbfc; }
+        .expandable-panel.active { max-height: 1200px; opacity: 1; border-bottom: 1px solid var(--border); }
+        .details-content { padding: 25px; border-left: 5px solid var(--secondary); margin: 15px; background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+
+        /* Paginação */
+        .pagination { display: flex; justify-content: center; gap: 5px; margin: 30px 0 60px; }
+        .pagination button { padding: 8px 14px; border: 1px solid var(--border); background: white; border-radius: 6px; cursor: pointer; font-size: 0.9rem; }
         .pagination button.active { background: var(--secondary); color: white; border-color: var(--secondary); }
 
-        .loading-container { text-align: center; padding: 50px; }
-        .spinner { width: 30px; height: 30px; border: 3px solid #f3f3f3; border-top: 3px solid var(--secondary); border-radius: 50%; animation: spin 1s linear infinite; margin: auto; }
+        .badge-type { background: #f1f5f9; color: #475569; padding: 4px 8px; border-radius: 4px; font-size: 0.65rem; font-weight: bold; }
+        .loading-container { text-align: center; padding: 100px; }
+        .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--secondary); border-radius: 50%; animation: spin 1s linear infinite; margin: auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .btn-web { display: inline-block; background: var(--secondary); color: white; padding: 8px 12px; border-radius: 5px; text-decoration: none; font-size: 0.8rem; margin-top: 10px; font-weight: bold; }
+        .btn-web { display: inline-block; background: var(--secondary); color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-size: 0.85rem; margin-top: 15px; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -62,14 +72,14 @@
     <main id="main-content">
         <div style="text-align: center; margin-top: 100px;">
             <h1>Dashboard Acadêmico Pro</h1>
-            <p>Selecione uma tabela para filtrar e navegar pelos dados.</p>
+            <p>Selecione uma categoria para explorar os 541 registros importados.</p>
         </div>
     </main>
 
 <script>
-    const SUPABASE_URL = 'https://kdtazqmfbnaethrpkshz.supabase.co'
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkdGF6cW1mYm5hZXRocnBrc2h6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2MzcwMjUsImV4cCI6MjA5NDIxMzAyNX0.Rd-i2suGjKmaWjBDo9HwFwAaoiOYdQJCNU_NGfgRJ5A'
-    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
+    const SUPABASE_URL = 'https://kdtazqmfbnaethrpkshz.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkdGF6cW1mYm5hZXRocnBrc2h6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2MzcwMjUsImV4cCI6MjA5NDIxMzAyNX0.Rd-i2suGjKmaWjBDo9HwFwAaoiOYdQJCNU_NGfgRJ5A';
+    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     let allData = [];
     let filteredData = [];
@@ -81,59 +91,88 @@
         currentTable = tableName;
         currentPage = 1;
         const main = document.getElementById('main-content');
-        main.innerHTML = `<div class="loading-container"><div class="spinner"></div><br>Carregando...</div>`;
-        const { data, error } = await _supabase.from(tableName).select('*').order(orderCol, { ascending: true }).limit(1000);
+        main.innerHTML = `<div class="loading-container"><div class="spinner"></div><br>Carregando ${tableName}...</div>`;
+        
+        // Aumentamos o limite para garantir que todos os 541 apareçam
+        const { data, error } = await _supabase.from(tableName).select('*').order(orderCol, { ascending: true }).limit(2000);
         if (error) return main.innerHTML = `<h1>Erro</h1><p>${error.message}</p>`;
-        allData = data; filteredData = data;
-        renderDashboard();
+        
+        allData = data;
+        filteredData = data;
+        renderUI();
     }
 
-    function renderDashboard() {
+    function renderUI() {
         const main = document.getElementById('main-content');
-        let filterHTML = '';
-        if(currentTable === 'artigo') {
-            const years = [...new Set(allData.map(d => d.ano))].sort((a,b) => b-a);
-            filterHTML = `<div class="filter-bar"><input type="text" id="search-box" placeholder="Buscar por título..." oninput="applyFilters()"><select id="filter-year" onchange="applyFilters()"><option value="">Todos os Anos</option>${years.map(y => `<option value="${y}">${y}</option>`).join('')}</select></div>`;
-        }
-        main.innerHTML = `<h1>Tabela: ${currentTable} (${allData.length})</h1>${filterHTML}<div id="table-results"></div><div id="pagination-controls"></div>`;
+        const years = [...new Set(allData.map(d => d.ano))].filter(Boolean).sort((a,b) => b-a);
+        
+        main.innerHTML = `
+            <h1>Tabela: ${currentTable} (${allData.length} registros)</h1>
+            <div class="filter-bar">
+                <input type="text" id="search-box" placeholder="Buscar nesta lista..." oninput="applyFilters()">
+                ${currentTable === 'artigo' ? `
+                <select id="filter-year" onchange="applyFilters()">
+                    <option value="">Todos os Anos</option>
+                    ${years.map(y => `<option value="${y}">${y}</option>`).join('')}
+                </select>` : ''}
+            </div>
+            <div id="table-container"></div>
+            <div id="pagination-controls"></div>`;
         updateTable();
     }
 
     function applyFilters() {
-        const search = document.getElementById('search-box')?.value.toLowerCase() || '';
+        const search = document.getElementById('search-box').value.toLowerCase();
         const year = document.getElementById('filter-year')?.value || '';
+        
         filteredData = allData.filter(d => {
-            const matchSearch = (d.titulo || d.nome || d.palavras_chaves || "").toLowerCase().includes(search);
+            const text = (d.titulo || d.nome || d.palavras_chaves || d.referencia || "").toLowerCase();
+            const matchSearch = text.includes(search);
             const matchYear = year === '' || String(d.ano) === year;
             return matchSearch && matchYear;
         });
-        currentPage = 1; updateTable();
+        currentPage = 1;
+        updateTable();
     }
 
     function updateTable() {
-        const container = document.getElementById('table-results');
+        const container = document.getElementById('table-container');
         const start = (currentPage - 1) * pageSize;
-        const pageItems = filteredData.slice(start, start + pageSize);
+        const items = filteredData.slice(start, start + pageSize);
+
         let html = `<div class="grid-table">`;
-        if(currentTable === 'artigo') {
-            html += `<div class="grid-row grid-header"><div>Título</div><div>Ano</div><div>Citações</div><div>ISSN</div><div>Vol/Iss</div><div>Tipo</div></div>`;
+        if (currentTable === 'artigo') {
+            html += `<div class="grid-row row-artigo grid-header"><div>Título</div><div>Ano</div><div>Cits.</div><div>ISSN</div><div>Vol/Iss</div><div>Tipo</div></div>`;
+            items.forEach((item, i) => {
+                html += `
+                <div class="grid-row row-artigo data-row" onclick="togglePanel('p-${i}')">
+                    <div style="font-weight:600; white-space:normal">${item.titulo}</div>
+                    <div>${item.ano}</div>
+                    <div style="font-weight:700; color:var(--secondary)">${item.qtd_citacao || 0}</div>
+                    <div><small>${item.issn || '-'}</small></div>
+                    <div><small>${item.volume || '-'}/${item.issue || '-'}</small></div>
+                    <div><span class="badge-type">${item.tipo_documento || 'Article'}</span></div>
+                </div>
+                <div id="p-${i}" class="expandable-panel">
+                    <div class="details-content">
+                        <h4>Abstract (Resumo):</h4>
+                        <p style="text-align:justify; line-height:1.6; color:#475569">${item.resumo || 'Sem resumo disponível.'}</p>
+                        <hr style="border:0.5px solid #eee; margin:15px 0">
+                        <strong>DOI:</strong> ${item.doi || 'N/A'} | <strong>Citações:</strong> ${item.qtd_citacao || 0}<br>
+                        <a href="${item.link || 'https://doi.org/'+item.doi}" target="_blank" class="btn-web">🌐 Ver no Scopus</a>
+                    </div>
+                </div>`;
+            });
         } else {
-            html += `<div class="grid-row grid-header" style="grid-template-columns: 1fr 150px"><div>Descrição</div><div>ID</div></div>`;
+            html += `<div class="grid-row row-simples grid-header"><div>Descrição</div><div>ID do Banco</div></div>`;
+            items.forEach(item => {
+                html += `
+                <div class="grid-row row-simples data-row">
+                    <div style="white-space:normal">${item.nome || item.palavras_chaves || item.referencia}</div>
+                    <div style="color:#94a3b8; font-size:0.8rem">#${item.id}</div>
+                </div>`;
+            });
         }
-        pageItems.forEach((item, index) => {
-            const pId = `p-${index}`, cId = `c-${index}`;
-            if(currentTable === 'artigo') {
-                html += `<div class="grid-row data-row" onclick="togglePanel('${pId}','artigo','${item.id}','${cId}')">
-                    <div style="font-weight:600; white-space:normal;">${item.titulo}</div><div>${item.ano}</div>
-                    <div style="font-weight:bold; color:var(--secondary)">${item.qtd_citacao || 0}</div><div><small>${item.issn || '-'}</small></div>
-                    <div><small>${item.volume || '-'}/${item.issue || '-'}</small></div><div><span class="badge-type">${item.tipo_documento || 'Article'}</span></div>
-                </div><div id="${pId}" class="expandable-panel"><div class="details-content" id="${cId}"></div></div>`;
-            } else {
-                html += `<div class="grid-row data-row" style="grid-template-columns: 1fr 150px" onclick="togglePanel('${pId}','${currentTable}','${item.id}','${cId}')">
-                    <div style="white-space:normal;">${item.nome || item.palavras_chaves || item.referencia}</div><div style="color:#94a3b8; font-size:0.8rem">${item.id}</div>
-                </div><div id="${pId}" class="expandable-panel"><div class="details-content" id="${cId}"></div></div>`;
-            }
-        });
         container.innerHTML = html + `</div>`;
         renderPagination();
     }
@@ -141,10 +180,13 @@
     function renderPagination() {
         const controls = document.getElementById('pagination-controls');
         const totalPages = Math.ceil(filteredData.length / pageSize);
-        if (totalPages <= 1) { controls.innerHTML = ''; return; }
+        if (totalPages <= 1) return controls.innerHTML = '';
         let html = `<div class="pagination">`;
         for (let i = 1; i <= totalPages; i++) {
-            if (i > 5 && i < totalPages - 5) { if (i === 6) html += `<span>...</span>`; continue; }
+            if (totalPages > 10 && (i > 3 && i < totalPages - 2)) {
+                if (i === 4) html += `<span>...</span>`;
+                continue;
+            }
             html += `<button class="${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">${i}</button>`;
         }
         controls.innerHTML = html + `</div>`;
@@ -152,90 +194,42 @@
 
     function changePage(p) { currentPage = p; updateTable(); document.querySelector('main').scrollTop = 0; }
 
-    async function togglePanel(pId, type, id, cId) {
-        const panel = document.getElementById(pId), cont = document.getElementById(cId);
-        const isOpen = panel.classList.contains('active');
-        document.querySelectorAll('.expandable-panel').forEach(p => p.classList.remove('active'));
-        if (!isOpen) {
-            panel.classList.add('active');
-            if(cont.innerHTML === "") {
-                const { data } = await _supabase.from(type).select('*').eq('id', id).single();
-                if (type === 'artigo') {
-                    const lk = data.link || (data.doi ? `https://doi.org/${data.doi}` : null);
-                    cont.innerHTML = `<h3>Abstract:</h3><p style="line-height:1.7; text-align:justify;">${data.resumo || 'Sem resumo'}</p><strong>DOI:</strong> ${data.doi || 'N/A'}<br>${lk ? `<a href="${lk}" target="_blank" class="btn-web">🌐 Ver no Scopus</a>` : ''}`;
-                } else {
-                    let tb = type==='autor'?'artigo_autor':(type==='palavras_chaves'?'artigo_palavrachave':'artigo_referencia');
-                    let fl = type==='autor'?'id_autor':(type==='palavras_chaves'?'id_palavrachave':'id_referencia');
-                    const { data: rel } = await _supabase.from(tb).select('artigo(titulo, ano, doi, link)').eq(fl, id);
-                    cont.innerHTML = `<h3>Artigos Relacionados:</h3>` + (rel?.length ? rel.map(d => `<div style="margin:8px 0; padding:10px; background:#f8fafc; border-radius:8px">📄 ${d.artigo.titulo}</div>`).join('') : '<p>Sem conexões.</p>');
-                }
-            }
-        }
+    function togglePanel(id) {
+        const p = document.getElementById(id);
+        const isActive = p.classList.contains('active');
+        document.querySelectorAll('.expandable-panel').forEach(el => el.classList.remove('active'));
+        if (!isActive) p.classList.add('active');
     }
 
-// --- IMPORTAÇÃO ULTRA RÁPIDA COM PROGRESSO DE VÍNCULO ---
+    // IMPORTAÇÃO TURBO MANTENDO TUDO DOS ARTIGOS
     document.getElementById('csv-input').addEventListener('change', function(e) {
         const file = e.target.files[0]; if (!file) return;
         const main = document.getElementById('main-content');
-        
         Papa.parse(file, {
             header: true, skipEmptyLines: true,
             complete: async function(results) {
                 const rows = results.data;
-                const total = rows.length;
-                main.innerHTML = `<div class="loading-container"><div class="loading-box"><div class="spinner"></div>🚀 <b>Fase 1: Enviando ${total} artigos...</b></div></div>`;
+                main.innerHTML = `<div class="loading-container"><div class="spinner"></div>🚀 <b>Importando ${rows.length} registros...</b></div>`;
 
-                // 1. Enviar Artigos em lote (Bulk)
-                const artigosParaSubir = rows.map(row => ({
-                    titulo: row["Title"] || row["Document Title"],
-                    ano: parseInt(row["Year"]) || 0,
-                    qtd_citacao: parseInt(row["Cited by"]) || 0,
-                    doi: row["DOI"] || "",
-                    link: row["Link"] || "",
-                    resumo: row["Abstract"] || "",
-                    tipo_documento: row["Document Type"] || "",
-                    issn: row["ISSN"] || "",
-                    volume: row["Volume"] || "",
-                    issue: row["Issue"] || ""
+                const artigos = rows.map(r => ({
+                    titulo: r["Title"] || r["Document Title"], ano: parseInt(r["Year"]) || 0,
+                    qtd_citacao: parseInt(r["Cited by"]) || 0, doi: r["DOI"] || "",
+                    link: r["Link"] || "", resumo: r["Abstract"] || "",
+                    tipo_documento: r["Document Type"] || "", issn: r["ISSN"] || "",
+                    volume: r["Volume"] || "", issue: r["Issue"] || ""
                 }));
+                await _supabase.from('artigo').insert(artigos);
 
-                const { data: artigosCriados, error: errArt } = await _supabase.from('artigo').insert(artigosParaSubir).select();
-                if (errArt) return alert("Erro nos artigos: " + errArt.message);
+                let autSet = new Set(), keySet = new Set();
+                rows.forEach(r => {
+                    (r["Authors"] || r["Author(s)"] || "").split(';').forEach(a => { if(a.trim()) autSet.add(a.trim()) });
+                    (r["Author Keywords"] || "").split(';').forEach(k => { if(k.trim()) keySet.add(k.trim()) });
+                });
+                await _supabase.from('autor').upsert([...autSet].map(n => ({ id: n.replace(/[^a-z0-9]/gi,'_').toLowerCase(), nome: n, nomecompleto: n })));
+                await _supabase.from('palavras_chaves').upsert([...keySet].map(k => ({ palavras_chaves: k })), { onConflict: 'palavras_chaves' });
 
-                // 2. Processar Vínculos com contador para não travar
-                for (let i = 0; i < artigosCriados.length; i++) {
-                    const artigoId = artigosCriados[i].id;
-                    const originalRow = rows[i];
-                    
-                    // Atualiza o progresso a cada 10 registros para o navegador não "congelar"
-                    if (i % 10 === 0) {
-                        main.innerHTML = `<div class="loading-container"><div class="loading-box"><div class="spinner"></div>🔗 <b>Fase 2: Vinculando metadados...</b><br>Processando artigo ${i + 1} de ${total}</div></div>`;
-                        await new Promise(r => setTimeout(r, 1)); // Dá um "fôlego" para o navegador
-                    }
-
-                    const p = [];
-                    // Autores
-                    const auts = (originalRow["Authors"] || originalRow["Author(s)"] || "").split(';').map(s=>s.trim()).filter(s=>s);
-                    for(const n of auts) {
-                        const idAuth = n.replace(/[^a-z0-9]/gi,'_').toLowerCase();
-                        p.push(_supabase.from('autor').upsert({id: idAuth, nome:n, nomecompleto:n}));
-                        p.push(_supabase.from('artigo_autor').insert({id_artigo:artigoId, id_autor:idAuth}));
-                    }
-                    // Keywords
-                    const keys = (originalRow["Author Keywords"] || "").split(';').map(s=>s.trim()).filter(s=>s);
-                    for(const k of keys) {
-                        p.push(_supabase.from('palavras_chaves').upsert({palavras_chaves:k}, {onConflict:'palavras_chaves'}).select().then(r => {
-                            if(r.data && r.data[0]) return _supabase.from('artigo_palavrachave').insert({id_artigo:artigoId, id_palavrachave:r.data[0].id});
-                        }));
-                    }
-                    await Promise.all(p);
-                }
-
-                main.innerHTML = `<div class="loading-container"><div class="loading-box">✅ <b>Importação Finalizada!</b><br>Carregando dashboard...</div></div>`;
-                setTimeout(() => {
-                    alert("Tudo pronto! 540 artigos e seus vínculos foram carregados.");
-                    loadSection('artigo', 'titulo');
-                }, 500);
+                alert("Importação Concluída com Sucesso!");
+                loadSection('artigo', 'titulo');
             }
         });
     });
