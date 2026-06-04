@@ -161,12 +161,10 @@
         currentTable = tableName;
         currentPage = 1;
         
-        // Marcar botão ativo
         document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
-        if(tableName === 'artigo') document.getElementById('nav-artigo').classList.add('active');
-        if(tableName === 'autor') document.getElementById('nav-autor').classList.add('active');
-        if(tableName === 'palavras_chaves') document.getElementById('nav-palavras').classList.add('active');
-        if(tableName === 'referencia') document.getElementById('nav-referencia').classList.add('active');
+        const btnId = tableName === 'artigo' ? 'nav-artigo' : (tableName === 'autor' ? 'nav-autor' : (tableName === 'palavras_chaves' ? 'nav-palavras' : 'nav-referencia'));
+        const btn = document.getElementById(btnId);
+        if(btn) btn.classList.add('active');
 
         const main = document.getElementById('main-content');
         main.innerHTML = `<div class="loading-container"><div class="spinner"></div></div>`;
@@ -186,12 +184,12 @@
         main.innerHTML = `
             <div class="header-content">
                 <h1>Listagem de ${currentTable.charAt(0).toUpperCase() + currentTable.slice(1)}</h1>
-                <p>Encontrados <b>${allData.length}</b> registros no banco de dados.</p>
+                <p>Mostrando <b>${allData.length}</b> registros cadastrados.</p>
             </div>
             <div class="filter-bar">
                 <div class="search-wrapper">
                     <i class="fas fa-search"></i>
-                    <input type="text" id="search-box" placeholder="Pesquisar..." oninput="applyFilters()">
+                    <input type="text" id="search-box" placeholder="Pesquisar nesta lista..." oninput="applyFilters()">
                 </div>
                 ${currentTable === 'artigo' ? `
                 <select id="filter-year" onchange="applyFilters()">
@@ -207,12 +205,9 @@
     function applyFilters() {
         const search = document.getElementById('search-box').value.toLowerCase();
         const year = document.getElementById('filter-year')?.value || '';
-        
         filteredData = allData.filter(d => {
             const text = (d.titulo || d.nome || d.palavras_chaves || d.referencia || "").toLowerCase();
-            const matchSearch = text.includes(search);
-            const matchYear = year === '' || String(d.ano) === year;
-            return matchSearch && matchYear;
+            return text.includes(search) && (year === '' || String(d.ano) === year);
         });
         currentPage = 1;
         updateTable();
@@ -230,7 +225,7 @@
                 html += `
                 <div class="grid-row row-artigo data-row" onclick="togglePanel('p-${i}')">
                     <div><span class="title">${item.titulo}</span></div>
-                    <div style="font-weight:500">${item.ano}</div>
+                    <div>${item.ano}</div>
                     <div style="font-weight:700; color:var(--primary)">${item.qtd_citacao || 0}</div>
                     <div><small style="color:var(--text-muted)">${item.issn || '-'}</small></div>
                     <div><small>${item.volume || '-'}/${item.issue || '-'}</small></div>
@@ -241,20 +236,16 @@
                         <h3 style="margin-top:0"><i class="fas fa-align-left"></i> Abstract / Resumo</h3>
                         <p style="text-align:justify; line-height:1.7; color:#475569; font-size:0.95rem;">${item.resumo || 'Sem resumo disponível.'}</p>
                         <hr style="border:0; border-top: 1px solid var(--border-color); margin:20px 0">
-                        <div style="display:flex; gap:20px; font-size:0.85rem; color:var(--text-muted)">
-                            <span><b>DOI:</b> ${item.doi || 'N/A'}</span>
-                            <span><b>CITAÇÕES SCOPUS:</b> ${item.qtd_citacao || 0}</span>
-                        </div>
-                        <a href="${item.link || 'https://doi.org/'+item.doi}" target="_blank" class="btn-web"><i class="fas fa-external-link-alt"></i> Acessar no Scopus</a>
+                        <div style="font-size:0.85rem; color:var(--text-muted)"><b>DOI:</b> ${item.doi || 'N/A'}</div>
+                        <a href="${item.link || 'https://doi.org/'+item.doi}" target="_blank" class="btn-web"><i class="fas fa-external-link-alt"></i> Ver no Scopus</a>
                     </div>
                 </div>`;
             });
         } else {
-            html += `<div class="grid-row row-simples grid-header"><div>Descrição do Registro</div><div>Identificador</div></div>`;
+            html += `<div class="grid-row row-simples grid-header"><div>Descrição</div><div>ID do Banco</div></div>`;
             items.forEach(item => {
-                html += `
-                <div class="grid-row row-simples data-row">
-                    <div style="font-weight:500">${item.nome || item.palavras_chaves || item.referencia}</div>
+                html += `<div class="grid-row row-simples data-row">
+                    <div style="font-weight:500; white-space:normal">${item.nome || item.palavras_chaves || item.referencia}</div>
                     <div style="color:var(--text-muted); font-size:0.8rem">#${item.id}</div>
                 </div>`;
             });
@@ -269,10 +260,7 @@
         if (totalPages <= 1) return controls.innerHTML = '';
         let html = `<div class="pagination">`;
         for (let i = 1; i <= totalPages; i++) {
-            if (totalPages > 10 && (i > 3 && i < totalPages - 2)) {
-                if (i === 4) html += `<span style="padding:10px">...</span>`;
-                continue;
-            }
+            if (totalPages > 8 && (i > 3 && i < totalPages - 2)) { if (i === 4) html += `<span style="padding:10px">...</span>`; continue; }
             html += `<button class="${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">${i}</button>`;
         }
         controls.innerHTML = html + `</div>`;
@@ -287,7 +275,7 @@
         if (!isActive) p.classList.add('active');
     }
 
-    // --- IMPORTAÇÃO TURBO (Otimizada) ---
+    // --- IMPORTAÇÃO TURBO COMPLETA (INCLUINDO REFERÊNCIAS) ---
     document.getElementById('csv-input').addEventListener('change', function(e) {
         const file = e.target.files[0]; if (!file) return;
         const main = document.getElementById('main-content');
@@ -295,8 +283,9 @@
             header: true, skipEmptyLines: true,
             complete: async function(results) {
                 const rows = results.data;
-                main.innerHTML = `<div class="loading-container"><div style="text-align:center"><div class="spinner" style="margin-bottom:20px"></div><h2 style="margin:0">Sincronizando Banco de Dados...</h2><p>${rows.length} registros detectados</p></div></div>`;
+                main.innerHTML = `<div class="loading-container"><div style="text-align:center"><div class="spinner" style="margin-bottom:20px"></div><h2>Sincronizando Dados...</h2><p>Processando registros e referências únicas.</p></div></div>`;
 
+                // 1. Subir Artigos
                 const artigos = rows.map(r => ({
                     titulo: r["Title"] || r["Document Title"], ano: parseInt(r["Year"]) || 0,
                     qtd_citacao: parseInt(r["Cited by"]) || 0, doi: r["DOI"] || "",
@@ -306,15 +295,27 @@
                 }));
                 await _supabase.from('artigo').insert(artigos);
 
-                let autSet = new Set(), keySet = new Set();
+                // 2. Extrair Autores, Keywords e Referências Únicas
+                let autSet = new Set(), keySet = new Set(), refSet = new Set();
                 rows.forEach(r => {
                     (r["Authors"] || r["Author(s)"] || "").split(';').forEach(a => { if(a.trim()) autSet.add(a.trim()) });
                     (r["Author Keywords"] || "").split(';').forEach(k => { if(k.trim()) keySet.add(k.trim()) });
+                    // Referências (filtra apenas textos reais e remove duplicatas)
+                    (r["References"] || "").split(';').forEach(ref => { if(ref.trim().length > 30) refSet.add(ref.trim()) });
                 });
+
+                // Enviar Autores e Keywords
                 await _supabase.from('autor').upsert([...autSet].map(n => ({ id: n.replace(/[^a-z0-9]/gi,'_').toLowerCase(), nome: n, nomecompleto: n })));
                 await _supabase.from('palavras_chaves').upsert([...keySet].map(k => ({ palavras_chaves: k })), { onConflict: 'palavras_chaves' });
+                
+                // Enviar Referências (em blocos de 50 para não travar o navegador)
+                const refsArray = [...refSet];
+                for (let i = 0; i < refsArray.length; i += 50) {
+                    const chunk = refsArray.slice(i, i + 50).map(r => ({ referencia: r }));
+                    await _supabase.from('referencia').insert(chunk);
+                }
 
-                alert("Sincronização Concluída!");
+                alert("Sincronização Completa!");
                 loadSection('artigo', 'titulo');
             }
         });
