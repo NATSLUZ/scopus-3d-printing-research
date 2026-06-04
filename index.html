@@ -3,76 +3,146 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Scopus 3D - Pro Edition</title>
+    <title>Scopus 3D | Intelligence Dashboard</title>
+    
+    <!-- Google Fonts & FontAwesome (Ícones) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+
     <style>
-        :root { --primary: #0f172a; --secondary: #3b82f6; --bg: #f8fafc; --border: #e2e8f0; --white: #ffffff; --accent: #10b981; }
-        body { font-family: 'Segoe UI', system-ui, sans-serif; background-color: var(--bg); margin: 0; display: flex; height: 100vh; overflow: hidden; color: #1e293b; }
-        
-        /* Menu Lateral */
-        nav { width: 260px; background: var(--primary); color: white; padding: 25px; display: flex; flex-direction: column; gap: 10px; flex-shrink: 0; }
-        nav h2 { font-size: 1.2rem; color: var(--secondary); margin-bottom: 20px; border-bottom: 1px solid #334155; padding-bottom: 10px; }
-        nav button { background: transparent; border: 1px solid #334155; color: #cbd5e1; padding: 12px; text-align: left; border-radius: 8px; cursor: pointer; transition: 0.3s; font-size: 0.9rem; }
-        nav button:hover { background: var(--secondary); color: white; }
-        .btn-import { background: var(--accent) !important; border: none !important; margin-top: auto; font-weight: bold; text-align: center !important; color: white !important; }
-        #csv-input { display: none; }
+        :root {
+            --bg-body: #f3f4f6;
+            --sidebar: #0f172a;
+            --primary: #3b82f6;
+            --secondary: #6366f1;
+            --accent: #10b981;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --card-bg: #ffffff;
+            --border-color: #e5e7eb;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
 
-        main { flex: 1; padding: 30px; overflow-y: auto; display: block; }
+        * { box-sizing: border-box; transition: var(--transition); }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-body); margin: 0; display: flex; height: 100vh; overflow: hidden; color: var(--text-main); }
 
-        /* Barra de Filtros */
-        .filter-bar { background: white; padding: 15px; border-radius: 10px; border: 1px solid var(--border); margin-bottom: 20px; display: flex; gap: 12px; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
-        .filter-bar input { flex: 1; padding: 10px; border-radius: 6px; border: 1px solid var(--border); font-size: 0.9rem; }
-        .filter-bar select { padding: 10px; border-radius: 6px; border: 1px solid var(--border); min-width: 160px; }
+        /* --- SIDEBAR DESIGN --- */
+        nav { width: 280px; background: var(--sidebar); color: white; padding: 30px 20px; display: flex; flex-direction: column; gap: 8px; flex-shrink: 0; box-shadow: 10px 0 30px rgba(0,0,0,0.1); }
+        .nav-logo { display: flex; align-items: center; gap: 12px; margin-bottom: 40px; padding: 0 10px; }
+        .nav-logo i { font-size: 1.5rem; color: var(--primary); }
+        .nav-logo span { font-weight: 700; font-size: 1.2rem; letter-spacing: -0.5px; }
 
-        /* Tabela Grid Blindada para Artigos */
-        .grid-table { background: var(--white); border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 4px 15px rgba(0,0,0,0.05); min-width: 950px; }
-        .grid-row { display: grid; align-items: center; border-bottom: 1px solid var(--border); transition: background 0.2s; }
-        
-        /* Larguras fixas para Artigo: Titulo(1fr), Ano(70px), Cits(80px), ISSN(110px), Vol(90px), Tipo(110px) */
-        .row-artigo { grid-template-columns: 1fr 70px 80px 110px 90px 110px; }
-        /* Para as outras tabelas */
-        .row-simples { grid-template-columns: 1fr 100px; }
+        nav button {
+            background: transparent; border: none; color: #94a3b8; padding: 12px 15px; text-align: left;
+            border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 12px; font-size: 0.95rem; font-weight: 500;
+        }
+        nav button i { width: 20px; font-size: 1.1rem; }
+        nav button:hover { background: rgba(255,255,255,0.05); color: white; transform: translateX(5px); }
+        nav button.active { background: var(--primary); color: white; box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.3); }
 
-        .grid-header { background: #f1f5f9; font-weight: 700; font-size: 0.7rem; text-transform: uppercase; color: #64748b; letter-spacing: 0.05em; position: sticky; top: 0; z-index: 10; }
-        .grid-row > div { padding: 15px; overflow: hidden; text-overflow: ellipsis; }
+        .btn-import { background: var(--accent) !important; color: white !important; margin-top: auto; justify-content: center; font-weight: 600; }
+        .btn-import:hover { filter: brightness(1.1); transform: scale(1.02) !important; }
 
-        .data-row:hover { background-color: #f8fafc; cursor: pointer; }
+        /* --- MAIN CONTENT AREA --- */
+        main { flex: 1; padding: 40px; overflow-y: auto; position: relative; }
+        .header-content { margin-bottom: 30px; animation: fadeInDown 0.5s ease; }
+        .header-content h1 { font-size: 1.8rem; font-weight: 700; margin: 0; color: var(--sidebar); }
+        .header-content p { color: var(--text-muted); margin: 5px 0 0; }
 
-        /* Expansão Suave */
-        .expandable-panel { max-height: 0; overflow: hidden; transition: max-height 0.5s ease-in-out, opacity 0.3s; opacity: 0; background: #fafbfc; }
-        .expandable-panel.active { max-height: 1200px; opacity: 1; border-bottom: 1px solid var(--border); }
-        .details-content { padding: 25px; border-left: 5px solid var(--secondary); margin: 15px; background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        /* --- FILTERS --- */
+        .filter-bar { 
+            background: white; padding: 20px; border-radius: 16px; border: 1px solid var(--border-color); 
+            margin-bottom: 25px; display: flex; gap: 15px; align-items: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            animation: fadeIn 0.6s ease;
+        }
+        .search-wrapper { position: relative; flex: 1; }
+        .search-wrapper i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
+        .filter-bar input { width: 100%; padding: 12px 15px 12px 45px; border-radius: 10px; border: 1px solid var(--border-color); background: #f9fafb; outline: none; }
+        .filter-bar select { padding: 12px 15px; border-radius: 10px; border: 1px solid var(--border-color); background: #f9fafb; outline: none; min-width: 150px; cursor: pointer; }
+        .filter-bar input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
 
-        /* Paginação */
-        .pagination { display: flex; justify-content: center; gap: 5px; margin: 30px 0 60px; }
-        .pagination button { padding: 8px 14px; border: 1px solid var(--border); background: white; border-radius: 6px; cursor: pointer; font-size: 0.9rem; }
-        .pagination button.active { background: var(--secondary); color: white; border-color: var(--secondary); }
+        /* --- DATA TABLE DESIGN --- */
+        .grid-table { background: var(--white); border-radius: 20px; border: 1px solid var(--border-color); box-shadow: 0 10px 25px rgba(0,0,0,0.03); overflow: hidden; min-width: 950px; animation: fadeInUp 0.7s ease; }
+        .grid-row { display: grid; align-items: center; border-bottom: 1px solid var(--border-color); }
+        .row-artigo { grid-template-columns: 1fr 80px 90px 120px 90px 120px; }
+        .row-simples { grid-template-columns: 1fr 120px; }
 
-        .badge-type { background: #f1f5f9; color: #475569; padding: 4px 8px; border-radius: 4px; font-size: 0.65rem; font-weight: bold; }
-        .loading-container { text-align: center; padding: 100px; }
-        .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--secondary); border-radius: 50%; animation: spin 1s linear infinite; margin: auto; }
+        .grid-header { background: #f8fafc; font-weight: 700; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.05em; }
+        .grid-row > div { padding: 18px 20px; }
+
+        .data-row { cursor: pointer; }
+        .data-row:hover { background-color: #f1f5f9; }
+        .data-row span.title { font-weight: 600; color: var(--sidebar); display: block; line-height: 1.5; }
+
+        /* --- EXPANSION PANEL --- */
+        .expandable-panel { max-height: 0; overflow: hidden; background: #fcfdfe; transition: var(--transition); opacity: 0; }
+        .expandable-panel.active { max-height: 1200px; opacity: 1; border-bottom: 2px solid var(--primary); }
+        .details-content { padding: 30px; border-left: 6px solid var(--primary); margin: 20px; background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+
+        /* --- BUTTONS & BADGES --- */
+        .badge-type { background: #e0f2fe; color: #0369a1; padding: 5px 10px; border-radius: 8px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; }
+        .btn-web { 
+            display: inline-flex; align-items: center; gap: 8px; background: var(--sidebar); color: white; 
+            padding: 12px 20px; border-radius: 10px; text-decoration: none; font-size: 0.85rem; margin-top: 20px; font-weight: 600; 
+        }
+        .btn-web:hover { background: var(--primary); transform: translateY(-2px); }
+
+        /* --- PAGINAÇÃO --- */
+        .pagination { display: flex; justify-content: center; gap: 8px; margin: 30px 0 60px; }
+        .pagination button { width: 40px; height: 40px; border: 1px solid var(--border-color); background: white; border-radius: 10px; cursor: pointer; font-weight: 600; color: var(--text-muted); }
+        .pagination button.active { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3); }
+
+        /* --- ANIMATIONS --- */
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .loading-container { display: flex; align-items: center; justify-content: center; min-height: 400px; width: 100%; }
+        .spinner { width: 45px; height: 45px; border: 5px solid #e5e7eb; border-top: 5px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .btn-web { display: inline-block; background: var(--secondary); color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-size: 0.85rem; margin-top: 15px; font-weight: bold; }
+
+        #csv-input { display: none; }
     </style>
 </head>
 <body>
 
     <nav>
-        <h2>📊 Scopus 3D</h2>
-        <button onclick="location.reload()">🏠 Início</button>
-        <button onclick="loadSection('artigo', 'titulo')">📑 Artigos</button>
-        <button onclick="loadSection('autor', 'nome')">👥 Autores</button>
-        <button onclick="loadSection('palavras_chaves', 'palavras_chaves')">🔑 Palavras-Chave</button>
-        <button onclick="loadSection('referencia', 'referencia')">📚 Referências</button>
+        <div class="nav-logo">
+            <i class="fas fa-microchip"></i>
+            <span>SCOPUS 3D</span>
+        </div>
+        
+        <button onclick="location.reload()" id="nav-home">
+            <i class="fas fa-home"></i> Dashboard
+        </button>
+        <button onclick="loadSection('artigo', 'titulo')" id="nav-artigo">
+            <i class="fas fa-file-lines"></i> Artigos
+        </button>
+        <button onclick="loadSection('autor', 'nome')" id="nav-autor">
+            <i class="fas fa-users"></i> Autores
+        </button>
+        <button onclick="loadSection('palavras_chaves', 'palavras_chaves')" id="nav-palavras">
+            <i class="fas fa-key"></i> Palavras-Chave
+        </button>
+        <button onclick="loadSection('referencia', 'referencia')" id="nav-referencia">
+            <i class="fas fa-book"></i> Referências
+        </button>
+        
         <input type="file" id="csv-input" accept=".csv">
-        <button class="btn-import" onclick="document.getElementById('csv-input').click()">📤 Importar CSV</button>
+        <button class="btn-import" onclick="document.getElementById('csv-input').click()">
+            <i class="fas fa-file-import"></i> IMPORTAR SCOPUS
+        </button>
     </nav>
 
     <main id="main-content">
-        <div style="text-align: center; margin-top: 100px;">
-            <h1>Dashboard Acadêmico Pro</h1>
-            <p>Selecione uma categoria para explorar os 541 registros importados.</p>
+        <div style="text-align: center; margin-top: 15vh; animation: fadeInUp 0.8s ease;">
+            <i class="fas fa-chart-line" style="font-size: 4rem; color: var(--primary); margin-bottom: 20px;"></i>
+            <h1>Bem-vindo ao Scopus Intel</h1>
+            <p>Selecione uma categoria ao lado para visualizar os dados de pesquisa sobre Impressão 3D.</p>
         </div>
     </main>
 
@@ -85,15 +155,22 @@
     let filteredData = [];
     let currentTable = '';
     let currentPage = 1;
-    const pageSize = 20;
+    const pageSize = 15;
 
     async function loadSection(tableName, orderCol) {
         currentTable = tableName;
         currentPage = 1;
-        const main = document.getElementById('main-content');
-        main.innerHTML = `<div class="loading-container"><div class="spinner"></div><br>Carregando ${tableName}...</div>`;
         
-        // Aumentamos o limite para garantir que todos os 541 apareçam
+        // Marcar botão ativo
+        document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+        if(tableName === 'artigo') document.getElementById('nav-artigo').classList.add('active');
+        if(tableName === 'autor') document.getElementById('nav-autor').classList.add('active');
+        if(tableName === 'palavras_chaves') document.getElementById('nav-palavras').classList.add('active');
+        if(tableName === 'referencia') document.getElementById('nav-referencia').classList.add('active');
+
+        const main = document.getElementById('main-content');
+        main.innerHTML = `<div class="loading-container"><div class="spinner"></div></div>`;
+        
         const { data, error } = await _supabase.from(tableName).select('*').order(orderCol, { ascending: true }).limit(2000);
         if (error) return main.innerHTML = `<h1>Erro</h1><p>${error.message}</p>`;
         
@@ -107,9 +184,15 @@
         const years = [...new Set(allData.map(d => d.ano))].filter(Boolean).sort((a,b) => b-a);
         
         main.innerHTML = `
-            <h1>Tabela: ${currentTable} (${allData.length} registros)</h1>
+            <div class="header-content">
+                <h1>Listagem de ${currentTable.charAt(0).toUpperCase() + currentTable.slice(1)}</h1>
+                <p>Encontrados <b>${allData.length}</b> registros no banco de dados.</p>
+            </div>
             <div class="filter-bar">
-                <input type="text" id="search-box" placeholder="Buscar nesta lista..." oninput="applyFilters()">
+                <div class="search-wrapper">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="search-box" placeholder="Pesquisar..." oninput="applyFilters()">
+                </div>
                 ${currentTable === 'artigo' ? `
                 <select id="filter-year" onchange="applyFilters()">
                     <option value="">Todos os Anos</option>
@@ -146,30 +229,33 @@
             items.forEach((item, i) => {
                 html += `
                 <div class="grid-row row-artigo data-row" onclick="togglePanel('p-${i}')">
-                    <div style="font-weight:600; white-space:normal">${item.titulo}</div>
-                    <div>${item.ano}</div>
-                    <div style="font-weight:700; color:var(--secondary)">${item.qtd_citacao || 0}</div>
-                    <div><small>${item.issn || '-'}</small></div>
+                    <div><span class="title">${item.titulo}</span></div>
+                    <div style="font-weight:500">${item.ano}</div>
+                    <div style="font-weight:700; color:var(--primary)">${item.qtd_citacao || 0}</div>
+                    <div><small style="color:var(--text-muted)">${item.issn || '-'}</small></div>
                     <div><small>${item.volume || '-'}/${item.issue || '-'}</small></div>
                     <div><span class="badge-type">${item.tipo_documento || 'Article'}</span></div>
                 </div>
                 <div id="p-${i}" class="expandable-panel">
                     <div class="details-content">
-                        <h4>Abstract (Resumo):</h4>
-                        <p style="text-align:justify; line-height:1.6; color:#475569">${item.resumo || 'Sem resumo disponível.'}</p>
-                        <hr style="border:0.5px solid #eee; margin:15px 0">
-                        <strong>DOI:</strong> ${item.doi || 'N/A'} | <strong>Citações:</strong> ${item.qtd_citacao || 0}<br>
-                        <a href="${item.link || 'https://doi.org/'+item.doi}" target="_blank" class="btn-web">🌐 Ver no Scopus</a>
+                        <h3 style="margin-top:0"><i class="fas fa-align-left"></i> Abstract / Resumo</h3>
+                        <p style="text-align:justify; line-height:1.7; color:#475569; font-size:0.95rem;">${item.resumo || 'Sem resumo disponível.'}</p>
+                        <hr style="border:0; border-top: 1px solid var(--border-color); margin:20px 0">
+                        <div style="display:flex; gap:20px; font-size:0.85rem; color:var(--text-muted)">
+                            <span><b>DOI:</b> ${item.doi || 'N/A'}</span>
+                            <span><b>CITAÇÕES SCOPUS:</b> ${item.qtd_citacao || 0}</span>
+                        </div>
+                        <a href="${item.link || 'https://doi.org/'+item.doi}" target="_blank" class="btn-web"><i class="fas fa-external-link-alt"></i> Acessar no Scopus</a>
                     </div>
                 </div>`;
             });
         } else {
-            html += `<div class="grid-row row-simples grid-header"><div>Descrição</div><div>ID do Banco</div></div>`;
+            html += `<div class="grid-row row-simples grid-header"><div>Descrição do Registro</div><div>Identificador</div></div>`;
             items.forEach(item => {
                 html += `
                 <div class="grid-row row-simples data-row">
-                    <div style="white-space:normal">${item.nome || item.palavras_chaves || item.referencia}</div>
-                    <div style="color:#94a3b8; font-size:0.8rem">#${item.id}</div>
+                    <div style="font-weight:500">${item.nome || item.palavras_chaves || item.referencia}</div>
+                    <div style="color:var(--text-muted); font-size:0.8rem">#${item.id}</div>
                 </div>`;
             });
         }
@@ -184,7 +270,7 @@
         let html = `<div class="pagination">`;
         for (let i = 1; i <= totalPages; i++) {
             if (totalPages > 10 && (i > 3 && i < totalPages - 2)) {
-                if (i === 4) html += `<span>...</span>`;
+                if (i === 4) html += `<span style="padding:10px">...</span>`;
                 continue;
             }
             html += `<button class="${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">${i}</button>`;
@@ -201,7 +287,7 @@
         if (!isActive) p.classList.add('active');
     }
 
-    // IMPORTAÇÃO TURBO MANTENDO TUDO DOS ARTIGOS
+    // --- IMPORTAÇÃO TURBO (Otimizada) ---
     document.getElementById('csv-input').addEventListener('change', function(e) {
         const file = e.target.files[0]; if (!file) return;
         const main = document.getElementById('main-content');
@@ -209,7 +295,7 @@
             header: true, skipEmptyLines: true,
             complete: async function(results) {
                 const rows = results.data;
-                main.innerHTML = `<div class="loading-container"><div class="spinner"></div>🚀 <b>Importando ${rows.length} registros...</b></div>`;
+                main.innerHTML = `<div class="loading-container"><div style="text-align:center"><div class="spinner" style="margin-bottom:20px"></div><h2 style="margin:0">Sincronizando Banco de Dados...</h2><p>${rows.length} registros detectados</p></div></div>`;
 
                 const artigos = rows.map(r => ({
                     titulo: r["Title"] || r["Document Title"], ano: parseInt(r["Year"]) || 0,
@@ -228,7 +314,7 @@
                 await _supabase.from('autor').upsert([...autSet].map(n => ({ id: n.replace(/[^a-z0-9]/gi,'_').toLowerCase(), nome: n, nomecompleto: n })));
                 await _supabase.from('palavras_chaves').upsert([...keySet].map(k => ({ palavras_chaves: k })), { onConflict: 'palavras_chaves' });
 
-                alert("Importação Concluída com Sucesso!");
+                alert("Sincronização Concluída!");
                 loadSection('artigo', 'titulo');
             }
         });
