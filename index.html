@@ -5,22 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nexus 3D | Intelligence Analytics</title>
     
+    <!-- Design System: Inter Font & FontAwesome -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
+    <!-- Scripts Core -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
 
     <style>
         :root {
-            --primary: #3b82f6; 
-            --sidebar: #0f172a; 
-            --bg-body: #f8fafc; 
+            --primary: #3b82f6; /* Electric Blue */
+            --sidebar: #0f172a; /* Navy Blue */
+            --bg-body: #f8fafc; /* Slate Light */
             --white: #ffffff;
             --text-main: #1e293b;
             --text-muted: #64748b;
-            --accent: #10b981; 
+            --accent: #10b981; /* Emerald */
             --border: #e2e8f0;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
             --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
@@ -28,16 +32,17 @@
         body { font-family: 'Inter', sans-serif; background-color: var(--bg-body); margin: 0; display: flex; height: 100vh; overflow: hidden; color: var(--text-main); }
 
         /* --- SIDEBAR NEXUS --- */
-        nav { width: 280px; background: var(--sidebar); color: white; padding: 40px 24px; display: flex; flex-direction: column; gap: 10px; flex-shrink: 0; position: relative; box-shadow: 10px 0 30px rgba(0,0,0,0.1); }
-        
-        .logo-area { margin-bottom: 50px; text-align: center; }
-        .logo-area img { width: 100%; max-width: 180px; filter: drop-shadow(0 0 10px rgba(59, 130, 246, 0.2)); border-radius: 12px; }
+        nav { width: 280px; background: var(--sidebar); color: white; padding: 40px 24px; display: flex; flex-direction: column; gap: 10px; flex-shrink: 0; position: relative; }
+        .logo-area { display: flex; align-items: center; gap: 12px; margin-bottom: 50px; }
+        .logo-icon { width: 40px; height: 40px; background: var(--primary); border-radius: 10px; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 20px rgba(59, 130, 246, 0.4); }
+        .logo-text { font-weight: 800; font-size: 1.4rem; letter-spacing: -1px; }
+        .logo-text span { color: var(--primary); }
 
         nav button {
             background: transparent; border: none; color: #94a3b8; padding: 14px 18px; text-align: left;
             border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 14px; font-weight: 500; transition: var(--transition);
         }
-        nav button i { font-size: 1.1rem; width: 20px; text-align: center; }
+        nav button i { font-size: 1.1rem; opacity: 0.7; }
         nav button:hover { background: rgba(255,255,255,0.05); color: white; }
         nav button.active { background: var(--primary); color: white; box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.3); }
 
@@ -46,78 +51,61 @@
         .btn-csv:hover { filter: brightness(1.1); transform: translateY(-2px); }
 
         /* --- ÁREA PRINCIPAL --- */
-        main { flex: 1; padding: 40px; overflow-y: auto; position: relative; scroll-behavior: smooth; }
-        .page-header { margin-bottom: 30px; animation: slideDown 0.5s ease; }
-        .page-header h1 { font-size: 2.2rem; font-weight: 800; margin: 0; color: var(--sidebar); letter-spacing: -1px; }
+        main { flex: 1; padding: 50px; overflow-y: auto; position: relative; scroll-behavior: smooth; }
+        .page-header { margin-bottom: 40px; animation: slideDown 0.5s ease; }
+        .page-header h1 { font-size: 2.4rem; font-weight: 800; margin: 0; color: var(--sidebar); letter-spacing: -1px; }
 
-        /* --- FILTROS (FIXED) --- */
-        .filter-bar { 
-            background: var(--white); padding: 20px; border-radius: 20px; margin-bottom: 30px; 
-            display: flex; gap: 15px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid var(--border);
-            animation: fadeIn 0.8s ease;
-        }
-        .filter-bar input { flex: 1; padding: 12px 20px; border-radius: 12px; border: 1px solid var(--border); background: #f9fafb; font-size: 1rem; transition: 0.3s; }
-        .filter-bar select { padding: 12px 15px; border-radius: 12px; border: 1px solid var(--border); background: #f9fafb; font-weight: 600; min-width: 180px; }
-        .filter-bar input:focus { border-color: var(--primary); background: white; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); }
+        /* --- CARDS DE PERFIL E DASHBOARD --- */
+        .profile-card { background: var(--white); padding: 40px; border-radius: 24px; box-shadow: var(--shadow-md); border: 1px solid var(--border); max-width: 700px; margin: auto; text-align: center; animation: fadeInUp 0.6s ease; }
+        .profile-img { width: 120px; height: 120px; background: var(--primary); border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; font-size: 3rem; color: white; font-weight: 800; }
+        .profile-links { display: flex; justify-content: center; gap: 15px; margin-top: 25px; }
+        .link-btn { padding: 12px 25px; border-radius: 12px; text-decoration: none; font-weight: 600; display: flex; align-items: center; gap: 10px; transition: var(--transition); }
+        .github-btn { background: #333; color: white; }
+        .email-btn { background: var(--primary); color: white; }
 
-        /* --- TABELAS --- */
-        .grid-table { background: var(--white); border-radius: 24px; border: 1px solid var(--border); overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.02); min-width: 950px; }
+        /* --- TABELAS E FILTROS --- */
+        .filter-bar { background: var(--white); padding: 20px; border-radius: 16px; margin-bottom: 30px; display: flex; gap: 15px; box-shadow: var(--shadow-sm); border: 1px solid var(--border); }
+        .filter-bar input { flex: 1; padding: 12px 20px; border-radius: 10px; border: 1px solid var(--border); background: #f9fafb; font-size: 1rem; }
+        .grid-table { background: var(--white); border-radius: 20px; border: 1px solid var(--border); overflow: hidden; box-shadow: var(--shadow-md); min-width: 900px; }
         .grid-row { display: grid; align-items: center; border-bottom: 1px solid #f1f5f9; padding: 18px 25px; }
-        .row-artigo { grid-template-columns: 1fr 70px 80px 110px 90px 115px; }
+        .row-artigo { grid-template-columns: 1fr 80px 80px 120px 100px 120px; }
         .row-simples { grid-template-columns: 1fr 150px; }
         .grid-header { background: #f8fafc; font-weight: 700; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.05em; }
 
-        .data-row { cursor: pointer; transition: background 0.2s; }
-        .data-row:hover { background-color: #f1f5f9; }
-
         /* EXPANSÃO */
         .expandable-panel { max-height: 0; overflow: hidden; transition: var(--transition); opacity: 0; background: #fafbfc; }
-        .expandable-panel.active { max-height: 1200px; opacity: 1; border-bottom: 2px solid var(--primary); }
-        .details-box { padding: 35px; border-left: 8px solid var(--primary); margin: 20px; background: white; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-
-        /* --- SOBRE O DEV (NATAN LUZ) --- */
-        .profile-container { max-width: 850px; margin: 40px auto; animation: fadeInUp 0.8s ease; }
-        .profile-card-dev { background: white; padding: 50px; border-radius: 32px; border: 1px solid var(--border); box-shadow: 0 20px 40px rgba(0,0,0,0.05); display: flex; gap: 40px; align-items: center; }
-        .dev-photo { width: 240px; height: 240px; border-radius: 24px; object-fit: cover; box-shadow: 0 10px 20px rgba(0,0,0,0.1); border: 5px solid white; }
-        .dev-bio h2 { font-size: 2.5rem; margin: 0 0 10px; color: var(--sidebar); letter-spacing: -1.5px; }
-        .dev-bio p { line-height: 1.8; color: var(--text-muted); font-size: 1.1rem; text-align: justify; }
-        .dev-social { display: flex; gap: 15px; margin-top: 30px; }
-        .btn-social { padding: 12px 25px; border-radius: 12px; text-decoration: none; font-weight: 700; display: flex; align-items: center; gap: 10px; transition: 0.3s; }
-        .btn-github { background: #24292e; color: white; }
-        .btn-email { background: var(--primary); color: white; }
-        .btn-social:hover { transform: translateY(-3px); box-shadow: 0 8px 15px rgba(0,0,0,0.1); }
+        .expandable-panel.active { max-height: 1000px; opacity: 1; border-bottom: 2px solid var(--primary); }
+        .details-box { padding: 30px; border-left: 6px solid var(--primary); margin: 20px; background: var(--white); border-radius: 12px; box-shadow: var(--shadow-sm); }
 
         /* LOADING */
         .loader-overlay { display: flex; flex-direction: column; align-items: center; justify-content: center; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-body); z-index: 500; }
-        .spinner { width: 60px; height: 60px; border: 6px solid #e2e8f0; border-top: 6px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 25px; }
+        .spinner { width: 50px; height: 50px; border: 5px solid #e2e8f0; border-top: 5px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
 
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
         #csv-input { display: none; }
-        .badge { background: #e0f2fe; color: #0369a1; padding: 5px 10px; border-radius: 8px; font-weight: 700; font-size: 0.7rem; text-transform: uppercase; }
-        .pagination { display: flex; justify-content: center; gap: 8px; margin: 40px 0 80px; }
-        .pagination button { padding: 10px 18px; border: 1px solid var(--border); background: white; border-radius: 10px; cursor: pointer; font-weight: 700; }
-        .pagination button.active { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3); }
-        .btn-web { display: inline-flex; align-items: center; gap: 8px; background: var(--sidebar); color: white; padding: 15px 25px; border-radius: 10px; text-decoration: none; font-size: 0.85rem; margin-top: 25px; font-weight: 700; }
+        .badge { background: #e0f2fe; color: #0369a1; padding: 4px 10px; border-radius: 6px; font-weight: 700; font-size: 0.7rem; }
+        .pagination { display: flex; justify-content: center; gap: 8px; margin: 40px 0; }
+        .pagination button { padding: 10px 16px; border: 1px solid var(--border); background: white; border-radius: 8px; cursor: pointer; font-weight: 600; }
+        .pagination button.active { background: var(--primary); color: white; border-color: var(--primary); }
     </style>
 </head>
 <body>
 
     <nav>
         <div class="logo-area">
-            <img src="logo.png" alt="Nexus 3D Logo" onerror="this.style.display='none'">
-            <div style="font-weight: 800; font-size: 1.5rem; letter-spacing: -1px; margin-top: 10px;">NEXUS<span style="color:var(--primary)">3D</span></div>
+            <div class="logo-icon"><i class="fas fa-project-diagram"></i></div>
+            <div class="logo-text">NEXUS<span>3D</span></div>
         </div>
         
-        <button onclick="showHome()" id="nav-home" class="active"><i class="fas fa-chart-pie"></i> Dashboard</button>
-        <button onclick="loadSection('artigo', 'titulo')" id="nav-artigo"><i class="fas fa-file-alt"></i> Artigos</button>
+        <button onclick="showHome()" id="nav-home" class="active"><i class="fas fa-th-large"></i> Dashboard</button>
+        <button onclick="loadSection('artigo', 'titulo')" id="nav-artigo"><i class="fas fa-file-text"></i> Artigos</button>
         <button onclick="loadSection('autor', 'nome')" id="nav-autor"><i class="fas fa-user-friends"></i> Autores</button>
         <button onclick="loadSection('palavras_chaves', 'palavras_chaves')" id="nav-palavras"><i class="fas fa-tags"></i> Palavras-Chave</button>
-        <button onclick="loadSection('referencia', 'referencia')" id="nav-referencia"><i class="fas fa-quote-right"></i> Referências</button>
-        <button onclick="showAbout()" id="nav-about"><i class="fas fa-id-card"></i> Sobre o Dev</button>
+        <button onclick="loadSection('referencia', 'referencia')" id="nav-referencia"><i class="fas fa-bookmark"></i> Referências</button>
+        <button onclick="showAbout()" id="nav-about"><i class="fas fa-user-circle"></i> Sobre o Dev</button>
         
         <div class="import-section">
             <input type="file" id="csv-input" accept=".csv">
@@ -127,75 +115,84 @@
         </div>
     </nav>
 
-    <main id="main-content"></main>
+    <main id="main-content">
+        <!-- Renderização inicial pela função showHome() no script -->
+    </main>
 
 <script>
     const SUPABASE_URL = 'https://kdtazqmfbnaethrpkshz.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkdGF6cW1mYm5hZXRocnBrc2h6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2MzcwMjUsImV4cCI6MjA5NDIxMzAyNX0.Rd-i2suGjKmaWjBDo9HwFwAaoiOYdQJCNU_NGfgRJ5A';
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    let allData = []; let filteredData = []; let currentTable = ''; let currentPage = 1; const pageSize = 15;
+    let allData = [];
+    let filteredData = [];
+    let currentTable = '';
+    let currentPage = 1;
+    const pageSize = 15;
 
-    function setNav(id) {
+    // --- NAVEGAÇÃO ---
+    function setActiveNav(id) {
         document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
         document.getElementById(id).classList.add('active');
     }
 
     function showHome() {
-        setNav('nav-home');
+        setActiveNav('nav-home');
         document.getElementById('main-content').innerHTML = `
-            <div class="page-header"><h1>Nexus 3D Intelligence</h1></div>
+            <div class="page-header"><h1>Dashboard Nexus 3D</h1></div>
             <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap: 20px; animation: fadeInUp 0.8s ease;">
-                <div style="background:white; padding:30px; border-radius:24px; border:1px solid var(--border); text-align:center;">
-                    <i class="fas fa-database" style="font-size:2.5rem; color:var(--primary); margin-bottom:15px"></i>
-                    <h3>Cloud Data</h3><p>Hospedagem PostgreSQL via Supabase.</p>
+                <div class="profile-card" style="padding:30px">
+                    <i class="fas fa-database" style="font-size:2rem; color:var(--primary)"></i>
+                    <h2>Conectado</h2><p>Banco de Dados PostgreSQL Ativo</p>
                 </div>
-                <div style="background:white; padding:30px; border-radius:24px; border:1px solid var(--border); text-align:center;">
-                    <i class="fas fa-network-wired" style="font-size:2.5rem; color:var(--accent); margin-bottom:15px"></i>
-                    <h3>Relacional</h3><p>Arquitetura de dados conectada e otimizada.</p>
+                <div class="profile-card" style="padding:30px">
+                    <i class="fas fa-microchip" style="font-size:2rem; color:var(--accent)"></i>
+                    <h2>Tema</h2><p>Pesquisa em Impressão 3D</p>
                 </div>
-                <div style="background:white; padding:30px; border-radius:24px; border:1px solid var(--border); text-align:center;">
-                    <i class="fas fa-microchip" style="font-size:2.5rem; color:var(--sidebar); margin-bottom:15px"></i>
-                    <h3>Escopo</h3><p>Pesquisa Acadêmica em Impressão 3D.</p>
+                <div class="profile-card" style="padding:30px">
+                    <i class="fas fa-shield-alt" style="font-size:2rem; color:var(--secondary)"></i>
+                    <h2>Segurança</h2><p>Protocolo SSL e Anon Key</p>
                 </div>
             </div>`;
     }
 
     function showAbout() {
-        setNav('nav-about');
+        setActiveNav('nav-about');
         document.getElementById('main-content').innerHTML = `
             <div class="page-header"><h1>Desenvolvedor</h1></div>
-            <div class="profile-container">
-                <div class="profile-card-dev">
-                    <img src="natan.jpg" alt="Natan Luz" class="dev-photo" onerror="this.src='https://ui-avatars.com/api/?name=Natan+Luz&size=240&background=0f172a&color=fff'">
-                    <div class="dev-bio">
-                        <h2>Natan Luz</h2>
-                        <p>Sou estudante de Engenharia de Software na UNEB e desenvolvedor do <b>NEXUS 3D</b>, uma plataforma criada para organizar, explorar e conectar pesquisas científicas sobre impressão 3D. Tenho interesse em desenvolvimento de software, análise de dados, acessibilidade e tecnologias que facilitam o acesso ao conhecimento.</p>
-                        <div class="dev-social">
-                            <a href="https://github.com/NATSLUZ" target="_blank" class="btn-social btn-github"><i class="fab fa-github"></i> GitHub</a>
-                            <a href="mailto:contato@natanluz.com" class="btn-social btn-email"><i class="fas fa-envelope"></i> E-mail</a>
-                        </div>
-                    </div>
+            <div class="profile-card">
+                <div class="profile-img">NL</div>
+                <h2 style="font-size:2rem; margin:0">Natan Luz</h2>
+                <p style="font-size:1.1rem; color:var(--text-muted); margin-top:10px;">Analista de Dados & Desenvolvedor Nexus 3D</p>
+                <div class="profile-links">
+                    <a href="https://github.com/NATSLUZ" target="_blank" class="link-btn github-btn"><i class="fab fa-github"></i> GitHub</a>
+                    <a href="mailto:contato@natanluz.com" class="link-btn email-btn"><i class="fas fa-envelope"></i> E-mail</a>
                 </div>
             </div>`;
     }
 
+    // --- EXPLORADOR DE DADOS ---
     async function loadSection(tableName, orderCol) {
         currentTable = tableName; currentPage = 1;
-        setNav(tableName === 'artigo' ? 'nav-artigo' : (tableName === 'autor' ? 'nav-autor' : (tableName === 'palavras_chaves' ? 'nav-palavras' : 'nav-referencia')));
+        setActiveNav(tableName === 'artigo' ? 'nav-artigo' : (tableName === 'autor' ? 'nav-autor' : (tableName === 'palavras_chaves' ? 'nav-palavras' : 'nav-referencia')));
+        
         const main = document.getElementById('main-content');
-        main.innerHTML = `<div class="loader-overlay"><div class="spinner"></div><h2>Sincronizando Nexus...</h2></div>`;
+        main.innerHTML = `<div class="loader-overlay"><div class="spinner"></div><h2>Consultando Nexus...</h2></div>`;
+        
         const { data, error } = await _supabase.from(tableName).select('*').order(orderCol, { ascending: true }).limit(2000);
-        allData = data; filteredData = data; renderExplorer();
+        if (error) return main.innerHTML = `<h1>Erro de Conexão</h1>`;
+        
+        allData = data; filteredData = data;
+        renderExplorer();
     }
 
     function renderExplorer() {
         const main = document.getElementById('main-content');
         const years = [...new Set(allData.map(d => d.ano))].filter(Boolean).sort((a,b) => b-a);
         main.innerHTML = `
-            <div class="page-header"><h1>Tabela: ${currentTable.charAt(0).toUpperCase() + currentTable.slice(1)}</h1><p><b>${allData.length}</b> registros mapeados</p></div>
+            <div class="page-header"><h1>${currentTable.toUpperCase()}</h1><p><b>${allData.length}</b> registros mapeados</p></div>
             <div class="filter-bar">
-                <div style="flex:1; position:relative;"><i class="fas fa-search" style="position:absolute; left:20px; top:16px; color:#94a3b8"></i><input type="text" id="search-box" style="padding-left:55px" placeholder="Pesquisar registros..." oninput="applyFilters()"></div>
+                <input type="text" id="search-box" placeholder="Pesquisar nos resultados..." oninput="applyFilters()">
                 ${currentTable === 'artigo' ? `<select id="filter-year" onchange="applyFilters()"><option value="">Todos os Anos</option>${years.map(y => `<option value="${y}">${y}</option>`).join('')}</select>` : ''}
             </div>
             <div id="table-results"></div><div id="pagination-controls"></div>`;
@@ -214,7 +211,7 @@
         const items = filteredData.slice((currentPage - 1) * pageSize, currentPage * pageSize);
         let html = `<div class="grid-table">`;
         if (currentTable === 'artigo') {
-            html += `<div class="grid-row row-artigo grid-header"><div>Título do Artigo</div><div>Ano</div><div>Cits.</div><div>ISSN</div><div>Vol/Iss</div><div>Tipo</div></div>`;
+            html += `<div class="grid-row row-artigo grid-header"><div>Título</div><div>Ano</div><div>Cits.</div><div>ISSN</div><div>Vol/Iss</div><div>Tipo</div></div>`;
             items.forEach((item, i) => {
                 html += `
                 <div class="grid-row row-artigo data-row" onclick="togglePanel('p-${i}')">
@@ -224,7 +221,7 @@
                     <div><span class="badge">${item.tipo_documento || 'Article'}</span></div>
                 </div>
                 <div id="p-${i}" class="expandable-panel"><div class="details-box">
-                    <h3 style="margin-top:0">Abstract / Resumo</h3><p style="text-align:justify; line-height:1.8; color:#475569;">${item.resumo || 'Sem resumo disponível.'}</p>
+                    <h3 style="margin-top:0">Abstract / Resumo</h3><p style="text-align:justify; line-height:1.7; color:#475569;">${item.resumo || 'Sem resumo disponível.'}</p>
                     <hr style="border:0; border-top:1px solid var(--border); margin:20px 0">
                     <p><b>DOI:</b> ${item.doi || 'N/A'}</p>
                     <a href="${item.link || 'https://doi.org/'+item.doi}" target="_blank" class="btn-web"><i class="fas fa-external-link-alt"></i> VER NO SCOPUS</a>
@@ -261,10 +258,11 @@
         if (!isActive) p.classList.add('active');
     }
 
+    // --- IMPORTADOR CSV (UNIVERSAL) ---
     document.getElementById('csv-input').addEventListener('change', function(e) {
         const file = e.target.files[0]; if (!file) return;
         const main = document.getElementById('main-content');
-        main.innerHTML = `<div class="loader-overlay"><div class="spinner"></div><h2>Nexus Sync: Conectando...</h2></div>`;
+        main.innerHTML = `<div class="loader-overlay"><div class="spinner"></div><h2>Nexus Sync: Mapeando CSV...</h2></div>`;
         Papa.parse(file, {
             header: true, skipEmptyLines: true,
             complete: async function(results) {
@@ -277,18 +275,27 @@
                     volume: r["Volume"] || "", issue: r["Issue"] || ""
                 }));
                 await _supabase.from('artigo').insert(artigos);
-                let autSet = new Set(), keySet = new Set();
+
+                let autSet = new Set(), keySet = new Set(), refSet = new Set();
                 rows.forEach(r => {
                     (r["Authors"] || r["Author(s)"] || "").split(';').forEach(a => { if(a.trim()) autSet.add(a.trim()) });
                     (r["Author Keywords"] || "").split(';').forEach(k => { if(k.trim()) keySet.add(k.trim()) });
+                    (r["References"] || "").split(';').forEach(ref => { if(ref.trim().length > 30) refSet.add(ref.trim()) });
                 });
+
                 await _supabase.from('autor').upsert([...autSet].map(n => ({ id: n.replace(/[^a-z0-9]/gi,'_').toLowerCase(), nome: n, nomecompleto: n })));
                 await _supabase.from('palavras_chaves').upsert([...keySet].map(k => ({ palavras_chaves: k })), { onConflict: 'palavras_chaves' });
-                alert("Sincronização Nexus: Concluída!"); loadSection('artigo', 'titulo');
+                
+                const refsArray = [...refSet];
+                for (let i = 0; i < refsArray.length; i += 50) {
+                    await _supabase.from('referencia').insert(refsArray.slice(i, i + 50).map(r => ({ referencia: r })));
+                }
+                alert("Nexus Sync: Concluído!"); loadSection('artigo', 'titulo');
             }
         });
     });
 
+    // Iniciar na Home
     showHome();
 </script>
 </body>
