@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scopus 3D | Intelligence Dashboard</title>
+    <title>Nexus 3D | Intelligence Dashboard</title>
     
     <!-- Fontes e Ícones -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -35,13 +35,12 @@
         .nav-logo span { font-weight: 800; font-size: 1.3rem; letter-spacing: -0.5px; }
 
         nav button {
-            background: transparent; border: none; color: #94a3b8; padding: 14px 18px; text-align: left;
+            background: transparent; border: none; color: #94a3b8; padding: 12px 15px; text-align: left;
             border-radius: 14px; cursor: pointer; display: flex; align-items: center; gap: 14px; font-size: 1rem; font-weight: 500; transition: var(--transition);
         }
         nav button i { width: 24px; font-size: 1.2rem; }
         nav button:hover { background: rgba(255,255,255,0.05); color: white; transform: translateX(5px); }
         
-        /* Botão Ativo */
         nav button.active { 
             background: var(--primary); 
             color: white; 
@@ -55,12 +54,10 @@
         /* --- CONTEÚDO PRINCIPAL --- */
         main { flex: 1; padding: 40px; overflow-y: auto; position: relative; scroll-behavior: smooth; }
         
-        /* HEADER */
         .header-content { margin-bottom: 35px; animation: fadeInDown 0.5s ease; }
         .header-content h1 { font-size: 2.2rem; font-weight: 800; margin: 0; color: var(--sidebar); letter-spacing: -1px; }
         .header-content p { color: var(--text-muted); font-size: 1.1rem; margin-top: 8px; }
 
-        /* FILTROS GLASSMORPHISM */
         .filter-bar { 
             background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px);
             padding: 20px; border-radius: 20px; border: 1px solid var(--white); 
@@ -70,11 +67,9 @@
         }
         .search-wrapper { position: relative; flex: 1; }
         .search-wrapper i { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
-        .filter-bar input { width: 100%; padding: 14px 15px 14px 50px; border-radius: 12px; border: 1px solid #e5e7eb; background: var(--white); outline: none; font-size: 1rem; transition: var(--transition); }
-        .filter-bar select { padding: 14px 18px; border-radius: 12px; border: 1px solid #e5e7eb; background: var(--white); outline: none; min-width: 180px; font-size: 1rem; cursor: pointer; transition: var(--transition); }
-        .filter-bar input:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); }
+        .filter-bar input { width: 100%; padding: 14px 15px 14px 50px; border-radius: 12px; border: 1px solid #e5e7eb; background: var(--white); outline: none; font-size: 1rem; }
+        .filter-bar select { padding: 14px 18px; border-radius: 12px; border: 1px solid #e5e7eb; background: var(--white); outline: none; min-width: 180px; font-size: 1rem; cursor: pointer; }
 
-        /* TABELA GRID BLINDADA */
         .grid-table { background: var(--white); border-radius: 24px; border: 1px solid #e5e7eb; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.05); overflow: hidden; min-width: 1000px; animation: fadeInUp 0.7s ease; }
         .grid-row { display: grid; align-items: center; border-bottom: 1px solid #f1f5f9; }
         .row-artigo { grid-template-columns: 1fr 80px 90px 130px 100px 130px; }
@@ -87,41 +82,39 @@
         .data-row:hover { background-color: #f1f5f9; }
         .data-row .title { font-weight: 600; color: var(--sidebar); line-height: 1.5; font-size: 1rem; }
 
-        /* EXPANSÃO SUAVE */
         .expandable-panel { max-height: 0; overflow: hidden; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); opacity: 0; background: #fafbfc; }
         .expandable-panel.active { max-height: 1200px; opacity: 1; border-bottom: 3px solid var(--primary); }
         .details-content { padding: 40px; border-left: 8px solid var(--primary); margin: 25px; background: white; border-radius: 16px; box-shadow: 0 10px 15px rgba(0,0,0,0.05); }
 
-        /* LOADING CENTRALIZADO E BONITO */
-        .loading-wrapper {
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: var(--bg); z-index: 200;
-        }
-        .spinner {
-            width: 60px; height: 60px; border: 6px solid #e5e7eb; border-top: 6px solid var(--primary);
-            border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 25px;
-        }
+        /* --- SEÇÃO SOBRE MIM --- */
+        .about-card { background: white; border-radius: 24px; padding: 45px; box-shadow: 0 15px 35px rgba(0,0,0,0.08); border: 1px solid #e5e7eb; max-width: 850px; margin: 20px auto; display: flex; gap: 40px; align-items: center; animation: fadeInUp 0.7s ease; }
+        .about-img { width: 230px; height: 230px; border-radius: 20px; object-fit: cover; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border: 4px solid var(--white); }
+        .about-text h2 { font-size: 2.2rem; margin: 0 0 10px; color: var(--sidebar); }
+        .about-text p { font-size: 1.05rem; line-height: 1.8; color: var(--text-muted); text-align: justify; }
+        .social-btns { display: flex; gap: 12px; margin-top: 25px; }
+        .social-btns a { padding: 12px 22px; border-radius: 10px; text-decoration: none; font-weight: 600; display: flex; align-items: center; gap: 8px; transition: 0.3s; font-size: 0.9rem; }
+        .git-btn { background: #24292e; color: white; }
+        .mail-btn { background: var(--primary); color: white; }
+        .social-btns a:hover { transform: translateY(-3px); filter: brightness(1.1); }
+
+        /* --- UTILS --- */
+        .loading-wrapper { display: flex; flex-direction: column; align-items: center; justify-content: center; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: var(--bg); z-index: 200; }
+        .spinner { width: 60px; height: 60px; border: 6px solid #e5e7eb; border-top: 6px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 25px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .loading-text { text-align: center; }
         .loading-text h2 { margin: 0; font-size: 1.8rem; font-weight: 800; color: var(--sidebar); }
-        .loading-text p { margin: 10px 0 0; color: var(--text-muted); font-size: 1.1rem; }
-
-        /* BOTÕES E PAGINAÇÃO */
+        
         .pagination { display: flex; justify-content: center; gap: 10px; margin: 40px 0 80px; }
-        .pagination button { padding: 12px 18px; border: 1px solid #e5e7eb; background: white; border-radius: 12px; cursor: pointer; font-weight: 700; color: var(--text-muted); transition: var(--transition); }
-        .pagination button.active { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 10px 15px rgba(59, 130, 246, 0.3); }
+        .pagination button { padding: 12px 18px; border: 1px solid #e5e7eb; background: white; border-radius: 12px; cursor: pointer; font-weight: 700; color: var(--text-muted); }
+        .pagination button.active { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3); }
 
-        .btn-web { 
-            display: inline-flex; align-items: center; gap: 10px; background: var(--sidebar); color: white; 
-            padding: 15px 25px; border-radius: 12px; text-decoration: none; font-size: 0.9rem; margin-top: 25px; font-weight: 700; transition: var(--transition);
-        }
-        .btn-web:hover { background: var(--primary); transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        .btn-web { display: inline-flex; align-items: center; gap: 10px; background: var(--sidebar); color: white; padding: 15px 25px; border-radius: 12px; text-decoration: none; font-size: 0.9rem; margin-top: 25px; font-weight: 700; }
+        .badge-type { background: #e0f2fe; color: #0369a1; padding: 5px 10px; border-radius: 8px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; }
 
-        /* ANIMATIONS */
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes fadeInDown { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
+        
         #csv-input { display: none; }
     </style>
 </head>
@@ -130,7 +123,7 @@
     <nav>
         <div class="nav-logo">
             <i class="fas fa-microchip"></i>
-            <span>SCOPUS 3D</span>
+            <span>NEXUS 3D</span>
         </div>
         
         <button onclick="location.reload()" id="nav-home">
@@ -148,10 +141,13 @@
         <button onclick="loadSection('referencia', 'referencia')" id="nav-referencia">
             <i class="fas fa-book-open"></i> Referências
         </button>
+        <button onclick="showAbout()" id="nav-about">
+            <i class="fas fa-user-circle"></i> Sobre o Dev
+        </button>
         
         <input type="file" id="csv-input" accept=".csv">
         <button class="btn-import" onclick="document.getElementById('csv-input').click()">
-            <i class="fas fa-cloud-arrow-up"></i> IMPORTAR SCOPUS
+            <i class="fas fa-file-csv"></i> IMPORTAR CSV
         </button>
     </nav>
 
@@ -175,21 +171,12 @@
     const pageSize = 15;
 
     function getLoadingHTML(title, sub) {
-        return `
-        <div class="loading-wrapper">
-            <div class="spinner"></div>
-            <div class="loading-text">
-                <h2>${title}</h2>
-                <p>${sub}</p>
-            </div>
-        </div>`;
+        return `<div class="loading-wrapper"><div class="spinner"></div><div class="loading-text"><h2>${title}</h2><p>${sub}</p></div></div>`;
     }
 
     async function loadSection(tableName, orderCol) {
         currentTable = tableName;
         currentPage = 1;
-        
-        // Destacar botão ativo
         document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
         const activeBtn = document.getElementById(tableName === 'artigo' ? 'nav-artigo' : (tableName === 'autor' ? 'nav-autor' : (tableName === 'palavras_chaves' ? 'nav-palavras' : 'nav-referencia')));
         if(activeBtn) activeBtn.classList.add('active');
@@ -199,46 +186,55 @@
         
         const { data, error } = await _supabase.from(tableName).select('*').order(orderCol, { ascending: true }).limit(2000);
         if (error) return main.innerHTML = `<h1>Erro</h1><p>${error.message}</p>`;
-        
         allData = data; filteredData = data;
         renderUI();
+    }
+
+    function showAbout() {
+        document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+        document.getElementById('nav-about').classList.add('active');
+        const main = document.getElementById('main-content');
+        main.innerHTML = `
+            <div class="header-content"><h1>Desenvolvedor</h1></div>
+            <div class="about-card">
+                <img src="natan.jpg" alt="Natan Luz" class="about-img" onerror="this.src='https://ui-avatars.com/api/?name=Natan+Luz&background=0f172a&color=fff&size=200'">
+                <div class="about-text">
+                    <h2>Natan Luz</h2>
+                    <p>Sou estudante de Engenharia de Software na UNEB e desenvolvedor do <b>NEXUS 3D</b>, uma plataforma criada para organizar, explorar e conectar pesquisas científicas sobre impressão 3D. Tenho interesse em desenvolvimento de software, análise de dados, acessibilidade e tecnologias que facilitam o acesso ao conhecimento.</p>
+                    <div class="social-btns">
+                        <a href="https://github.com/NATSLUZ" target="_blank" class="git-btn"><i class="fab fa-github"></i> GitHub</a>
+                        <a href="mailto:contato@natanluz.com" class="mail-btn"><i class="fas fa-envelope"></i> E-mail</a>
+                    </div>
+                </div>
+            </div>`;
     }
 
     function renderUI() {
         const main = document.getElementById('main-content');
         const years = [...new Set(allData.map(d => d.ano))].filter(Boolean).sort((a,b) => b-a);
-        
         main.innerHTML = `
             <div class="header-content">
                 <h1>Tabela: ${currentTable.charAt(0).toUpperCase() + currentTable.slice(1)}</h1>
                 <p>Repositório contém <b>${allData.length}</b> registros processados.</p>
             </div>
             <div class="filter-bar">
-                <div class="search-wrapper">
-                    <i class="fas fa-magnifying-glass"></i>
-                    <input type="text" id="search-box" placeholder="Pesquisar nos registros..." oninput="applyFilters()">
-                </div>
+                <div class="search-wrapper"><i class="fas fa-magnifying-glass"></i><input type="text" id="search-box" placeholder="Pesquisar nos registros..." oninput="applyFilters()"></div>
                 ${currentTable === 'artigo' ? `<select id="filter-year" onchange="applyFilters()"><option value="">Filtrar por Ano</option>${years.map(y => `<option value="${y}">${y}</option>`).join('')}</select>` : ''}
             </div>
-            <div id="table-container"></div>
-            <div id="pagination-controls"></div>`;
+            <div id="table-container"></div><div id="pagination-controls"></div>`;
         updateTable();
     }
 
     function applyFilters() {
         const search = document.getElementById('search-box').value.toLowerCase();
         const year = document.getElementById('filter-year')?.value || '';
-        filteredData = allData.filter(d => {
-            const text = (d.titulo || d.nome || d.palavras_chaves || d.referencia || "").toLowerCase();
-            return text.includes(search) && (year === '' || String(d.ano) === year);
-        });
+        filteredData = allData.filter(d => (d.titulo || d.nome || d.palavras_chaves || d.referencia || "").toLowerCase().includes(search) && (year === '' || String(d.ano) === year));
         currentPage = 1; updateTable();
     }
 
     function updateTable() {
         const container = document.getElementById('table-container');
-        const start = (currentPage - 1) * pageSize;
-        const items = filteredData.slice(start, start + pageSize);
+        const items = filteredData.slice((currentPage - 1) * pageSize, currentPage * pageSize);
         let html = `<div class="grid-table">`;
 
         if (currentTable === 'artigo') {
@@ -257,10 +253,9 @@
                     <div class="details-content">
                         <h3 style="margin-top:0"><i class="fas fa-quote-left" style="color:var(--primary)"></i> Abstract / Resumo</h3>
                         <p style="text-align:justify; line-height:1.8; color:#475569; font-size:1rem;">${item.resumo || 'Nenhum abstract disponível para este artigo.'}</p>
-                        <hr style="border:0; border-top: 1px solid #eee; margin:25px 0">
-                        <div style="display:flex; gap:30px; font-size:0.9rem; color:var(--text-muted)">
+                        <hr style="border:0; border-top: 1px solid #eee; margin:20px 0">
+                        <div style="font-size:0.9rem; color:var(--text-muted)">
                             <span><i class="fas fa-fingerprint"></i> <b>DOI:</b> ${item.doi || 'N/A'}</span>
-                            <span><i class="fas fa-award"></i> <b>CITAÇÕES:</b> ${item.qtd_citacao || 0}</span>
                         </div>
                         <a href="${item.link || 'https://doi.org/'+item.doi}" target="_blank" class="btn-web"><i class="fas fa-arrow-up-right-from-square"></i> ACESSAR NO SCOPUS</a>
                     </div>
@@ -282,13 +277,11 @@
         if (totalPages <= 1) return controls.innerHTML = '';
         let html = `<div class="pagination">`;
         for (let i = 1; i <= totalPages; i++) {
-            if (totalPages > 8 && (i > 3 && i < totalPages - 2)) { if (i === 4) html += `<span style="padding:10px">...</span>`; continue; }
-            html += `<button class="${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">${i}</button>`;
+            if (totalPages > 10 && (i > 3 && i < totalPages - 2)) { if (i === 4) html += `<span style="padding:10px">...</span>`; continue; }
+            html += `<button class="${i === currentPage ? 'active' : ''}" onclick="currentPage=${i}; updateTable(); document.querySelector('main').scrollTop=0;">${i}</button>`;
         }
         controls.innerHTML = html + `</div>`;
     }
-
-    function changePage(p) { currentPage = p; updateTable(); document.querySelector('main').scrollTop = 0; }
 
     function togglePanel(id) {
         const p = document.getElementById(id);
@@ -297,7 +290,6 @@
         if (!isActive) p.classList.add('active');
     }
 
-    // --- IMPORTAÇÃO TURBO COM LOADING CENTRALIZADO ---
     document.getElementById('csv-input').addEventListener('change', function(e) {
         const file = e.target.files[0]; if (!file) return;
         const main = document.getElementById('main-content');
@@ -305,7 +297,7 @@
             header: true, skipEmptyLines: true,
             complete: async function(results) {
                 const rows = results.data;
-                main.innerHTML = getLoadingHTML("Sincronizando Banco de Dados", `Processando ${rows.length} registros e gerando vínculos relacionais...`);
+                main.innerHTML = getLoadingHTML("Sincronizando Dados", `Processando ${rows.length} registros...`);
 
                 const artigos = rows.map(r => ({
                     titulo: r["Title"] || r["Document Title"], ano: parseInt(r["Year"]) || 0,
@@ -330,7 +322,6 @@
                 for (let i = 0; i < refsArray.length; i += 50) {
                     await _supabase.from('referencia').insert(refsArray.slice(i, i + 50).map(r => ({ referencia: r })));
                 }
-
                 alert("Sincronização Finalizada!"); loadSection('artigo', 'titulo');
             }
         });
