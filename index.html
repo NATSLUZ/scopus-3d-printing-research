@@ -4,371 +4,190 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nexus 3D | Intelligence Analytics</title>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Scripts Core e Biblioteca de Gráficos -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
     <style>
-        :root {
-            --primary: #3b82f6; 
-            --sidebar: #0f172a; 
-            --bg-body: #f8fafc; 
-            --white: #ffffff;
-            --text-main: #1e293b;
-            --text-muted: #64748b;
-            --accent: #10b981; 
-            --border: #e2e8f0;
-            --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        * { box-sizing: border-box; outline: none; }
-        body { font-family: 'Inter', sans-serif; background-color: var(--bg-body); margin: 0; display: flex; height: 100vh; overflow: hidden; color: var(--text-main); }
-
-        /* --- SIDEBAR --- */
-        nav { width: 280px; background: var(--sidebar); color: white; padding: 40px 24px; display: flex; flex-direction: column; gap: 10px; flex-shrink: 0; position: relative; box-shadow: 10px 0 30px rgba(0,0,0,0.1); }
-        .logo-area { display: flex; align-items: center; gap: 12px; margin-bottom: 50px; padding: 0 10px; }
-        .logo-icon { width: 40px; height: 40px; background: var(--primary); border-radius: 10px; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 20px rgba(59, 130, 246, 0.4); }
-        .logo-text { font-weight: 800; font-size: 1.4rem; letter-spacing: -1px; color: white; }
-        .logo-text span { color: var(--primary); }
-
-        nav button {
-            background: transparent; border: none; color: #94a3b8; padding: 14px 18px; text-align: left;
-            border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 14px; font-weight: 500; transition: var(--transition);
-        }
-        nav button i { font-size: 1.1rem; width: 20px; text-align: center; }
+        :root { --primary: #3b82f6; --sidebar: #0f172a; --bg: #f3f4f6; --white: #ffffff; --text: #1e293b; --accent: #10b981; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg); margin: 0; display: flex; height: 100vh; overflow: hidden; color: var(--text); }
+        nav { width: 280px; background: var(--sidebar); color: white; padding: 35px 20px; display: flex; flex-direction: column; gap: 8px; flex-shrink: 0; box-shadow: 10px 0 30px rgba(0,0,0,0.1); z-index: 100; }
+        .nav-logo { display: flex; align-items: center; gap: 12px; margin-bottom: 45px; padding: 0 10px; font-weight: 800; font-size: 1.3rem; }
+        nav button { background: transparent; border: none; color: #94a3b8; padding: 14px 18px; text-align: left; border-radius: 14px; cursor: pointer; display: flex; align-items: center; gap: 12px; font-weight: 500; }
         nav button:hover { background: rgba(255,255,255,0.05); color: white; }
-        nav button.active { background: var(--primary); color: white; box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.3); }
-
-        .import-section { margin-top: auto; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); }
-        .btn-csv { width: 100%; background: var(--accent); color: white; border: none; padding: 14px; border-radius: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: var(--transition); }
-
-        /* --- ÁREA PRINCIPAL --- */
-        main { flex: 1; padding: 40px; overflow-y: auto; position: relative; scroll-behavior: smooth; }
-        .page-header { margin-bottom: 30px; animation: slideDown 0.5s ease; }
-        .page-header h1 { font-size: 2.2rem; font-weight: 800; color: var(--sidebar); letter-spacing: -1px; }
-
-        /* --- ANALYTICS DASHBOARD --- */
-        .analytics-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 25px; animation: fadeInUp 0.8s ease; }
-        .chart-card { background: white; padding: 25px; border-radius: 24px; border: 1px solid var(--border); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
-        .chart-card h3 { margin-top: 0; font-size: 1rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
-        .chart-card h3 i { color: var(--primary); }
-        .chart-container { position: relative; height: 300px; width: 100%; }
-
-        /* --- SOBRE O DEV --- */
-        .profile-card-dev { background: white; padding: 50px; border-radius: 32px; border: 1px solid var(--border); box-shadow: 0 20px 40px rgba(0,0,0,0.05); display: flex; gap: 40px; align-items: center; max-width: 850px; margin: auto; animation: fadeInUp 0.7s ease; }
-        .dev-photo { width: 220px; height: 220px; border-radius: 24px; object-fit: cover; box-shadow: 0 10px 20px rgba(0,0,0,0.1); border: 5px solid white; }
-        .social-btns { display: flex; gap: 12px; margin-top: 25px; }
-        .btn-social { padding: 12px 22px; border-radius: 10px; text-decoration: none; font-weight: 700; display: flex; align-items: center; gap: 8px; transition: 0.3s; color: white; }
-
-        /* --- TABELAS --- */
-        .filter-bar { background: var(--white); padding: 20px; border-radius: 20px; margin-bottom: 30px; display: flex; gap: 15px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid var(--border); }
-        .filter-bar input { flex: 1; padding: 12px 20px; border-radius: 12px; border: 1px solid var(--border); background: #f9fafb; font-size: 1rem; }
-        .grid-table { background: var(--white); border-radius: 24px; border: 1px solid var(--border); overflow: hidden; min-width: 950px; }
+        nav button.active { background: var(--primary); color: white; box-shadow: 0 10px 20px -3px rgba(59, 130, 246, 0.4); }
+        .btn-import { background: var(--accent) !important; color: white !important; margin-top: auto; justify-content: center; font-weight: 700; }
+        main { flex: 1; padding: 40px; overflow-y: auto; position: relative; }
+        .analytics-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 25px; margin-bottom: 50px; }
+        .chart-card { background: white; padding: 25px; border-radius: 24px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .chart-container { position: relative; height: 350px; width: 100%; }
+        .grid-table { background: var(--white); border-radius: 24px; border: 1px solid #e5e7eb; overflow: hidden; min-width: 1000px; }
         .grid-row { display: grid; align-items: center; border-bottom: 1px solid #f1f5f9; padding: 18px 25px; }
-        .row-artigo { grid-template-columns: 1fr 70px 80px 110px 90px 115px; }
-        .grid-header { background: #f8fafc; font-weight: 700; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); }
-        .expandable-panel { max-height: 0; overflow: hidden; transition: var(--transition); opacity: 0; background: #fafbfc; }
-        .expandable-panel.active { max-height: 1000px; opacity: 1; border-bottom: 2px solid var(--primary); }
-        .details-box { padding: 30px; border-left: 6px solid var(--primary); margin: 20px; background: white; border-radius: 16px; }
-
-        /* --- LOADING --- */
-        .loader-overlay { display: flex; flex-direction: column; align-items: center; justify-content: center; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-body); z-index: 500; }
-        .spinner { width: 60px; height: 60px; border: 6px solid #e2e8f0; border-top: 5px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 25px; }
-
+        .row-artigo { grid-template-columns: 1fr 80px 80px 120px 90px 120px; }
+        .row-simples { grid-template-columns: 1fr 150px; }
+        .grid-header { background: #f8fafc; font-weight: 700; font-size: 0.75rem; text-transform: uppercase; color: #64748b; }
+        .expandable-panel { max-height: 0; overflow: hidden; transition: all 0.5s ease; opacity: 0; background: #fafbfc; }
+        .expandable-panel.active { max-height: 1200px; opacity: 1; border-bottom: 3px solid var(--primary); }
+        .details-content { padding: 35px; border-left: 8px solid var(--primary); margin: 20px; background: white; border-radius: 16px; }
+        .loader-overlay { display: flex; flex-direction: column; align-items: center; justify-content: center; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 500; }
+        .spinner { width: 60px; height: 60px; border: 6px solid #e2e8f0; border-top: 6px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
-
+        .dev-card { background: white; padding: 50px; border-radius: 32px; display: flex; gap: 40px; align-items: center; max-width: 850px; margin: auto; }
+        .dev-photo { width: 240px; height: 240px; border-radius: 24px; object-fit: cover; }
         #csv-input { display: none; }
-        .btn-web { display: inline-flex; align-items: center; gap: 8px; background: var(--sidebar); color: white; padding: 12px 20px; border-radius: 10px; text-decoration: none; font-size: 0.85rem; margin-top: 25px; font-weight: 700; }
+        .btn-web { display: inline-flex; align-items: center; gap: 10px; background: var(--sidebar); color: white; padding: 14px 22px; border-radius: 12px; text-decoration: none; font-size: 0.9rem; margin-top: 20px; font-weight: 700; }
     </style>
 </head>
 <body>
-
     <nav>
-        <div class="logo-area">
-            <div class="logo-icon"><i class="fas fa-project-diagram"></i></div>
-            <div class="logo-text">NEXUS<span>3D</span></div>
-        </div>
-        
-        <button onclick="showHome()" id="nav-home" class="active"><i class="fas fa-th-large"></i> Dashboard</button>
-        <button onclick="loadAnalytics()" id="nav-charts"><i class="fas fa-chart-column"></i> Gráficos</button>
-        <button onclick="loadSection('artigo', 'titulo')" id="nav-artigo"><i class="fas fa-file-text"></i> Artigos</button>
-        <button onclick="loadSection('autor', 'nome')" id="nav-autor"><i class="fas fa-user-friends"></i> Autores</button>
+        <div class="nav-logo"><i class="fas fa-microchip"></i><span>NEXUS 3D</span></div>
+        <button onclick="location.reload()" id="nav-home"><i class="fas fa-house"></i> Dashboard</button>
+        <button onclick="loadAnalytics()" id="nav-charts"><i class="fas fa-chart-line"></i> Gráficos</button>
+        <button onclick="loadSection('artigo', 'titulo')" id="nav-artigo"><i class="fas fa-file-alt"></i> Artigos</button>
+        <button onclick="loadSection('autor', 'nome')" id="nav-autor"><i class="fas fa-users"></i> Autores</button>
         <button onclick="loadSection('palavras_chaves', 'palavras_chaves')" id="nav-palavras"><i class="fas fa-tags"></i> Palavras-Chave</button>
         <button onclick="loadSection('referencia', 'referencia')" id="nav-referencia"><i class="fas fa-bookmark"></i> Referências</button>
         <button onclick="showAbout()" id="nav-about"><i class="fas fa-id-card"></i> Sobre o Dev</button>
-        
-        <div class="import-section">
-            <input type="file" id="csv-input" accept=".csv">
-            <button class="btn-csv" onclick="document.getElementById('csv-input').click()">
-                <i class="fas fa-file-csv"></i> IMPORTAR CSV
-            </button>
-        </div>
+        <input type="file" id="csv-input" accept=".csv">
+        <button class="btn-import" onclick="document.getElementById('csv-input').click()"><i class="fas fa-file-csv"></i> IMPORTAR CSV</button>
     </nav>
-
-    <main id="main-content"></main>
+    <main id="main-content">
+        <div style="text-align: center; margin: auto;">
+            <i class="fas fa-chart-pie" style="font-size: 5rem; color: var(--primary); margin-bottom: 25px; opacity: 0.8;"></i>
+            <h1 style="font-size: 2.5rem; font-weight: 800; margin-bottom: 10px;">Nexus 3D Intelligence</h1>
+            <p>Selecione uma categoria ao lado para iniciar a análise.</p>
+        </div>
+    </main>
 
 <script>
     const SUPABASE_URL = 'https://kdtazqmfbnaethrpkshz.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkdGF6cW1mYm5hZXRocnBrc2h6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2MzcwMjUsImV4cCI6MjA5NDIxMzAyNX0.Rd-i2suGjKmaWjBDo9HwFwAaoiOYdQJCNU_NGfgRJ5A';
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    let allData = []; let filteredData = []; let currentTable = ''; let currentPage = 1; const pageSize = 15;
+    let allData = []; let currentTable = ''; let currentPage = 1; const pageSize = 15;
 
-    function setNav(id) {
-        document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-    }
-
-    function showHome() {
-        setNav('nav-home');
-        document.getElementById('main-content').innerHTML = `
-            <div class="page-header"><h1>Nexus 3D Intelligence</h1></div>
-            <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap: 20px; animation: fadeInUp 0.8s ease;">
-                <div style="background:white; padding:30px; border-radius:24px; border:1px solid var(--border); text-align:center;">
-                    <i class="fas fa-database" style="font-size:2.5rem; color:var(--primary); margin-bottom:15px"></i>
-                    <h3>Cloud Data</h3><p>Hospedagem PostgreSQL via Supabase.</p>
-                </div>
-                <div style="background:white; padding:30px; border-radius:24px; border:1px solid var(--border); text-align:center;">
-                    <i class="fas fa-chart-line" style="font-size:2.5rem; color:var(--accent); margin-bottom:15px"></i>
-                    <h3>Analytics</h3><p>Visualização dinâmica de indicadores de pesquisa.</p>
-                </div>
-                <div style="background:white; padding:30px; border-radius:24px; border:1px solid var(--border); text-align:center;">
-                    <i class="fas fa-microchip" style="font-size:2.5rem; color:var(--sidebar); margin-bottom:15px"></i>
-                    <h3>Inovação</h3><p>Foco em tecnologias de Impressão 3D.</p>
-                </div>
-            </div>`;
-    }
+    function setNav(id) { document.querySelectorAll('nav button').forEach(b => b.classList.remove('active')); document.getElementById(id).classList.add('active'); }
 
     function showAbout() {
         setNav('nav-about');
         document.getElementById('main-content').innerHTML = `
-            <div class="page-header"><h1>Desenvolvedor</h1></div>
-            <div class="profile-card-dev">
+            <div class="dev-card">
                 <img src="natan.jpg" alt="Natan Luz" class="dev-photo" onerror="this.src='https://ui-avatars.com/api/?name=Natan+Luz&size=240&background=0f172a&color=fff'">
-                <div class="dev-bio">
+                <div>
                     <h2>Natan Luz</h2>
-                    <p>Sou estudante de Engenharia de Software na UNEB e desenvolvedor do <b>NEXUS 3D</b>, uma plataforma criada para organizar, explorar e conectar pesquisas científicas sobre impressão 3D. Tenho interesse em desenvolvimento de software, análise de dados, acessibilidade e tecnologias que facilitam o acesso ao conhecimento.</p>
-                    <div class="social-btns">
-                        <a href="https://github.com/NATSLUZ" target="_blank" class="btn-social" style="background:#24292e"><i class="fab fa-github"></i> GitHub</a>
-                        <a href="mailto:contato@natanluz.com" class="btn-social" style="background:var(--primary)"><i class="fas fa-envelope"></i> E-mail</a>
+                    <p>Sou estudante de Engenharia de Software na UNEB e desenvolvedor do <b>NEXUS 3D</b>, uma plataforma criada para organizar, explorar e conectar pesquisas científicas sobre impressão 3D.</p>
+                    <div style="display:flex; gap:10px; margin-top:20px">
+                        <a href="https://github.com/NATSLUZ" target="_blank" class="btn-web" style="background:#24292e"><i class="fab fa-github"></i> GitHub</a>
+                        <a href="mailto:natanluz@exemplo.com" class="btn-web"><i class="fas fa-envelope"></i> Contato</a>
                     </div>
                 </div>
             </div>`;
     }
 
-    // --- SEÇÃO DE GRÁFICOS ---
     async function loadAnalytics() {
         setNav('nav-charts');
         const main = document.getElementById('main-content');
-        main.innerHTML = `<div class="loader-overlay"><div class="spinner"></div><h2>Gerando Inteligência Nexus...</h2></div>`;
-
-        // Buscamos os campos necessários
-        const { data, error } = await _supabase.from('artigo').select('ano, qtd_citacao, tipo_acesso, linguagem, titulo, source_title');
-        // Buscamos também autores e palavras-chave para os rankings
-        const { data: autores } = await _supabase.from('autor').select('nome');
-        const { data: keywords } = await _supabase.from('palavras_chaves').select('palavras_chaves');
-
-        if (error) return main.innerHTML = `<h1>Erro ao carregar dados</h1>`;
+        main.innerHTML = `<div class="loader-overlay"><div class="spinner"></div><h2>Gerando Analytics...</h2></div>`;
+        const { data } = await _supabase.from('artigo').select('*');
 
         main.innerHTML = `
-            <div class="page-header"><h1>Nexus Analytics Pro</h1><p>Análise estatística de <b>${data.length}</b> publicações.</p></div>
+            <h1>Analytics Nexus 3D</h1>
             <div class="analytics-grid">
-                <div class="chart-card"><h3><i class="fas fa-chart-bar"></i> Publicações por Ano</h3><div class="chart-container"><canvas id="chartYears"></canvas></div></div>
-                <div class="chart-card"><h3><i class="fas fa-chart-line"></i> Citações por Ano</h3><div class="chart-container"><canvas id="chartCits"></canvas></div></div>
-                <div class="chart-card"><h3><i class="fas fa-award"></i> Top 15 Periódicos</h3><div class="chart-container"><canvas id="chartJournals"></canvas></div></div>
-                <div class="chart-card"><h3><i class="fas fa-users"></i> Top 20 Autores</h3><div class="chart-container"><canvas id="chartTopAuthors"></canvas></div></div>
-                <div class="chart-card"><h3><i class="fas fa-tags"></i> Top 15 Palavras-Chave</h3><div class="chart-container"><canvas id="chartTopKeys"></canvas></div></div>
-                <div class="chart-card"><h3><i class="fas fa-unlock"></i> Acesso Aberto</h3><div class="chart-container"><canvas id="chartAccess"></canvas></div></div>
-                <div class="chart-card"><h3><i class="fas fa-language"></i> Idioma de Publicação</h3><div class="chart-container"><canvas id="chartLang"></canvas></div></div>
+                <div class="chart-card"><h3>Publicações por Ano</h3><div class="chart-container"><canvas id="c1"></canvas></div></div>
+                <div class="chart-card"><h3>Citações por Ano</h3><div class="chart-container"><canvas id="c2"></canvas></div></div>
+                <div class="chart-card"><h3>Top 15 Periódicos</h3><div class="chart-container"><canvas id="c3"></canvas></div></div>
+                <div class="chart-card"><h3>Top 20 Autores</h3><div class="chart-container"><canvas id="c4"></canvas></div></div>
+                <div class="chart-card"><h3>Top 15 Palavras-Chave</h3><div class="chart-container"><canvas id="c5"></canvas></div></div>
+                <div class="chart-card"><h3>Acesso Aberto</h3><div class="chart-container"><canvas id="c6"></canvas></div></div>
+                <div class="chart-card"><h3>Idioma</h3><div class="chart-container"><canvas id="c7"></canvas></div></div>
             </div>`;
 
-        // --- LÓGICA DE PROCESSAMENTO ---
-        const countMap = (arr, key) => {
-            const map = {};
-            arr.forEach(i => { const v = i[key]; if(v) map[v] = (map[v] || 0) + 1; });
-            return map;
-        };
-
-        const yearsCount = countMap(data, 'ano');
-        const citsSum = {}; data.forEach(d => { if(d.ano) citsSum[d.ano] = (citsSum[d.ano] || 0) + (d.qtd_citacao || 0); });
-        
-        const journalsCount = countMap(data, 'source_title');
-        const sortedJournals = Object.entries(journalsCount).sort((a,b) => b[1] - a[1]).slice(0, 15);
-
-        const authorsCount = countMap(autores, 'nome');
-        const sortedAuthors = Object.entries(authorsCount).sort((a,b) => b[1] - a[1]).slice(0, 20);
-
-        const keysCount = countMap(keywords, 'palavras_chaves');
-        const sortedKeys = Object.entries(keysCount).sort((a,b) => b[1] - a[1]).slice(0, 15);
-
-        const accessCount = countMap(data, 'tipo_acesso');
-        const langCount = countMap(data, 'linguagem');
-
-        const sortedYears = Object.keys(yearsCount).sort();
-
-        // 1. Artigos por Ano
-        new Chart(document.getElementById('chartYears'), {
-            type: 'bar',
-            data: { labels: sortedYears, datasets: [{ label: 'Artigos', data: sortedYears.map(y => yearsCount[y]), backgroundColor: '#3b82f6' }] }
+        const yrs={}, cits={}, journals={}, auts={}, keys={}, acc={}, lang={};
+        data.forEach(d => {
+            if(d.ano) yrs[d.ano] = (yrs[d.ano] || 0) + 1;
+            if(d.ano) cits[d.ano] = (cits[d.ano] || 0) + (d.qtd_citacao || 0);
+            if(d.source_title) journals[d.source_title] = (journals[d.source_title] || 0) + 1;
+            if(d.autores_raw) d.autores_raw.split(';').forEach(a => { let n=a.trim(); if(n) auts[n] = (auts[n]||0)+1 });
+            if(d.keywords_raw) d.keywords_raw.split(';').forEach(k => { let n=k.trim(); if(n) keys[n] = (keys[n]||0)+1 });
+            let open = d.tipo_acesso ? (d.tipo_acesso.includes("Open") ? "Acesso Aberto" : "Fechado") : "Não Informado";
+            acc[open] = (acc[open]||0)+1;
+            let l = d.linguagem || "English"; lang[l] = (lang[l]||0)+1;
         });
 
-        // 2. Citações por Ano
-        new Chart(document.getElementById('chartCits'), {
-            type: 'line',
-            data: { labels: sortedYears, datasets: [{ label: 'Citações', data: sortedYears.map(y => citsSum[y]), borderColor: '#6366f1', fill: true, backgroundColor: 'rgba(99, 102, 241, 0.1)' }] }
-        });
+        const sortY = Object.keys(yrs).sort();
+        const topJ = Object.entries(journals).sort((a,b)=>b[1]-a[1]).slice(0,15);
+        const topA = Object.entries(auts).sort((a,b)=>b[1]-a[1]).slice(0,20);
+        const topK = Object.entries(keys).sort((a,b)=>b[1]-a[1]).slice(0,15);
 
-        // 3. Top 15 Periódicos (Horizontal Bar)
-        new Chart(document.getElementById('chartJournals'), {
-            type: 'bar',
-            options: { indexAxis: 'y' },
-            data: { labels: sortedJournals.map(x => x[0].substring(0,30)), datasets: [{ label: 'Publicações', data: sortedJournals.map(x => x[1]), backgroundColor: '#10b981' }] }
-        });
-
-        // 4. Top 20 Autores
-        new Chart(document.getElementById('chartTopAuthors'), {
-            type: 'bar',
-            data: { labels: sortedAuthors.map(x => x[0]), datasets: [{ label: 'Artigos', data: sortedAuthors.map(x => x[1]), backgroundColor: '#f59e0b' }] }
-        });
-
-        // 5. Top 15 Keywords
-        new Chart(document.getElementById('chartTopKeys'), {
-            type: 'pie',
-            data: { labels: sortedKeys.map(x => x[0]), datasets: [{ data: sortedKeys.map(x => x[1]), backgroundColor: ['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6','#ec4899'] }] }
-        });
-
-        // 6. Acesso Aberto
-        new Chart(document.getElementById('chartAccess'), {
-            type: 'doughnut',
-            data: { labels: Object.keys(accessCount), datasets: [{ data: Object.values(accessCount), backgroundColor: ['#10b981', '#64748b'] }] }
-        });
-
-        // 7. Idiomas
-        new Chart(document.getElementById('chartLang'), {
-            type: 'polarArea',
-            data: { labels: Object.keys(langCount), datasets: [{ data: Object.values(langCount), backgroundColor: ['#3b82f6', '#8b5cf6', '#ef4444'] }] }
-        });
+        new Chart(document.getElementById('c1'), { type: 'bar', data: { labels: sortY, datasets: [{ label: 'Artigos', data: sortY.map(y=>yrs[y]), backgroundColor: '#3b82f6' }] } });
+        new Chart(document.getElementById('c2'), { type: 'line', data: { labels: sortY, datasets: [{ label: 'Citações', data: sortY.map(y=>cits[y]), borderColor: '#6366f1', fill: true, backgroundColor: 'rgba(99,102,241,0.1)' }] } });
+        new Chart(document.getElementById('c3'), { type: 'bar', options: { indexAxis: 'y' }, data: { labels: topJ.map(x=>x[0].substring(0,30)), datasets: [{ label: 'Artigos', data: topJ.map(x=>x[1]), backgroundColor: '#10b981' }] } });
+        new Chart(document.getElementById('c4'), { type: 'bar', data: { labels: topA.map(x=>x[0]), datasets: [{ label: 'Artigos', data: topA.map(x=>x[1]), backgroundColor: '#f59e0b' }] } });
+        new Chart(document.getElementById('c5'), { type: 'pie', data: { labels: topK.map(x=>x[0]), datasets: [{ data: topK.map(x=>x[1]), backgroundColor: ['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6'] }] } });
+        new Chart(document.getElementById('c6'), { type: 'doughnut', data: { labels: Object.keys(acc), datasets: [{ data: Object.values(acc), backgroundColor: ['#10b981','#ef4444','#64748b'] }] } });
+        new Chart(document.getElementById('c7'), { type: 'polarArea', data: { labels: Object.keys(lang), datasets: [{ data: Object.values(lang), backgroundColor: ['#3b82f6','#8b5cf6','#ec4899'] }] } });
     }
 
-    // --- EXPLORADOR DE DADOS ---
     async function loadSection(tableName, orderCol) {
-        currentTable = tableName; currentPage = 1;
-        setNav(tableName === 'artigo' ? 'nav-artigo' : (tableName === 'autor' ? 'nav-autor' : (tableName === 'palavras_chaves' ? 'nav-palavras' : 'nav-referencia')));
+        setNav('nav-' + tableName.split('_')[0]);
         const main = document.getElementById('main-content');
-        main.innerHTML = `<div class="loader-overlay"><div class="spinner"></div><h2>Sincronizando Nexus...</h2></div>`;
-        const { data, error } = await _supabase.from(tableName).select('*').order(orderCol, { ascending: true }).limit(2000);
-        allData = data; filteredData = data; renderExplorer();
+        main.innerHTML = `<div class="loader-overlay"><div class="spinner"></div><h2>Consultando Nexus...</h2></div>`;
+        const { data } = await _supabase.from(tableName).select('*').order(orderCol, { ascending: true }).limit(2000);
+        allData = data; renderTable();
     }
 
-    function renderExplorer() {
+    function renderTable() {
         const main = document.getElementById('main-content');
-        const years = [...new Set(allData.map(d => d.ano))].filter(Boolean).sort((a,b) => b-a);
-        main.innerHTML = `
-            <div class="page-header"><h1>Tabela: ${currentTable}</h1><p><b>${allData.length}</b> registros encontrados.</p></div>
-            <div class="filter-bar">
-                <input type="text" id="search-box" placeholder="Pesquisar registros..." oninput="applyFilters()">
-                ${currentTable === 'artigo' ? `<select id="filter-year" onchange="applyFilters()"><option value="">Filtrar Ano</option>${years.map(y => `<option value="${y}">${y}</option>`).join('')}</select>` : ''}
-            </div>
-            <div id="table-results"></div><div id="pagination-controls"></div>`;
-        updateTable();
-    }
-
-    function applyFilters() {
-        const search = document.getElementById('search-box').value.toLowerCase();
-        const year = document.getElementById('filter-year')?.value || '';
-        filteredData = allData.filter(d => (d.titulo || d.nome || d.palavras_chaves || d.referencia || "").toLowerCase().includes(search) && (year === '' || String(d.ano) === year));
-        currentPage = 1; updateTable();
-    }
-
-    function updateTable() {
-        const container = document.getElementById('table-results');
-        const items = filteredData.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+        main.innerHTML = `<h1>Tabela: ${currentTable} (${allData.length})</h1><div id="results"></div><div id="pag"></div>`;
+        const items = allData.slice((currentPage-1)*pageSize, currentPage*pageSize);
         let html = `<div class="grid-table">`;
-        if (currentTable === 'artigo') {
-            html += `<div class="grid-row row-artigo grid-header"><div>Título do Artigo</div><div>Ano</div><div>Cits.</div><div>ISSN</div><div>Vol/Iss</div><div>Tipo</div></div>`;
+        if(currentTable === 'artigo') {
+            html += `<div class="grid-row row-artigo grid-header"><div>Título</div><div>Ano</div><div>Cits.</div><div>ISSN</div><div>Vol/Iss</div><div>Tipo</div></div>`;
             items.forEach((item, i) => {
-                html += `
-                <div class="grid-row row-artigo data-row" onclick="togglePanel('p-${i}')">
-                    <div style="font-weight:600; white-space:normal">${item.titulo}</div>
-                    <div>${item.ano}</div><div style="font-weight:700; color:var(--primary)">${item.qtd_citacao || 0}</div>
-                    <div><small>${item.issn || '-'}</small></div><div><small>${item.volume || '-'}/${item.issue || '-'}</small></div>
-                    <div><span class="badge" style="background:#e0f2fe; color:#0369a1">${item.tipo_documento || 'Article'}</span></div>
-                </div>
-                <div id="p-${i}" class="expandable-panel"><div class="details-box">
-                    <h3>Abstract / Resumo</h3><p style="text-align:justify; line-height:1.7; color:#475569;">${item.resumo || 'Sem resumo disponível.'}</p>
-                    <hr style="border:0; border-top:1px solid var(--border); margin:20px 0">
-                    <p><b>DOI:</b> ${item.doi || 'N/A'}</p>
-                    <a href="${item.link || 'https://doi.org/'+item.doi}" target="_blank" class="btn-web"><i class="fas fa-external-link-alt"></i> VER NO SCOPUS</a>
-                </div></div>`;
+                html += `<div class="grid-row row-artigo data-row" onclick="toggle('p-${i}')"><div><b>${item.titulo}</b></div><div>${item.ano}</div><div style="color:var(--primary);font-weight:700">${item.qtd_citacao}</div><div><small>${item.issn||'-'}</small></div><div><small>${item.volume||'-'}/${item.issue||'-'}</small></div><div><span class="badge-type">${item.tipo_documento||'Article'}</span></div></div>
+                <div id="p-${i}" class="expandable-panel"><div class="details-content"><h3>Resumo</h3><p>${item.resumo}</p><p><b>DOI:</b> ${item.doi}</p><a href="${item.link||'#'}" target="_blank" class="btn-web">VER NO SCOPUS</a></div></div>`;
             });
         } else {
-            html += `<div class="grid-row row-simples grid-header"><div>Descrição</div><div>ID Nexus</div></div>`;
-            items.forEach(item => {
-                html += `<div class="grid-row row-simples data-row"><div>${item.nome || item.palavras_chaves || item.referencia}</div><div style="color:var(--text-muted); font-size:0.85rem">#${item.id}</div></div>`;
-            });
+            html += `<div class="grid-row row-simples grid-header"><div>Descrição</div><div>ID</div></div>`;
+            items.forEach(item => { html += `<div class="grid-row row-simples data-row"><div>${item.nome||item.palavras_chaves||item.referencia}</div><div>#${item.id}</div></div>` });
         }
-        container.innerHTML = html + `</div>`;
-        renderPagination();
+        document.getElementById('results').innerHTML = html + `</div>`;
     }
 
-    function renderPagination() {
-        const controls = document.getElementById('pagination-controls');
-        const totalPages = Math.ceil(filteredData.length / pageSize);
-        if (totalPages <= 1) return controls.innerHTML = '';
-        let html = `<div class="pagination">`;
-        for (let i = 1; i <= totalPages; i++) {
-            if (totalPages > 10 && (i > 3 && i < totalPages - 2)) { if (i === 4) html += `<span style="padding:10px">...</span>`; continue; }
-            html += `<button class="${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">${i}</button>`;
-        }
-        controls.innerHTML = html + `</div>`;
-    }
+    function toggle(id) { document.querySelectorAll('.expandable-panel').forEach(e => { if(e.id!==id) e.classList.remove('active') }); document.getElementById(id).classList.toggle('active'); }
 
-    function changePage(p) { currentPage = p; updateTable(); document.querySelector('main').scrollTop = 0; }
-
-    function togglePanel(id) {
-        const p = document.getElementById(id);
-        const isActive = p.classList.contains('active');
-        document.querySelectorAll('.expandable-panel').forEach(el => el.classList.remove('active'));
-        if (!isActive) p.classList.add('active');
-    }
-
-    // --- IMPORTADOR CSV (UNIVERSAL) ---
     document.getElementById('csv-input').addEventListener('change', function(e) {
         const file = e.target.files[0]; if (!file) return;
         const main = document.getElementById('main-content');
-        main.innerHTML = `<div class="loader-overlay"><div class="spinner"></div><h2>Nexus Sync: Processando...</h2></div>`;
+        main.innerHTML = `<div class="loader-overlay"><div class="spinner"></div><h2>Sincronizando Nexus...</h2></div>`;
         Papa.parse(file, {
             header: true, skipEmptyLines: true,
             complete: async function(results) {
-                const rows = results.data;
-                const artigos = rows.map(r => ({
+                const artigos = results.data.map(r => ({
                     titulo: r["Title"] || r["Document Title"], ano: parseInt(r["Year"]) || 0,
                     qtd_citacao: parseInt(r["Cited by"]) || 0, doi: r["DOI"] || "",
                     link: r["Link"] || "", resumo: r["Abstract"] || "",
                     tipo_documento: r["Document Type"] || "", issn: r["ISSN"] || "",
-                    volume: r["Volume"] || "", issue: r["Issue"] || ""
+                    volume: r["Volume"] || "", issue: r["Issue"] || "",
+                    source_title: r["Source title"] || "", tipo_acesso: r["Open Access"] || "",
+                    linguagem: r["Language of Original Document"] || "",
+                    autores_raw: r["Authors"] || r["Author(s)"] || "",
+                    keywords_raw: r["Author Keywords"] || ""
                 }));
                 await _supabase.from('artigo').insert(artigos);
                 let autSet = new Set(), keySet = new Set();
-                rows.forEach(r => {
+                results.data.forEach(r => {
                     (r["Authors"] || r["Author(s)"] || "").split(';').forEach(a => { if(a.trim()) autSet.add(a.trim()) });
                     (r["Author Keywords"] || "").split(';').forEach(k => { if(k.trim()) keySet.add(k.trim()) });
                 });
                 await _supabase.from('autor').upsert([...autSet].map(n => ({ id: n.replace(/[^a-z0-9]/gi,'_').toLowerCase(), nome: n, nomecompleto: n })));
                 await _supabase.from('palavras_chaves').upsert([...keySet].map(k => ({ palavras_chaves: k })), { onConflict: 'palavras_chaves' });
-                alert("Sincronização Nexus: Concluída!"); loadAnalytics(); // Após importar, vai para os gráficos
+                alert("Sincronização Concluída!"); loadAnalytics();
             }
         });
     });
-
-    showHome();
+    location.hash === "" && showAbout();
 </script>
 </body>
 </html>
