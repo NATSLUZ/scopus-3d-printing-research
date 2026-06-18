@@ -3,225 +3,246 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nexus 3D | Intelligence Dashboard</title>
+    <title>Nexus 3D | Intelligence Analytics</title>
     
-    <!-- Fontes e Ícones -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Scripts -->
+    <!-- Scripts Core e Biblioteca de Gráficos -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
         :root {
-            --primary: #3b82f6;
-            --sidebar: #0f172a;
-            --bg: #f3f4f6;
+            --primary: #3b82f6; 
+            --sidebar: #0f172a; 
+            --bg-body: #f8fafc; 
             --white: #ffffff;
             --text-main: #1e293b;
             --text-muted: #64748b;
-            --accent: #10b981;
-            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --accent: #10b981; 
+            --border: #e2e8f0;
+            --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        * { box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; background-color: var(--bg); margin: 0; display: flex; height: 100vh; overflow: hidden; color: var(--text-main); }
+        * { box-sizing: border-box; outline: none; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-body); margin: 0; display: flex; height: 100vh; overflow: hidden; color: var(--text-main); }
 
-        /* --- SIDEBAR PREMIUM --- */
-        nav { width: 280px; background: var(--sidebar); color: white; padding: 35px 20px; display: flex; flex-direction: column; gap: 10px; flex-shrink: 0; box-shadow: 10px 0 30px rgba(0,0,0,0.1); z-index: 100; }
-        .nav-logo { display: flex; align-items: center; gap: 15px; margin-bottom: 45px; padding: 0 10px; }
-        .nav-logo i { font-size: 1.8rem; color: var(--primary); text-shadow: 0 0 15px rgba(59, 130, 246, 0.5); }
-        .nav-logo span { font-weight: 800; font-size: 1.3rem; letter-spacing: -0.5px; }
+        /* --- SIDEBAR --- */
+        nav { width: 280px; background: var(--sidebar); color: white; padding: 40px 24px; display: flex; flex-direction: column; gap: 10px; flex-shrink: 0; position: relative; box-shadow: 10px 0 30px rgba(0,0,0,0.1); }
+        .logo-area { display: flex; align-items: center; gap: 12px; margin-bottom: 50px; padding: 0 10px; }
+        .logo-icon { width: 40px; height: 40px; background: var(--primary); border-radius: 10px; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 20px rgba(59, 130, 246, 0.4); }
+        .logo-text { font-weight: 800; font-size: 1.4rem; letter-spacing: -1px; color: white; }
+        .logo-text span { color: var(--primary); }
 
         nav button {
-            background: transparent; border: none; color: #94a3b8; padding: 12px 15px; text-align: left;
-            border-radius: 14px; cursor: pointer; display: flex; align-items: center; gap: 14px; font-size: 1rem; font-weight: 500; transition: var(--transition);
+            background: transparent; border: none; color: #94a3b8; padding: 14px 18px; text-align: left;
+            border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 14px; font-weight: 500; transition: var(--transition);
         }
-        nav button i { width: 24px; font-size: 1.2rem; }
-        nav button:hover { background: rgba(255,255,255,0.05); color: white; transform: translateX(5px); }
-        
-        nav button.active { 
-            background: var(--primary); 
-            color: white; 
-            box-shadow: 0 10px 20px -3px rgba(59, 130, 246, 0.4); 
-            font-weight: 600;
-        }
+        nav button i { font-size: 1.1rem; width: 20px; text-align: center; }
+        nav button:hover { background: rgba(255,255,255,0.05); color: white; }
+        nav button.active { background: var(--primary); color: white; box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.3); }
 
-        .btn-import { background: var(--accent) !important; color: white !important; margin-top: auto; justify-content: center; font-weight: 700; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2); }
-        .btn-import:hover { filter: brightness(1.1); transform: scale(1.03) !important; }
+        .import-section { margin-top: auto; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); }
+        .btn-csv { width: 100%; background: var(--accent); color: white; border: none; padding: 14px; border-radius: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: var(--transition); }
 
-        /* --- CONTEÚDO PRINCIPAL --- */
+        /* --- ÁREA PRINCIPAL --- */
         main { flex: 1; padding: 40px; overflow-y: auto; position: relative; scroll-behavior: smooth; }
-        
-        .header-content { margin-bottom: 35px; animation: fadeInDown 0.5s ease; }
-        .header-content h1 { font-size: 2.2rem; font-weight: 800; margin: 0; color: var(--sidebar); letter-spacing: -1px; }
-        .header-content p { color: var(--text-muted); font-size: 1.1rem; margin-top: 8px; }
+        .page-header { margin-bottom: 30px; animation: slideDown 0.5s ease; }
+        .page-header h1 { font-size: 2.2rem; font-weight: 800; color: var(--sidebar); letter-spacing: -1px; }
 
-        .filter-bar { 
-            background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px);
-            padding: 20px; border-radius: 20px; border: 1px solid var(--white); 
-            margin-bottom: 30px; display: flex; gap: 15px; align-items: center; 
-            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05);
-            animation: fadeIn 0.6s ease;
-        }
-        .search-wrapper { position: relative; flex: 1; }
-        .search-wrapper i { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
-        .filter-bar input { width: 100%; padding: 14px 15px 14px 50px; border-radius: 12px; border: 1px solid #e5e7eb; background: var(--white); outline: none; font-size: 1rem; }
-        .filter-bar select { padding: 14px 18px; border-radius: 12px; border: 1px solid #e5e7eb; background: var(--white); outline: none; min-width: 180px; font-size: 1rem; cursor: pointer; }
+        /* --- ANALYTICS DASHBOARD --- */
+        .analytics-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 25px; animation: fadeInUp 0.8s ease; }
+        .chart-card { background: white; padding: 25px; border-radius: 24px; border: 1px solid var(--border); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        .chart-card h3 { margin-top: 0; font-size: 1rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+        .chart-card h3 i { color: var(--primary); }
+        .chart-container { position: relative; height: 300px; width: 100%; }
 
-        .grid-table { background: var(--white); border-radius: 24px; border: 1px solid #e5e7eb; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.05); overflow: hidden; min-width: 1000px; animation: fadeInUp 0.7s ease; }
-        .grid-row { display: grid; align-items: center; border-bottom: 1px solid #f1f5f9; }
-        .row-artigo { grid-template-columns: 1fr 80px 90px 130px 100px 130px; }
-        .row-simples { grid-template-columns: 1fr 150px; }
-
-        .grid-header { background: #f8fafc; font-weight: 700; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.1em; }
-        .grid-row > div { padding: 22px 24px; }
-
-        .data-row { cursor: pointer; transition: background 0.2s ease; }
-        .data-row:hover { background-color: #f1f5f9; }
-        .data-row .title { font-weight: 600; color: var(--sidebar); line-height: 1.5; font-size: 1rem; }
-
-        .expandable-panel { max-height: 0; overflow: hidden; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); opacity: 0; background: #fafbfc; }
-        .expandable-panel.active { max-height: 1200px; opacity: 1; border-bottom: 3px solid var(--primary); }
-        .details-content { padding: 40px; border-left: 8px solid var(--primary); margin: 25px; background: white; border-radius: 16px; box-shadow: 0 10px 15px rgba(0,0,0,0.05); }
-
-        /* --- SEÇÃO SOBRE MIM --- */
-        .about-card { background: white; border-radius: 24px; padding: 45px; box-shadow: 0 15px 35px rgba(0,0,0,0.08); border: 1px solid #e5e7eb; max-width: 850px; margin: 20px auto; display: flex; gap: 40px; align-items: center; animation: fadeInUp 0.7s ease; }
-        .about-img { width: 230px; height: 230px; border-radius: 20px; object-fit: cover; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border: 4px solid var(--white); }
-        .about-text h2 { font-size: 2.2rem; margin: 0 0 10px; color: var(--sidebar); }
-        .about-text p { font-size: 1.05rem; line-height: 1.8; color: var(--text-muted); text-align: justify; }
+        /* --- SOBRE O DEV --- */
+        .profile-card-dev { background: white; padding: 50px; border-radius: 32px; border: 1px solid var(--border); box-shadow: 0 20px 40px rgba(0,0,0,0.05); display: flex; gap: 40px; align-items: center; max-width: 850px; margin: auto; animation: fadeInUp 0.7s ease; }
+        .dev-photo { width: 220px; height: 220px; border-radius: 24px; object-fit: cover; box-shadow: 0 10px 20px rgba(0,0,0,0.1); border: 5px solid white; }
         .social-btns { display: flex; gap: 12px; margin-top: 25px; }
-        .social-btns a { padding: 12px 22px; border-radius: 10px; text-decoration: none; font-weight: 600; display: flex; align-items: center; gap: 8px; transition: 0.3s; font-size: 0.9rem; }
-        .git-btn { background: #24292e; color: white; }
-        .mail-btn { background: var(--primary); color: white; }
-        .social-btns a:hover { transform: translateY(-3px); filter: brightness(1.1); }
+        .btn-social { padding: 12px 22px; border-radius: 10px; text-decoration: none; font-weight: 700; display: flex; align-items: center; gap: 8px; transition: 0.3s; color: white; }
 
-        /* --- UTILS --- */
-        .loading-wrapper { display: flex; flex-direction: column; align-items: center; justify-content: center; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: var(--bg); z-index: 200; }
-        .spinner { width: 60px; height: 60px; border: 6px solid #e5e7eb; border-top: 6px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 25px; }
+        /* --- TABELAS --- */
+        .filter-bar { background: var(--white); padding: 20px; border-radius: 20px; margin-bottom: 30px; display: flex; gap: 15px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid var(--border); }
+        .filter-bar input { flex: 1; padding: 12px 20px; border-radius: 12px; border: 1px solid var(--border); background: #f9fafb; font-size: 1rem; }
+        .grid-table { background: var(--white); border-radius: 24px; border: 1px solid var(--border); overflow: hidden; min-width: 950px; }
+        .grid-row { display: grid; align-items: center; border-bottom: 1px solid #f1f5f9; padding: 18px 25px; }
+        .row-artigo { grid-template-columns: 1fr 70px 80px 110px 90px 115px; }
+        .grid-header { background: #f8fafc; font-weight: 700; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); }
+        .expandable-panel { max-height: 0; overflow: hidden; transition: var(--transition); opacity: 0; background: #fafbfc; }
+        .expandable-panel.active { max-height: 1000px; opacity: 1; border-bottom: 2px solid var(--primary); }
+        .details-box { padding: 30px; border-left: 6px solid var(--primary); margin: 20px; background: white; border-radius: 16px; }
+
+        /* --- LOADING --- */
+        .loader-overlay { display: flex; flex-direction: column; align-items: center; justify-content: center; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-body); z-index: 500; }
+        .spinner { width: 60px; height: 60px; border: 6px solid #e2e8f0; border-top: 5px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 25px; }
+
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .loading-text { text-align: center; }
-        .loading-text h2 { margin: 0; font-size: 1.8rem; font-weight: 800; color: var(--sidebar); }
-        
-        .pagination { display: flex; justify-content: center; gap: 10px; margin: 40px 0 80px; }
-        .pagination button { padding: 12px 18px; border: 1px solid #e5e7eb; background: white; border-radius: 12px; cursor: pointer; font-weight: 700; color: var(--text-muted); }
-        .pagination button.active { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3); }
-
-        .btn-web { display: inline-flex; align-items: center; gap: 10px; background: var(--sidebar); color: white; padding: 15px 25px; border-radius: 12px; text-decoration: none; font-size: 0.9rem; margin-top: 25px; font-weight: 700; }
-        .badge-type { background: #e0f2fe; color: #0369a1; padding: 5px 10px; border-radius: 8px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; }
-
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+
         #csv-input { display: none; }
+        .btn-web { display: inline-flex; align-items: center; gap: 8px; background: var(--sidebar); color: white; padding: 12px 20px; border-radius: 10px; text-decoration: none; font-size: 0.85rem; margin-top: 25px; font-weight: 700; }
     </style>
 </head>
 <body>
 
     <nav>
-        <div class="nav-logo">
-            <i class="fas fa-microchip"></i>
-            <span>NEXUS 3D</span>
+        <div class="logo-area">
+            <div class="logo-icon"><i class="fas fa-project-diagram"></i></div>
+            <div class="logo-text">NEXUS<span>3D</span></div>
         </div>
         
-        <button onclick="location.reload()" id="nav-home">
-            <i class="fas fa-house"></i> Dashboard
-        </button>
-        <button onclick="loadSection('artigo', 'titulo')" id="nav-artigo">
-            <i class="fas fa-file-lines"></i> Artigos
-        </button>
-        <button onclick="loadSection('autor', 'nome')" id="nav-autor">
-            <i class="fas fa-user-group"></i> Autores
-        </button>
-        <button onclick="loadSection('palavras_chaves', 'palavras_chaves')" id="nav-palavras">
-            <i class="fas fa-tags"></i> Palavras-Chave
-        </button>
-        <button onclick="loadSection('referencia', 'referencia')" id="nav-referencia">
-            <i class="fas fa-book-open"></i> Referências
-        </button>
-        <button onclick="showAbout()" id="nav-about">
-            <i class="fas fa-user-circle"></i> Sobre o Dev
-        </button>
+        <button onclick="showHome()" id="nav-home" class="active"><i class="fas fa-th-large"></i> Dashboard</button>
+        <button onclick="loadAnalytics()" id="nav-charts"><i class="fas fa-chart-column"></i> Gráficos</button>
+        <button onclick="loadSection('artigo', 'titulo')" id="nav-artigo"><i class="fas fa-file-text"></i> Artigos</button>
+        <button onclick="loadSection('autor', 'nome')" id="nav-autor"><i class="fas fa-user-friends"></i> Autores</button>
+        <button onclick="loadSection('palavras_chaves', 'palavras_chaves')" id="nav-palavras"><i class="fas fa-tags"></i> Palavras-Chave</button>
+        <button onclick="loadSection('referencia', 'referencia')" id="nav-referencia"><i class="fas fa-bookmark"></i> Referências</button>
+        <button onclick="showAbout()" id="nav-about"><i class="fas fa-id-card"></i> Sobre o Dev</button>
         
-        <input type="file" id="csv-input" accept=".csv">
-        <button class="btn-import" onclick="document.getElementById('csv-input').click()">
-            <i class="fas fa-file-csv"></i> IMPORTAR CSV
-        </button>
+        <div class="import-section">
+            <input type="file" id="csv-input" accept=".csv">
+            <button class="btn-csv" onclick="document.getElementById('csv-input').click()">
+                <i class="fas fa-file-csv"></i> IMPORTAR CSV
+            </button>
+        </div>
     </nav>
 
-    <main id="main-content">
-        <div style="text-align: center; margin: auto; animation: fadeInUp 0.8s ease;">
-            <i class="fas fa-chart-pie" style="font-size: 5rem; color: var(--primary); margin-bottom: 25px; opacity: 0.8;"></i>
-            <h1 style="font-size: 2.5rem; font-weight: 800; margin-bottom: 10px;">Análise Inteligente Scopus</h1>
-            <p style="font-size: 1.2rem; color: var(--text-muted); max-width: 600px; margin: auto;">Plataforma integrada de dados relacionais para pesquisa em Impressão 3D.</p>
-        </div>
-    </main>
+    <main id="main-content"></main>
 
 <script>
     const SUPABASE_URL = 'https://kdtazqmfbnaethrpkshz.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkdGF6cW1mYm5hZXRocnBrc2h6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2MzcwMjUsImV4cCI6MjA5NDIxMzAyNX0.Rd-i2suGjKmaWjBDo9HwFwAaoiOYdQJCNU_NGfgRJ5A';
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    let allData = [];
-    let filteredData = [];
-    let currentTable = '';
-    let currentPage = 1;
-    const pageSize = 15;
+    let allData = []; let filteredData = []; let currentTable = ''; let currentPage = 1; const pageSize = 15;
 
-    function getLoadingHTML(title, sub) {
-        return `<div class="loading-wrapper"><div class="spinner"></div><div class="loading-text"><h2>${title}</h2><p>${sub}</p></div></div>`;
+    function setNav(id) {
+        document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
     }
 
-    async function loadSection(tableName, orderCol) {
-        currentTable = tableName;
-        currentPage = 1;
-        document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
-        const activeBtn = document.getElementById(tableName === 'artigo' ? 'nav-artigo' : (tableName === 'autor' ? 'nav-autor' : (tableName === 'palavras_chaves' ? 'nav-palavras' : 'nav-referencia')));
-        if(activeBtn) activeBtn.classList.add('active');
-
-        const main = document.getElementById('main-content');
-        main.innerHTML = getLoadingHTML(`Acessando ${tableName}`, "Consultando banco de dados PostgreSQL...");
-        
-        const { data, error } = await _supabase.from(tableName).select('*').order(orderCol, { ascending: true }).limit(2000);
-        if (error) return main.innerHTML = `<h1>Erro</h1><p>${error.message}</p>`;
-        allData = data; filteredData = data;
-        renderUI();
+    function showHome() {
+        setNav('nav-home');
+        document.getElementById('main-content').innerHTML = `
+            <div class="page-header"><h1>Nexus 3D Intelligence</h1></div>
+            <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap: 20px; animation: fadeInUp 0.8s ease;">
+                <div style="background:white; padding:30px; border-radius:24px; border:1px solid var(--border); text-align:center;">
+                    <i class="fas fa-database" style="font-size:2.5rem; color:var(--primary); margin-bottom:15px"></i>
+                    <h3>Cloud Data</h3><p>Hospedagem PostgreSQL via Supabase.</p>
+                </div>
+                <div style="background:white; padding:30px; border-radius:24px; border:1px solid var(--border); text-align:center;">
+                    <i class="fas fa-chart-line" style="font-size:2.5rem; color:var(--accent); margin-bottom:15px"></i>
+                    <h3>Analytics</h3><p>Visualização dinâmica de indicadores de pesquisa.</p>
+                </div>
+                <div style="background:white; padding:30px; border-radius:24px; border:1px solid var(--border); text-align:center;">
+                    <i class="fas fa-microchip" style="font-size:2.5rem; color:var(--sidebar); margin-bottom:15px"></i>
+                    <h3>Inovação</h3><p>Foco em tecnologias de Impressão 3D.</p>
+                </div>
+            </div>`;
     }
 
     function showAbout() {
-        document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
-        document.getElementById('nav-about').classList.add('active');
-        const main = document.getElementById('main-content');
-        main.innerHTML = `
-            <div class="header-content"><h1>Desenvolvedor</h1></div>
-            <div class="about-card">
-                <img src="natan.jpg" alt="Natan Luz" class="about-img" onerror="this.src='https://ui-avatars.com/api/?name=Natan+Luz&background=0f172a&color=fff&size=200'">
-                <div class="about-text">
+        setNav('nav-about');
+        document.getElementById('main-content').innerHTML = `
+            <div class="page-header"><h1>Desenvolvedor</h1></div>
+            <div class="profile-card-dev">
+                <img src="natan.jpg" alt="Natan Luz" class="dev-photo" onerror="this.src='https://ui-avatars.com/api/?name=Natan+Luz&size=240&background=0f172a&color=fff'">
+                <div class="dev-bio">
                     <h2>Natan Luz</h2>
                     <p>Sou estudante de Engenharia de Software na UNEB e desenvolvedor do <b>NEXUS 3D</b>, uma plataforma criada para organizar, explorar e conectar pesquisas científicas sobre impressão 3D. Tenho interesse em desenvolvimento de software, análise de dados, acessibilidade e tecnologias que facilitam o acesso ao conhecimento.</p>
                     <div class="social-btns">
-                        <a href="https://github.com/NATSLUZ" target="_blank" class="git-btn"><i class="fab fa-github"></i> GitHub</a>
-                        <a href="mailto:contato@natanluz.com" class="mail-btn"><i class="fas fa-envelope"></i> E-mail</a>
+                        <a href="https://github.com/NATSLUZ" target="_blank" class="btn-social" style="background:#24292e"><i class="fab fa-github"></i> GitHub</a>
+                        <a href="mailto:contato@natanluz.com" class="btn-social" style="background:var(--primary)"><i class="fas fa-envelope"></i> E-mail</a>
                     </div>
                 </div>
             </div>`;
     }
 
-    function renderUI() {
+    // --- SEÇÃO DE GRÁFICOS ---
+    async function loadAnalytics() {
+        setNav('nav-charts');
+        const main = document.getElementById('main-content');
+        main.innerHTML = `<div class="loader-overlay"><div class="spinner"></div><h2>Gerando Indicadores...</h2></div>`;
+
+        const { data, error } = await _supabase.from('artigo').select('ano, qtd_citacao, tipo_acesso, linguagem');
+        if (error) return main.innerHTML = `<h1>Erro ao carregar dados</h1>`;
+
+        main.innerHTML = `
+            <div class="page-header"><h1>Analytics Scopus 3D</h1><p>Indicadores baseados em <b>${data.length}</b> registros.</p></div>
+            <div class="analytics-grid">
+                <div class="chart-card"><h3><i class="fas fa-calendar-alt"></i> Publicações por Ano</h3><div class="chart-container"><canvas id="chartYears"></canvas></div></div>
+                <div class="chart-card"><h3><i class="fas fa-quote-left"></i> Citações por Ano</h3><div class="chart-container"><canvas id="chartCits"></canvas></div></div>
+                <div class="chart-card"><h3><i class="fas fa-unlock"></i> Acesso Aberto</h3><div class="chart-container"><canvas id="chartAccess"></canvas></div></div>
+                <div class="chart-card"><h3><i class="fas fa-language"></i> Idiomas</h3><div class="chart-container"><canvas id="chartLang"></canvas></div></div>
+            </div>`;
+
+        // Processar Dados
+        const yearsCount = {}, citsSum = {}, accessCount = {}, langCount = {};
+        data.forEach(d => {
+            if(d.ano) yearsCount[d.ano] = (yearsCount[d.ano] || 0) + 1;
+            if(d.ano) citsSum[d.ano] = (citsSum[d.ano] || 0) + (d.qtd_citacao || 0);
+            const acc = d.tipo_acesso || "Não Informado";
+            accessCount[acc] = (accessCount[acc] || 0) + 1;
+            const lang = d.linguagem || "English";
+            langCount[lang] = (langCount[lang] || 0) + 1;
+        });
+
+        const sortedYears = Object.keys(yearsCount).sort();
+
+        // 1. Gráfico de Produção (Barra)
+        new Chart(document.getElementById('chartYears'), {
+            type: 'bar',
+            data: { labels: sortedYears, datasets: [{ label: 'Artigos', data: sortedYears.map(y => yearsCount[y]), backgroundColor: '#3b82f6' }] },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+
+        // 2. Gráfico de Impacto (Linha)
+        new Chart(document.getElementById('chartCits'), {
+            type: 'line',
+            data: { labels: sortedYears, datasets: [{ label: 'Total de Citações', data: sortedYears.map(y => citsSum[y]), borderColor: '#6366f1', tension: 0.3, fill: true, backgroundColor: 'rgba(99, 102, 241, 0.1)' }] },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+
+        // 3. Gráfico de Acesso (Pizza)
+        new Chart(document.getElementById('chartAccess'), {
+            type: 'pie',
+            data: { labels: Object.keys(accessCount), datasets: [{ data: Object.values(accessCount), backgroundColor: ['#10b981', '#ef4444', '#f59e0b', '#3b82f6'] }] },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+
+        // 4. Gráfico de Idioma (Rosca)
+        new Chart(document.getElementById('chartLang'), {
+            type: 'doughnut',
+            data: { labels: Object.keys(langCount), datasets: [{ data: Object.values(langCount), backgroundColor: ['#3b82f6', '#8b5cf6', '#ec4899', '#f97316'] }] },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+    }
+
+    // --- EXPLORADOR DE DADOS ---
+    async function loadSection(tableName, orderCol) {
+        currentTable = tableName; currentPage = 1;
+        setNav(tableName === 'artigo' ? 'nav-artigo' : (tableName === 'autor' ? 'nav-autor' : (tableName === 'palavras_chaves' ? 'nav-palavras' : 'nav-referencia')));
+        const main = document.getElementById('main-content');
+        main.innerHTML = `<div class="loader-overlay"><div class="spinner"></div><h2>Sincronizando Nexus...</h2></div>`;
+        const { data, error } = await _supabase.from(tableName).select('*').order(orderCol, { ascending: true }).limit(2000);
+        allData = data; filteredData = data; renderExplorer();
+    }
+
+    function renderExplorer() {
         const main = document.getElementById('main-content');
         const years = [...new Set(allData.map(d => d.ano))].filter(Boolean).sort((a,b) => b-a);
         main.innerHTML = `
-            <div class="header-content">
-                <h1>Tabela: ${currentTable.charAt(0).toUpperCase() + currentTable.slice(1)}</h1>
-                <p>Repositório contém <b>${allData.length}</b> registros processados.</p>
-            </div>
+            <div class="page-header"><h1>Tabela: ${currentTable}</h1><p><b>${allData.length}</b> registros encontrados.</p></div>
             <div class="filter-bar">
-                <div class="search-wrapper"><i class="fas fa-magnifying-glass"></i><input type="text" id="search-box" placeholder="Pesquisar nos registros..." oninput="applyFilters()"></div>
-                ${currentTable === 'artigo' ? `<select id="filter-year" onchange="applyFilters()"><option value="">Filtrar por Ano</option>${years.map(y => `<option value="${y}">${y}</option>`).join('')}</select>` : ''}
+                <input type="text" id="search-box" placeholder="Pesquisar registros..." oninput="applyFilters()">
+                ${currentTable === 'artigo' ? `<select id="filter-year" onchange="applyFilters()"><option value="">Filtrar Ano</option>${years.map(y => `<option value="${y}">${y}</option>`).join('')}</select>` : ''}
             </div>
-            <div id="table-container"></div><div id="pagination-controls"></div>`;
+            <div id="table-results"></div><div id="pagination-controls"></div>`;
         updateTable();
     }
 
@@ -233,38 +254,30 @@
     }
 
     function updateTable() {
-        const container = document.getElementById('table-container');
+        const container = document.getElementById('table-results');
         const items = filteredData.slice((currentPage - 1) * pageSize, currentPage * pageSize);
         let html = `<div class="grid-table">`;
-
         if (currentTable === 'artigo') {
             html += `<div class="grid-row row-artigo grid-header"><div>Título do Artigo</div><div>Ano</div><div>Cits.</div><div>ISSN</div><div>Vol/Iss</div><div>Tipo</div></div>`;
             items.forEach((item, i) => {
                 html += `
                 <div class="grid-row row-artigo data-row" onclick="togglePanel('p-${i}')">
-                    <div><span class="title">${item.titulo}</span></div>
-                    <div style="font-weight:600">${item.ano}</div>
-                    <div style="font-weight:800; color:var(--primary)">${item.qtd_citacao || 0}</div>
-                    <div><small style="color:var(--text-muted); font-weight:500">${item.issn || '-'}</small></div>
-                    <div><small>${item.volume || '-'}/${item.issue || '-'}</small></div>
-                    <div><span class="badge-type">${item.tipo_documento || 'Article'}</span></div>
+                    <div style="font-weight:600; white-space:normal">${item.titulo}</div>
+                    <div>${item.ano}</div><div style="font-weight:700; color:var(--primary)">${item.qtd_citacao || 0}</div>
+                    <div><small>${item.issn || '-'}</small></div><div><small>${item.volume || '-'}/${item.issue || '-'}</small></div>
+                    <div><span class="badge" style="background:#e0f2fe; color:#0369a1">${item.tipo_documento || 'Article'}</span></div>
                 </div>
-                <div id="p-${i}" class="expandable-panel">
-                    <div class="details-content">
-                        <h3 style="margin-top:0"><i class="fas fa-quote-left" style="color:var(--primary)"></i> Abstract / Resumo</h3>
-                        <p style="text-align:justify; line-height:1.8; color:#475569; font-size:1rem;">${item.resumo || 'Nenhum abstract disponível para este artigo.'}</p>
-                        <hr style="border:0; border-top: 1px solid #eee; margin:20px 0">
-                        <div style="font-size:0.9rem; color:var(--text-muted)">
-                            <span><i class="fas fa-fingerprint"></i> <b>DOI:</b> ${item.doi || 'N/A'}</span>
-                        </div>
-                        <a href="${item.link || 'https://doi.org/'+item.doi}" target="_blank" class="btn-web"><i class="fas fa-arrow-up-right-from-square"></i> ACESSAR NO SCOPUS</a>
-                    </div>
-                </div>`;
+                <div id="p-${i}" class="expandable-panel"><div class="details-box">
+                    <h3>Abstract / Resumo</h3><p style="text-align:justify; line-height:1.7; color:#475569;">${item.resumo || 'Sem resumo disponível.'}</p>
+                    <hr style="border:0; border-top:1px solid var(--border); margin:20px 0">
+                    <p><b>DOI:</b> ${item.doi || 'N/A'}</p>
+                    <a href="${item.link || 'https://doi.org/'+item.doi}" target="_blank" class="btn-web"><i class="fas fa-external-link-alt"></i> VER NO SCOPUS</a>
+                </div></div>`;
             });
         } else {
-            html += `<div class="grid-row row-simples grid-header"><div>Descrição Completa</div><div>Identificador</div></div>`;
+            html += `<div class="grid-row row-simples grid-header"><div>Descrição</div><div>ID Nexus</div></div>`;
             items.forEach(item => {
-                html += `<div class="grid-row row-simples data-row"><div><span class="title">${item.nome || item.palavras_chaves || item.referencia}</span></div><div style="color:var(--text-muted); font-size:0.85rem; font-weight:600">#${item.id}</div></div>`;
+                html += `<div class="grid-row row-simples data-row"><div>${item.nome || item.palavras_chaves || item.referencia}</div><div style="color:var(--text-muted); font-size:0.85rem">#${item.id}</div></div>`;
             });
         }
         container.innerHTML = html + `</div>`;
@@ -278,10 +291,12 @@
         let html = `<div class="pagination">`;
         for (let i = 1; i <= totalPages; i++) {
             if (totalPages > 10 && (i > 3 && i < totalPages - 2)) { if (i === 4) html += `<span style="padding:10px">...</span>`; continue; }
-            html += `<button class="${i === currentPage ? 'active' : ''}" onclick="currentPage=${i}; updateTable(); document.querySelector('main').scrollTop=0;">${i}</button>`;
+            html += `<button class="${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">${i}</button>`;
         }
         controls.innerHTML = html + `</div>`;
     }
+
+    function changePage(p) { currentPage = p; updateTable(); document.querySelector('main').scrollTop = 0; }
 
     function togglePanel(id) {
         const p = document.getElementById(id);
@@ -290,15 +305,15 @@
         if (!isActive) p.classList.add('active');
     }
 
+    // --- IMPORTADOR CSV (UNIVERSAL) ---
     document.getElementById('csv-input').addEventListener('change', function(e) {
         const file = e.target.files[0]; if (!file) return;
         const main = document.getElementById('main-content');
+        main.innerHTML = `<div class="loader-overlay"><div class="spinner"></div><h2>Nexus Sync: Processando...</h2></div>`;
         Papa.parse(file, {
             header: true, skipEmptyLines: true,
             complete: async function(results) {
                 const rows = results.data;
-                main.innerHTML = getLoadingHTML("Sincronizando Dados", `Processando ${rows.length} registros...`);
-
                 const artigos = rows.map(r => ({
                     titulo: r["Title"] || r["Document Title"], ano: parseInt(r["Year"]) || 0,
                     qtd_citacao: parseInt(r["Cited by"]) || 0, doi: r["DOI"] || "",
@@ -307,25 +322,19 @@
                     volume: r["Volume"] || "", issue: r["Issue"] || ""
                 }));
                 await _supabase.from('artigo').insert(artigos);
-
-                let autSet = new Set(), keySet = new Set(), refSet = new Set();
+                let autSet = new Set(), keySet = new Set();
                 rows.forEach(r => {
                     (r["Authors"] || r["Author(s)"] || "").split(';').forEach(a => { if(a.trim()) autSet.add(a.trim()) });
                     (r["Author Keywords"] || "").split(';').forEach(k => { if(k.trim()) keySet.add(k.trim()) });
-                    (r["References"] || "").split(';').forEach(ref => { if(ref.trim().length > 30) refSet.add(ref.trim()) });
                 });
-
                 await _supabase.from('autor').upsert([...autSet].map(n => ({ id: n.replace(/[^a-z0-9]/gi,'_').toLowerCase(), nome: n, nomecompleto: n })));
                 await _supabase.from('palavras_chaves').upsert([...keySet].map(k => ({ palavras_chaves: k })), { onConflict: 'palavras_chaves' });
-                
-                const refsArray = [...refSet];
-                for (let i = 0; i < refsArray.length; i += 50) {
-                    await _supabase.from('referencia').insert(refsArray.slice(i, i + 50).map(r => ({ referencia: r })));
-                }
-                alert("Sincronização Finalizada!"); loadSection('artigo', 'titulo');
+                alert("Sincronização Nexus: Concluída!"); loadAnalytics(); // Após importar, vai para os gráficos
             }
         });
     });
+
+    showHome();
 </script>
 </body>
 </html>
