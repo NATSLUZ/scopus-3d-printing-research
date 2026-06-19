@@ -83,7 +83,7 @@
         .about-text h2 { font-size: 2.2rem; margin-top: 0; color: var(--sidebar); font-weight: 800; }
         .about-text p { line-height: 1.8; color: var(--text-muted); font-size: 1.05rem; text-align: justify; }
 
-        /* --- MAPS --- */
+        /* --- MAPAS --- */
         #network-map { width: 100%; height: 600px; background: white; border-radius: 24px; border: 1px solid var(--border); box-shadow: 0 10px 25px rgba(0,0,0,0.05); margin-top: 20px; position: relative; overflow: hidden; }
         .map-info { background: #eff6ff; padding: 20px; border-radius: 16px; border-left: 5px solid var(--primary); margin-top: 15px; display: none; color: var(--sidebar); animation: fadeIn 0.5s ease; }
 
@@ -91,7 +91,18 @@
         .pagination button { padding: 12px 18px; border: 1px solid #e5e7eb; background: white; border-radius: 12px; cursor: pointer; font-weight: 700; }
         .pagination button.active { background: var(--primary); color: white; border-color: var(--primary); }
         
+        /* --- LOADER PREMIUM --- */
+        .loader-overlay { 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(8px); 
+            z-index: 5000; color: white; text-align: center;
+        }
+        .spinner { width: 70px; height: 70px; border: 6px solid rgba(255,255,255,0.1); border-top: 6px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 25px; box-shadow: 0 0 20px rgba(59, 130, 246, 0.4); }
+        .loader-overlay h2 { font-weight: 700; letter-spacing: -0.5px; animation: pulse 1.5s infinite; }
+        
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes pulse { 0% { opacity: 0.6; } 50% { opacity: 1; } 100% { opacity: 0.6; } }
         @keyframes fadeInDown { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
 
@@ -131,6 +142,24 @@
 
     function setNav(id) { document.querySelectorAll('nav button').forEach(b => b.classList.remove('active')); if(id) document.getElementById(id).classList.add('active'); }
 
+    function showLoader(text) {
+        let loader = document.createElement('div');
+        loader.className = 'loader-overlay';
+        loader.id = 'nexus-loader';
+        loader.innerHTML = `<div class="spinner"></div><h2>${text}</h2>`;
+        document.body.appendChild(loader);
+    }
+
+    function removeLoader() {
+        const loader = document.getElementById('nexus-loader');
+        if(loader) loader.remove();
+    }
+
+    function statusMsg(text) {
+        const h2 = document.querySelector('.loader-overlay h2');
+        if(h2) h2.innerText = text;
+    }
+
     function showHome() {
         setNav('nav-home');
         document.getElementById('main-content').innerHTML = `
@@ -162,8 +191,9 @@
     async function loadAnalytics() {
         setNav('nav-charts');
         const main = document.getElementById('main-content');
-        main.innerHTML = `<div class="loader-overlay"><div class="spinner"></div><h2>Gerando Inteligência Nexus...</h2></div>`;
+        showLoader("Gerando Inteligência Nexus...");
         const { data, error } = await _supabase.from('artigo').select('*');
+        removeLoader();
         if (error) return main.innerHTML = `<h1>Erro ao carregar dados</h1>`;
         
         main.innerHTML = `<div class="header-content"><h1>Nexus Analytics Pro</h1><p>Clique no título de um gráfico para destacar.</p></div>
@@ -231,12 +261,7 @@
             document.getElementById('chartOverlay').style.display = 'none';
             const canvas = document.getElementById(canvasId);
             canvas.style.width = "100%"; canvas.style.height = "";
-            setTimeout(() => { 
-                if(chartInstances[canvasId]) {
-                    chartInstances[canvasId].resize(); 
-                    window.dispatchEvent(new Event('resize'));
-                }
-            }, 450);
+            setTimeout(() => { if(chartInstances[canvasId]) { chartInstances[canvasId].resize(); window.dispatchEvent(new Event('resize')); } }, 450);
         }
     }
 
@@ -323,9 +348,9 @@
     async function loadSection(tableName, orderCol) {
         currentTable = tableName; currentPage = 1;
         setNav('nav-' + tableName.split('_')[0]);
-        const main = document.getElementById('main-content');
-        main.innerHTML = `<div class="loader-overlay"><div class="spinner"></div><h2>Buscando Dados...</h2></div>`;
+        showLoader("Buscando Dados Nexus...");
         const { data } = await _supabase.from(tableName).select('*').order(orderCol, { ascending: true }).limit(2000);
+        removeLoader();
         allData = data; filteredData = data; renderUI();
     }
 
@@ -386,16 +411,15 @@
     function changePage(page) { currentPage = page; updateTable(); document.querySelector('main').scrollTop = 0; }
     function toggle(id) { document.querySelectorAll('.expandable-panel').forEach(e => { if(e.id!==id) e.classList.remove('active') }); document.getElementById(id).classList.toggle('active'); }
 
-    // --- IMPORTADOR CSV TOTALMENTE RESTAURADO ---
+    // --- IMPORTADOR CSV PREMIUM ---
     document.getElementById('csv-input').addEventListener('change', function(e) {
         const file = e.target.files[0]; if (!file) return;
-        const main = document.getElementById('main-content');
-        main.innerHTML = `<div class="loader-overlay"><div class="spinner"></div><h2>Sincronizando Nexus Pro...</h2></div>`;
+        showLoader("Sincronizando Nexus Pro...");
         
         Papa.parse(file, {
             header: true, skipEmptyLines: true,
             complete: async function(results) {
-                // 1. Processar Artigos e Idiomas
+                statusMsg("Sincronizando Artigos e Idiomas...");
                 const artigos = results.data.map(r => ({
                     titulo: r["Title"] || r["Document Title"], 
                     ano: parseInt(r["Year"]) || 0,
@@ -415,28 +439,20 @@
                 }));
                 await _supabase.from('artigo').insert(artigos);
 
-                // 2. Extrair Autores, Palavras-Chave e Referências para tabelas vinculadas
+                statusMsg("Vinculando Autores e Palavras-Chave...");
                 let autSet = new Set(), keySet = new Set(), refSet = new Set();
                 results.data.forEach(r => {
-                    // Autores
                     const autRaw = r["Authors"] || r["Author(s)"] || "";
                     autRaw.split(';').forEach(a => { if(a.trim()) autSet.add(a.trim()) });
-                    
-                    // Palavras-Chave
                     const keyRaw = r["Author Keywords"] || r["Keywords"] || "";
                     keyRaw.split(';').forEach(k => { if(k.trim()) keySet.add(k.trim()) });
-                    
-                    // Referências
                     const refRaw = r["References"] || r["references"] || "";
                     refRaw.split(';').forEach(rf => { if(rf.trim().length > 30) refSet.add(rf.trim()) });
                 });
 
-                // 3. Upsert nas tabelas relacionais
                 if(autSet.size > 0) {
                     await _supabase.from('autor').upsert([...autSet].map(n => ({ 
-                        id: n.replace(/[^a-z0-9]/gi,'_').toLowerCase(), 
-                        nome: n, 
-                        nomecompleto: n 
+                        id: n.replace(/[^a-z0-9]/gi,'_').toLowerCase(), nome: n, nomecompleto: n 
                     })));
                 }
 
@@ -447,14 +463,15 @@
                 }
 
                 if(refSet.size > 0) {
+                    statusMsg("Finalizando Referências...");
                     const rArr = [...refSet];
-                    // Referências são enviadas em lotes para evitar erro de payload do Supabase
                     for (let i = 0; i < rArr.length; i += 50) { 
                         await _supabase.from('referencia').insert(rArr.slice(i, i + 50).map(r => ({ referencia: r }))); 
                     }
                 }
 
-                alert("Sincronização Completa com Sucesso!");
+                removeLoader();
+                alert("Sincronização Nexus Concluída!");
                 loadAnalytics();
             }
         });
