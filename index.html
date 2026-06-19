@@ -68,7 +68,6 @@
         }
         .chart-card:hover { transform: translateY(-5px); box-shadow: 0 12px 20px rgba(0,0,0,0.1); }
         
-        /* EXPANSÃO */
         .chart-card.expanded { 
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) !important; 
             width: 85vw; height: 80vh; z-index: 2000; cursor: default; 
@@ -80,7 +79,6 @@
         .chart-card.expanded .close-chart { display: block; }
         
         .chart-container { position: relative; height: 320px; width: 100%; }
-        .chart-card.expanded .chart-container { height: calc(100% - 60px) !important; }
 
         /* --- TABLES --- */
         .grid-table { background: var(--white); border-radius: 24px; border: 1px solid #e5e7eb; box-shadow: 0 15px 30px rgba(0,0,0,0.05); overflow-x: auto; }
@@ -88,28 +86,13 @@
         .row-artigo { grid-template-columns: 1fr 80px 80px 120px 90px 120px; }
         .row-simples { grid-template-columns: 1fr 120px; }
         .grid-header { background: #f8fafc; font-weight: 700; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); }
-        .data-row { cursor: pointer; }
+        .data-row { cursor: pointer; transition: 0.2s; }
         .data-row:hover { background-color: #f8fafc; }
         .expandable-panel { max-height: 0; overflow: hidden; transition: var(--transition); opacity: 0; background: #fafbfc; }
         .expandable-panel.active { max-height: 1200px; opacity: 1; border-bottom: 3px solid var(--primary); }
-        .details-content { padding: 35px; border-left: 8px solid var(--primary); margin: 20px; background: white; border-radius: 16px; }
+        .details-content { padding: 35px; border-left: 8px solid var(--primary); margin: 20px; background: white; border-radius: 16px; box-shadow: 0 4px 10px rgba(0,0,0,0.02); }
 
-        /* --- MAPAS (FIX: Altura e Largura corrigidas) --- */
-        #network-map { 
-            width: 100%; 
-            height: 600px; 
-            background: white; 
-            border-radius: 24px; 
-            border: 1px solid var(--border); 
-            box-shadow: 0 10px 25px rgba(0,0,0,0.05); 
-            margin-top: 20px; 
-            position: relative;
-            overflow: hidden;
-            display: block;
-        }
-        .map-info { background: #eff6ff; padding: 20px; border-radius: 16px; border-left: 5px solid var(--primary); margin-top: 15px; display: none; color: var(--sidebar); animation: fadeIn 0.5s ease; }
-
-        /* --- ABOUT --- */
+        /* --- ABOUT (NATAN LUZ) --- */
         .about-card { 
             background: white; padding: 50px; border-radius: 32px; display: flex; gap: 40px; 
             align-items: center; max-width: 900px; margin: 40px auto; border: 1px solid var(--border); 
@@ -119,10 +102,18 @@
         .about-text h2 { font-size: 2.2rem; margin-top: 0; color: var(--sidebar); font-weight: 800; letter-spacing: -1px; }
         .about-text p { line-height: 1.8; color: var(--text-muted); font-size: 1.05rem; text-align: justify; }
 
+        /* --- MAPAS --- */
+        #network-map { 
+            width: 100%; height: 600px; background: white; border-radius: 24px; 
+            border: 1px solid var(--border); box-shadow: 0 10px 25px rgba(0,0,0,0.05); 
+            margin-top: 20px; position: relative; overflow: hidden; display: block;
+        }
+        .map-info { background: #eff6ff; padding: 20px; border-radius: 16px; border-left: 5px solid var(--primary); margin-top: 15px; display: none; color: var(--sidebar); animation: fadeIn 0.5s ease; }
+
         /* --- UI --- */
         .pagination { display: flex; justify-content: center; gap: 8px; margin: 30px 0 60px; }
-        .pagination button { padding: 12px 18px; border: 1px solid #e5e7eb; background: white; border-radius: 12px; cursor: pointer; font-weight: 700; transition: 0.2s; }
-        .pagination button.active { background: var(--primary); color: white; }
+        .pagination button { padding: 12px 18px; border: 1px solid #e5e7eb; background: white; border-radius: 12px; cursor: pointer; font-weight: 700; }
+        .pagination button.active { background: var(--primary); color: white; border-color: var(--primary); }
         .loader-overlay { display: flex; flex-direction: column; align-items: center; justify-content: center; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 500; }
         .spinner { width: 60px; height: 60px; border: 6px solid #e2e8f0; border-top: 6px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
         
@@ -131,8 +122,7 @@
         @keyframes fadeInDown { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
 
-        .btn-web { display: inline-flex; align-items: center; gap: 8px; background: var(--sidebar); color: white; padding: 14px 22px; border-radius: 12px; text-decoration: none; font-weight: 700; cursor: pointer; transition: 0.3s; }
-        .btn-web:hover { opacity: 0.9; transform: translateY(-2px); }
+        .btn-web { display: inline-flex; align-items: center; gap: 8px; background: var(--sidebar); color: white; padding: 14px 22px; border-radius: 12px; text-decoration: none; font-weight: 700; cursor: pointer; }
         #csv-input { display: none; }
     </style>
 </head>
@@ -267,7 +257,7 @@
             expanded.classList.remove('expanded');
             document.getElementById('chartOverlay').style.display = 'none';
             const canvas = document.getElementById(canvasId);
-            canvas.style.width = ""; canvas.style.height = "";
+            canvas.style.width = "100%"; canvas.style.height = "";
             setTimeout(() => { 
                 if(chartInstances[canvasId]) {
                     chartInstances[canvasId].resize(); 
@@ -277,7 +267,6 @@
         }
     }
 
-    // --- MAPAS (FIXED HEIGHT AND SCALING) ---
     async function loadNetworkMap() {
         setNav('nav-maps');
         const main = document.getElementById('main-content');
@@ -311,15 +300,7 @@
         const top15Entries = Object.entries(freq).sort((a,b) => b[1] - a[1]).slice(0, 15);
         const top15Names = top15Entries.map(e => e[0]);
         const maxFreq = Math.max(...top15Entries.map(e => e[1]));
-
-        // Escala inteligente para os nós não ficarem gigantes
-        let nodes = top15Entries.map(e => ({ 
-            id: e[0], 
-            label: e[0], 
-            shape: 'dot', 
-            size: 15 + ((e[1] / maxFreq) * 45) // Mínimo 15, Máximo 60
-        }));
-
+        let nodes = top15Entries.map(e => ({ id: e[0], label: e[0], shape: 'dot', size: 15 + ((e[1] / maxFreq) * 45) }));
         let edges = [], connections = {};
         data.forEach(d => {
             let items = (d.keywords_raw || "").split(';').map(s=>s.trim()).filter(s => top15Names.includes(s));
@@ -334,13 +315,9 @@
             let [from, to] = pair.split('|');
             edges.push({ from, to, width: 1, color: '#cbd5e1' });
         });
-        
         container.innerHTML = "";
-        const network = new vis.Network(container, { nodes: new vis.DataSet(nodes), edges: new vis.DataSet(edges) }, { 
-            physics: { enabled: false }, 
-            nodes: { font: { size: 14, weight: '600' }, color: '#f59e0b' } 
-        });
-        setTimeout(() => network.fit(), 200); // Ajusta o zoom ao terminar de desenhar
+        const network = new vis.Network(container, { nodes: new vis.DataSet(nodes), edges: new vis.DataSet(edges) }, { physics: { enabled: false }, nodes: { font: { size: 14, weight: '600' }, color: '#f59e0b' } });
+        setTimeout(() => network.fit(), 200);
     }
 
     async function generateMap(mode) {
@@ -366,10 +343,7 @@
             edges.push({ from, to, width: weight });
         });
         container.innerHTML = "";
-        const network = new vis.Network(container, { nodes: new vis.DataSet(nodes), edges: new vis.DataSet(edges) }, { 
-            physics: { enabled: true }, 
-            nodes: { font: { size: 12 }, color: mode==='autores'?'#3b82f6':'#10b981' } 
-        });
+        const network = new vis.Network(container, { nodes: new vis.DataSet(nodes), edges: new vis.DataSet(edges) }, { physics: { enabled: true }, nodes: { font: { size: 12 }, color: mode==='autores'?'#3b82f6':'#10b981' } });
         setTimeout(() => network.fit(), 200);
     }
 
@@ -409,8 +383,14 @@
             html += `<div class="grid-row row-artigo grid-header"><div>Título</div><div>Ano</div><div>Cits.</div><div>ISSN</div><div>Vol/Iss</div><div>Tipo</div></div>`;
             items.forEach((item, i) => {
                 html += `<div class="grid-row row-artigo data-row" onclick="toggle('p-${i}')"><div><b>${item.titulo}</b></div><div>${item.ano}</div><div style="color:var(--primary);font-weight:800">${item.qtd_citacao}</div><div><small>${item.issn||'-'}</small></div><div><small>${item.volume||'-'}/${item.issue||'-'}</small></div><div><span class="badge" style="background:#e0f2fe; color:#0369a1">${item.tipo_documento||'Article'}</span></div></div>
-                <div id="p-${i}" class="expandable-panel"><div class="details-content"><h3>Resumo</h3><p>${item.resumo}</p>
-                <p><b><i class="fas fa-fingerprint"></i> DOI:</b> ${item.doi}</p><a href="${item.link || 'https://doi.org/'+item.doi}" target="_blank" class="btn-web">ACESSAR NO SCOPUS</a></div></div>`;
+                <div id="p-${i}" class="expandable-panel">
+                    <div class="details-content">
+                        <h3><i class="fas fa-quote-left" style="color:var(--primary); margin-right:10px;"></i> Abstract / Resumo</h3>
+                        <p style="text-align: justify; line-height: 1.8; color: var(--text-main); margin-bottom: 20px;">${item.resumo}</p>
+                        <p><b><i class="fas fa-fingerprint"></i> DOI:</b> ${item.doi}</p>
+                        <a href="${item.link || 'https://doi.org/'+item.doi}" target="_blank" class="btn-web">ACESSAR NO SCOPUS</a>
+                    </div>
+                </div>`;
             });
         } else {
             html += `<div class="grid-row row-simples grid-header"><div>Descrição</div><div>ID</div></div>`;
