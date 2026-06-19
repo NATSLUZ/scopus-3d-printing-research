@@ -91,7 +91,7 @@
         .pagination button { padding: 12px 18px; border: 1px solid #e5e7eb; background: white; border-radius: 12px; cursor: pointer; font-weight: 700; }
         .pagination button.active { background: var(--primary); color: white; border-color: var(--primary); }
         
-        /* --- LOADER PREMIUM (Apenas para Importação) --- */
+        /* --- LOADER --- */
         .sync-overlay { 
             display: none; flex-direction: column; align-items: center; justify-content: center; 
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
@@ -118,7 +118,7 @@
 
     <div class="chart-overlay" id="chartOverlay" onclick="closeExpandedChart()"></div>
     
-    <!-- Tela de Sincronização (Pesada) -->
+    <!-- Tela de Sincronização -->
     <div class="sync-overlay" id="syncOverlay">
         <div class="spinner"></div>
         <h2 id="syncText">Sincronizando Nexus Pro...</h2>
@@ -179,7 +179,7 @@
                     <p>Sou estudante de Engenharia de Software na UNEB e desenvolvedor do <b>NEXUS 3D</b>, uma plataforma criada para organizar, explorar e conectar pesquisas científicas sobre impressão 3D. Tenho interesse em desenvolvimento de software, análise de dados, acessibilidade e tecnologias que facilitam o acesso ao conhecimento.</p>
                     <div style="display:flex; gap:12px; margin-top:25px">
                         <a href="https://github.com/NATSLUZ" target="_blank" class="btn-web" style="background:#1e293b"><i class="fab fa-github"></i> GitHub</a>
-                        <a href="mailto:contato@natanluz.com" class="btn-web" style="background:#3b82f6"><i class="fas fa-envelope"></i> E-mail</a>
+                        <a href="mailto:natanluz.2020@gmail.com" class="btn-web" style="background:#3b82f6"><i class="fas fa-envelope"></i> E-mail</a>
                     </div>
                 </div>
             </div>`;
@@ -407,7 +407,7 @@
     function changePage(page) { currentPage = page; updateTable(); document.querySelector('main').scrollTop = 0; }
     function toggle(id) { document.querySelectorAll('.expandable-panel').forEach(e => { if(e.id!==id) e.classList.remove('active') }); document.getElementById(id).classList.toggle('active'); }
 
-    // --- IMPORTADOR CSV (Apenas aqui usamos a tela pesada) ---
+    // --- IMPORTADOR CSV  ---
     document.getElementById('csv-input').addEventListener('change', function(e) {
         const file = e.target.files[0]; if (!file) return;
         const sync = document.getElementById('syncOverlay');
