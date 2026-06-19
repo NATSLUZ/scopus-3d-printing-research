@@ -75,12 +75,12 @@
         .data-row:hover { background-color: #f8fafc; }
         .expandable-panel { max-height: 0; overflow: hidden; transition: var(--transition); opacity: 0; background: #fafbfc; }
         .expandable-panel.active { max-height: 1200px; opacity: 1; border-bottom: 3px solid var(--primary); }
-        .details-content { padding: 35px; border-left: 8px solid var(--primary); margin: 20px; background: white; border-radius: 16px; }
+        .details-content { padding: 35px; border-left: 8px solid var(--primary); margin: 20px; background: white; border-radius: 16px; box-shadow: 0 4px 10px rgba(0,0,0,0.02); }
 
         /* --- ABOUT --- */
         .about-card { background: white; padding: 50px; border-radius: 32px; display: flex; gap: 40px; align-items: center; max-width: 900px; margin: 40px auto; border: 1px solid var(--border); box-shadow: 0 20px 40px rgba(0,0,0,0.05); animation: fadeInUp 0.7s ease; }
         .about-img { width: 260px; height: 260px; border-radius: 24px; object-fit: cover; border: 5px solid white; box-shadow: 0 10px 25px rgba(0,0,0,0.1); flex-shrink: 0; }
-        .about-text h2 { font-size: 2.2rem; margin-top: 0; color: var(--sidebar); font-weight: 800; }
+        .about-text h2 { font-size: 2.2rem; margin-top: 0; color: var(--sidebar); font-weight: 800; letter-spacing: -1px; }
         .about-text p { line-height: 1.8; color: var(--text-muted); font-size: 1.05rem; text-align: justify; }
 
         /* --- MAPAS --- */
@@ -91,18 +91,22 @@
         .pagination button { padding: 12px 18px; border: 1px solid #e5e7eb; background: white; border-radius: 12px; cursor: pointer; font-weight: 700; }
         .pagination button.active { background: var(--primary); color: white; border-color: var(--primary); }
         
-        /* --- LOADER PREMIUM --- */
-        .loader-overlay { 
-            display: flex; flex-direction: column; align-items: center; justify-content: center; 
+        /* --- LOADER PREMIUM (Apenas para Importação) --- */
+        .sync-overlay { 
+            display: none; flex-direction: column; align-items: center; justify-content: center; 
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(8px); 
+            background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(10px); 
             z-index: 5000; color: white; text-align: center;
         }
-        .spinner { width: 70px; height: 70px; border: 6px solid rgba(255,255,255,0.1); border-top: 6px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 25px; box-shadow: 0 0 20px rgba(59, 130, 246, 0.4); }
-        .loader-overlay h2 { font-weight: 700; letter-spacing: -0.5px; animation: pulse 1.5s infinite; }
+        .spinner { width: 60px; height: 60px; border: 5px solid rgba(255,255,255,0.1); border-top: 5px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
+        .sync-overlay h2 { font-weight: 700; animation: pulse 1.5s infinite; font-size: 1.5rem; }
+
+        /* --- LOADER DISCRETO (Para trocas de abas) --- */
+        .inline-loader { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 300px; color: var(--text-muted); }
+        .spinner-small { width: 40px; height: 40px; border: 4px solid #e2e8f0; border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 15px; }
         
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        @keyframes pulse { 0% { opacity: 0.6; } 50% { opacity: 1; } 100% { opacity: 0.6; } }
+        @keyframes pulse { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
         @keyframes fadeInDown { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
 
@@ -113,6 +117,12 @@
 <body>
 
     <div class="chart-overlay" id="chartOverlay" onclick="closeExpandedChart()"></div>
+    
+    <!-- Tela de Sincronização (Pesada) -->
+    <div class="sync-overlay" id="syncOverlay">
+        <div class="spinner"></div>
+        <h2 id="syncText">Sincronizando Nexus Pro...</h2>
+    </div>
 
     <nav>
         <div class="logo-box" onclick="showHome()">
@@ -142,22 +152,9 @@
 
     function setNav(id) { document.querySelectorAll('nav button').forEach(b => b.classList.remove('active')); if(id) document.getElementById(id).classList.add('active'); }
 
-    function showLoader(text) {
-        let loader = document.createElement('div');
-        loader.className = 'loader-overlay';
-        loader.id = 'nexus-loader';
-        loader.innerHTML = `<div class="spinner"></div><h2>${text}</h2>`;
-        document.body.appendChild(loader);
-    }
-
-    function removeLoader() {
-        const loader = document.getElementById('nexus-loader');
-        if(loader) loader.remove();
-    }
-
-    function statusMsg(text) {
-        const h2 = document.querySelector('.loader-overlay h2');
-        if(h2) h2.innerText = text;
+    // Loader Discreto para abas
+    function setContentLoader(text) {
+        document.getElementById('main-content').innerHTML = `<div class="inline-loader"><div class="spinner-small"></div><p>${text}</p></div>`;
     }
 
     function showHome() {
@@ -190,12 +187,11 @@
 
     async function loadAnalytics() {
         setNav('nav-charts');
-        const main = document.getElementById('main-content');
-        showLoader("Gerando Inteligência Nexus...");
+        setContentLoader("Processando Inteligência Nexus...");
         const { data, error } = await _supabase.from('artigo').select('*');
-        removeLoader();
-        if (error) return main.innerHTML = `<h1>Erro ao carregar dados</h1>`;
+        if (error) return document.getElementById('main-content').innerHTML = `<h1>Erro ao carregar dados</h1>`;
         
+        const main = document.getElementById('main-content');
         main.innerHTML = `<div class="header-content"><h1>Nexus Analytics Pro</h1><p>Clique no título de um gráfico para destacar.</p></div>
         <div class="analytics-grid">
             ${createChartCard('c1', 'calendar-alt', '#3b82f6', 'Publicações / Ano')}
@@ -260,13 +256,14 @@
             expanded.classList.remove('expanded');
             document.getElementById('chartOverlay').style.display = 'none';
             const canvas = document.getElementById(canvasId);
-            canvas.style.width = "100%"; canvas.style.height = "";
+            canvas.style.width = ""; canvas.style.height = "";
             setTimeout(() => { if(chartInstances[canvasId]) { chartInstances[canvasId].resize(); window.dispatchEvent(new Event('resize')); } }, 450);
         }
     }
 
     async function loadNetworkMap() {
         setNav('nav-maps');
+        setContentLoader("Mapeando conexões acadêmicas...");
         const main = document.getElementById('main-content');
         main.innerHTML = `<div class="header-content"><h1>Mapas de Relacionamento</h1><p>Explore conexões acadêmicas.</p></div>
             <div style="display:flex; gap:10px; margin-bottom:10px;">
@@ -286,9 +283,9 @@
     }
 
     async function generateConceptualMap() {
-        showMapDesc("<b>Grupo Conceitual (Top 15):</b> Foca nas 15 palavras-chave mais frequentes.");
+        showMapDesc("<b>Grupo Conceitual (Top 15):</b> Foca nas 15 palavras-chave mais frequentes. Revela o núcleo temático principal.");
         const container = document.getElementById('network-map');
-        container.innerHTML = `<div class="loader-overlay"><div class="spinner"></div><p>Gerando Rede...</p></div>`;
+        container.innerHTML = `<div class="inline-loader"><div class="spinner-small"></div><p>Gerando Rede...</p></div>`;
         const { data } = await _supabase.from('artigo').select('keywords_raw');
         let freq = {};
         data.forEach(d => {
@@ -321,7 +318,7 @@
     async function generateMap(mode) {
         showMapDesc(mode === 'autores' ? "<b>Mapa de Coautoria:</b> Rede de colaboração entre autores." : "<b>Mapa de Termos:</b> Co-ocorrência de palavras-chave.");
         const container = document.getElementById('network-map');
-        container.innerHTML = `<div class="loader-overlay"><div class="spinner"></div><p>Mapeando...</p></div>`;
+        container.innerHTML = `<div class="inline-loader"><div class="spinner-small"></div><p>Mapeando...</p></div>`;
         const { data } = await _supabase.from('artigo').select(mode === 'autores' ? 'autores_raw' : 'keywords_raw').limit(300);
         let nodes = [], edges = [], connections = {};
         data.forEach(d => {
@@ -348,9 +345,8 @@
     async function loadSection(tableName, orderCol) {
         currentTable = tableName; currentPage = 1;
         setNav('nav-' + tableName.split('_')[0]);
-        showLoader("Buscando Dados Nexus...");
+        setContentLoader("Consultando Nexus...");
         const { data } = await _supabase.from(tableName).select('*').order(orderCol, { ascending: true }).limit(2000);
-        removeLoader();
         allData = data; filteredData = data; renderUI();
     }
 
@@ -411,26 +407,24 @@
     function changePage(page) { currentPage = page; updateTable(); document.querySelector('main').scrollTop = 0; }
     function toggle(id) { document.querySelectorAll('.expandable-panel').forEach(e => { if(e.id!==id) e.classList.remove('active') }); document.getElementById(id).classList.toggle('active'); }
 
-    // --- IMPORTADOR CSV PREMIUM ---
+    // --- IMPORTADOR CSV (Apenas aqui usamos a tela pesada) ---
     document.getElementById('csv-input').addEventListener('change', function(e) {
         const file = e.target.files[0]; if (!file) return;
-        showLoader("Sincronizando Nexus Pro...");
+        const sync = document.getElementById('syncOverlay');
+        const syncTxt = document.getElementById('syncText');
+        sync.style.display = 'flex';
         
         Papa.parse(file, {
             header: true, skipEmptyLines: true,
             complete: async function(results) {
-                statusMsg("Sincronizando Artigos e Idiomas...");
+                syncTxt.innerText = "Sincronizando Artigos e Idiomas...";
                 const artigos = results.data.map(r => ({
                     titulo: r["Title"] || r["Document Title"], 
                     ano: parseInt(r["Year"]) || 0,
                     qtd_citacao: parseInt(r["Cited by"]) || 0, 
-                    doi: r["DOI"] || "",
-                    link: r["Link"] || "", 
-                    resumo: r["Abstract"] || "",
-                    tipo_documento: r["Document Type"] || "", 
-                    issn: r["ISSN"] || "",
-                    volume: r["Volume"] || "", 
-                    issue: r["Issue"] || "",
+                    doi: r["DOI"] || "", link: r["Link"] || "", resumo: r["Abstract"] || "",
+                    tipo_documento: r["Document Type"] || "", issn: r["ISSN"] || "",
+                    volume: r["Volume"] || "", issue: r["Issue"] || "",
                     source_title: r["Source title"] || r["Publication Title"] || r["Source Title"] || "", 
                     tipo_acesso: r["Open Access"] || r["Open access"] || "",
                     linguagem: r["Language of Original Document"] || r["Language"] || "English",
@@ -439,7 +433,7 @@
                 }));
                 await _supabase.from('artigo').insert(artigos);
 
-                statusMsg("Vinculando Autores e Palavras-Chave...");
+                syncTxt.innerText = "Vinculando Autores e Palavras-Chave...";
                 let autSet = new Set(), keySet = new Set(), refSet = new Set();
                 results.data.forEach(r => {
                     const autRaw = r["Authors"] || r["Author(s)"] || "";
@@ -451,27 +445,19 @@
                 });
 
                 if(autSet.size > 0) {
-                    await _supabase.from('autor').upsert([...autSet].map(n => ({ 
-                        id: n.replace(/[^a-z0-9]/gi,'_').toLowerCase(), nome: n, nomecompleto: n 
-                    })));
+                    await _supabase.from('autor').upsert([...autSet].map(n => ({ id: n.replace(/[^a-z0-9]/gi,'_').toLowerCase(), nome: n, nomecompleto: n })));
                 }
-
                 if(keySet.size > 0) {
-                    await _supabase.from('palavras_chaves').upsert([...keySet].map(k => ({ 
-                        palavras_chaves: k 
-                    })), { onConflict: 'palavras_chaves' });
+                    await _supabase.from('palavras_chaves').upsert([...keySet].map(k => ({ palavras_chaves: k })), { onConflict: 'palavras_chaves' });
                 }
-
                 if(refSet.size > 0) {
-                    statusMsg("Finalizando Referências...");
+                    syncTxt.innerText = "Finalizando Referências...";
                     const rArr = [...refSet];
-                    for (let i = 0; i < rArr.length; i += 50) { 
-                        await _supabase.from('referencia').insert(rArr.slice(i, i + 50).map(r => ({ referencia: r }))); 
-                    }
+                    for (let i = 0; i < rArr.length; i += 50) { await _supabase.from('referencia').insert(rArr.slice(i, i + 50).map(r => ({ referencia: r }))); }
                 }
 
-                removeLoader();
-                alert("Sincronização Nexus Concluída!");
+                sync.style.display = 'none';
+                alert("Nexus 3D Pro Sincronizado!");
                 loadAnalytics();
             }
         });
