@@ -5,15 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nexus 3D | Intelligence Analytics</title>
     
-    <!-- [FONTES E ÍCONES] -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- [SCRIPTS] -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-wordcloud@4.3.0/dist/chartjs-chart-wordcloud.min.js"></script>
     <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
 
     <style>
@@ -22,64 +19,72 @@
             --text-main: #1e293b; --text-muted: #64748b; --accent: #10b981;
             --border: #e5e7eb; --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
+
         * { box-sizing: border-box; }
         body { font-family: 'Inter', sans-serif; background-color: var(--bg); margin: 0; display: flex; height: 100vh; overflow: hidden; color: var(--text-main); }
-        
-        /* Sidebar */
+
+        /* --- SIDEBAR --- */
         nav { width: 280px; background: var(--sidebar); color: white; padding: 35px 20px; display: flex; flex-direction: column; gap: 8px; flex-shrink: 0; box-shadow: 10px 0 30px rgba(0,0,0,0.1); z-index: 100; }
         .logo-box { display: flex; align-items: center; gap: 12px; margin-bottom: 40px; padding: 0 10px; cursor: pointer; }
-        .logo-box i { font-size: 1.8rem; color: var(--primary); }
+        .logo-box i { font-size: 1.8rem; color: var(--primary); text-shadow: 0 0 15px rgba(59, 130, 246, 0.5); }
         .logo-box span { font-weight: 800; font-size: 1.3rem; letter-spacing: -1px; }
-        nav button { background: transparent; border: none; color: #94a3b8; padding: 12px 15px; text-align: left; border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 12px; font-weight: 500; transition: var(--transition); }
+
+        nav button {
+            background: transparent; border: none; color: #94a3b8; padding: 12px 15px; text-align: left;
+            border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 12px; font-weight: 500; transition: var(--transition);
+        }
         nav button i { width: 24px; font-size: 1.2rem; }
         nav button:hover { background: rgba(255,255,255,0.05); color: white; }
         nav button.active { background: var(--primary); color: white; box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.4); }
-        
-        /* Botão Importar */
-        .btn-import { background: var(--accent) !important; color: white !important; margin-top: auto; justify-content: center; font-weight: 700; cursor: pointer; }
 
-        /* Main Content */
+        .btn-import { background: var(--accent) !important; color: white !important; margin-top: auto; justify-content: center; font-weight: 700; }
+
+        /* --- CONTENT --- */
         main { flex: 1; padding: 40px; overflow-y: auto; position: relative; scroll-behavior: smooth; }
-        .header-content { margin-bottom: 35px; }
+        .header-content { margin-bottom: 35px; animation: fadeInDown 0.5s ease; }
         .header-content h1 { font-size: 2.2rem; font-weight: 800; color: var(--sidebar); letter-spacing: -1px; }
 
-        /* Estilo dos Filtros */
+        /* --- FILTROS --- */
         .filter-bar { background: white; padding: 20px; border-radius: 20px; border: 1px solid var(--border); margin-bottom: 30px; display: flex; gap: 15px; align-items: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
         .filter-bar input { flex: 1; padding: 12px 20px; border-radius: 12px; border: 1px solid #e5e7eb; outline: none; font-size: 1rem; }
         .filter-bar select { padding: 12px; border-radius: 12px; border: 1px solid #e5e7eb; min-width: 160px; cursor: pointer; }
 
-        /* Grid e Tabelas */
+        /* --- TABLES --- */
         .grid-table { background: var(--white); border-radius: 24px; border: 1px solid #e5e7eb; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.05); overflow: hidden; min-width: 1000px; }
         .grid-row { display: grid; align-items: center; border-bottom: 1px solid #f1f5f9; padding: 18px 24px; }
         .row-artigo { grid-template-columns: 1fr 80px 80px 120px 90px 120px; }
         .row-simples { grid-template-columns: 1fr 120px; }
         .grid-header { background: #f8fafc; font-weight: 700; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); }
+        
         .data-row { cursor: pointer; }
         .data-row:hover { background-color: #f1f5f9; }
-
-        /* Expansão */
         .expandable-panel { max-height: 0; overflow: hidden; transition: all 0.5s ease; opacity: 0; background: #fafbfc; }
         .expandable-panel.active { max-height: 1200px; opacity: 1; border-bottom: 3px solid var(--primary); }
         .details-content { padding: 35px; border-left: 8px solid var(--primary); margin: 20px; background: white; border-radius: 16px; }
 
-        /* Gráficos */
+        /* --- ANALYTICS --- */
         .analytics-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 25px; margin-bottom: 50px; }
         .chart-card { background: white; padding: 25px; border-radius: 24px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
         .chart-container { position: relative; height: 320px; width: 100%; }
 
-        /* Sobre o Dev */
-        .about-card { background: white; padding: 50px; border-radius: 32px; display: flex; gap: 40px; align-items: center; max-width: 850px; margin: auto; border: 1px solid var(--border); box-shadow: 0 20px 40px rgba(0,0,0,0.05); }
+        /* --- MAPAS --- */
+        #network-map { height: 600px; background: white; border-radius: 24px; border: 1px solid var(--border); box-shadow: 0 10px 25px rgba(0,0,0,0.05); margin-top: 20px; }
+
+        /* --- ABOUT (NATAN LUZ) --- */
+        .about-card { background: white; padding: 50px; border-radius: 32px; display: flex; gap: 40px; align-items: center; max-width: 850px; margin: auto; border: 1px solid var(--border); box-shadow: 0 20px 40px rgba(0,0,0,0.05); animation: fadeInUp 0.7s ease; }
         .about-img { width: 240px; height: 240px; border-radius: 24px; object-fit: cover; border: 5px solid white; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
 
-        /* Paginação */
+        /* --- UI COMPONENTS --- */
         .pagination { display: flex; justify-content: center; gap: 8px; margin: 30px 0 60px; }
-        .pagination button { padding: 12px 18px; border: 1px solid #e5e7eb; background: white; border-radius: 12px; cursor: pointer; font-weight: 700; color: var(--text-muted); }
-        .pagination button.active { background: var(--primary); color: white; }
-
+        .pagination button { padding: 12px 18px; border: 1px solid #e5e7eb; background: white; border-radius: 12px; cursor: pointer; font-weight: 700; color: var(--text-muted); transition: 0.2s; }
+        .pagination button:hover { border-color: var(--primary); color: var(--primary); }
+        .pagination button.active { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3); }
         .loader-overlay { display: flex; flex-direction: column; align-items: center; justify-content: center; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 500; }
         .spinner { width: 60px; height: 60px; border: 6px solid #e2e8f0; border-top: 6px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
+
         .btn-web { display: inline-flex; align-items: center; gap: 8px; background: var(--sidebar); color: white; padding: 14px 22px; border-radius: 12px; text-decoration: none; font-size: 0.9rem; margin-top: 20px; font-weight: 700; cursor: pointer; }
         #csv-input { display: none; }
     </style>
@@ -87,15 +92,19 @@
 <body>
 
     <nav>
-        <div class="logo-box" onclick="showHome()"><i class="fas fa-microchip"></i><span>NEXUS 3D</span></div>
+        <div class="logo-box" onclick="showHome()">
+            <i class="fas fa-microchip"></i><span>NEXUS 3D</span>
+        </div>
+        
         <button onclick="showHome()" id="nav-home" class="active"><i class="fas fa-house"></i> Dashboard</button>
         <button onclick="loadAnalytics()" id="nav-charts"><i class="fas fa-chart-line"></i> Gráficos</button>
         <button onclick="loadNetworkMap()" id="nav-maps"><i class="fas fa-circle-nodes"></i> Mapas de Rede</button>
         <button onclick="loadSection('artigo', 'titulo')" id="nav-artigo"><i class="fas fa-file-alt"></i> Artigos</button>
         <button onclick="loadSection('autor', 'nome')" id="nav-autor"><i class="fas fa-users"></i> Autores</button>
-        <button onclick="loadSection('palavras_chaves', 'palavras_chaves')" id="nav-keywords"><i class="fas fa-tags"></i> Keywords</button>
+        <button onclick="loadSection('palavras_chaves', 'palavras_chaves')" id="nav-palavras"><i class="fas fa-tags"></i> Keywords</button>
         <button onclick="loadSection('referencia', 'referencia')" id="nav-referencia"><i class="fas fa-bookmark"></i> Referências</button>
         <button onclick="showAbout()" id="nav-about"><i class="fas fa-id-card"></i> Sobre o Dev</button>
+        
         <input type="file" id="csv-input" accept=".csv">
         <button class="btn-import" onclick="document.getElementById('csv-input').click()"><i class="fas fa-file-csv"></i> IMPORTAR CSV</button>
     </nav>
@@ -107,151 +116,175 @@
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkdGF6cW1mYm5hZXRocnBrc2h6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2MzcwMjUsImV4cCI6MjA5NDIxMzAyNX0.Rd-i2suGjKmaWjBDo9HwFwAaoiOYdQJCNU_NGfgRJ5A';
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    let allData = []; let currentTable = ''; let currentPage = 1; const pageSize = 15;
+    let allData = []; let filteredData = []; let currentTable = ''; let currentPage = 1; const pageSize = 15;
 
     function setNav(id) { document.querySelectorAll('nav button').forEach(b => b.classList.remove('active')); if(id) document.getElementById(id).classList.add('active'); }
 
     function showHome() {
         setNav('nav-home');
-        document.getElementById('main-content').innerHTML = `<div class="header-content"><h1>Nexus 3D Intelligence</h1></div><div style="display:grid; grid-template-columns: repeat(3, 1fr); gap: 20px;"><div class="chart-card" style="text-align:center"><i class="fas fa-database" style="font-size:2.5rem; color:var(--primary); margin-bottom:15px"></i><h3>Cloud PostgreSQL</h3><p>Hospedado no Supabase.</p></div><div class="chart-card" style="text-align:center"><i class="fas fa-link" style="font-size:2.5rem; color:var(--accent); margin-bottom:15px"></i><h3>Relacional</h3><p>Inteligência de Vínculos.</p></div><div class="chart-card" style="text-align:center"><i class="fas fa-microchip" style="font-size:2.5rem; color:var(--sidebar); margin-bottom:15px"></i><h3>Impressão 3D</h3><p>Foco acadêmico exclusivo.</p></div></div>`;
+        document.getElementById('main-content').innerHTML = `
+            <div class="header-content"><h1>Nexus 3D Intelligence</h1></div>
+            <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap: 20px; animation: fadeInUp 0.8s ease;">
+                <div class="chart-card" style="text-align:center"><i class="fas fa-database" style="font-size:2.5rem; color:var(--primary); margin-bottom:15px"></i><h3>PostgreSQL Cloud</h3><p>Hospedado no Supabase.</p></div>
+                <div class="chart-card" style="text-align:center"><i class="fas fa-link" style="font-size:2.5rem; color:var(--accent); margin-bottom:15px"></i><h3>Relacional</h3><p>Inteligência de Vínculos.</p></div>
+                <div class="chart-card" style="text-align:center"><i class="fas fa-microchip" style="font-size:2.5rem; color:var(--sidebar); margin-bottom:15px"></i><h3>Impressão 3D</h3><p>Foco acadêmico exclusivo.</p></div>
+            </div>`;
     }
 
     function showAbout() {
         setNav('nav-about');
-        document.getElementById('main-content').innerHTML = `<div class="header-content"><h1>Desenvolvedor</h1></div><div class="about-card"><img src="natan.jpg" alt="Natan Luz" class="about-img" onerror="this.src='https://ui-avatars.com/api/?name=Natan+Luz&size=250&background=0f172a&color=fff'"><div><h2>Natan Luz</h2><p>Sou estudante de Engenharia de Software na UNEB e desenvolvedor do <b>NEXUS 3D</b>, uma plataforma criada para organizar, explorar e conectar pesquisas científicas sobre impressão 3D.</p><div style="display:flex; gap:10px; margin-top:20px"><a href="https://github.com/NATSLUZ" target="_blank" class="btn-web" style="background:#24292e"><i class="fab fa-github"></i> GitHub</a><a href="mailto:contato@natanluz.com" class="btn-web"><i class="fas fa-envelope"></i> Contato</a></div></div></div>`;
+        document.getElementById('main-content').innerHTML = `
+            <div class="header-content"><h1>Desenvolvedor</h1></div>
+            <div class="about-card" style="animation: fadeInUp 0.6s ease;">
+                <img src="natan.jpg" alt="Natan Luz" class="about-img" onerror="this.src='https://ui-avatars.com/api/?name=Natan+Luz&size=250&background=0f172a&color=fff'">
+                <div>
+                    <h2>Natan Luz</h2>
+                    <p>Sou estudante de Engenharia de Software na UNEB e desenvolvedor do <b>NEXUS 3D</b>, uma plataforma criada para organizar, explorar e conectar pesquisas científicas sobre impressão 3D. Tenho interesse em desenvolvimento de software, análise de dados, acessibilidade e tecnologias que facilitam o acesso ao conhecimento.</p>
+                    <div style="display:flex; gap:10px; margin-top:20px">
+                        <a href="https://github.com/NATSLUZ" target="_blank" class="btn-web" style="background:#24292e"><i class="fab fa-github"></i> GitHub</a>
+                        <a href="mailto:contato@natanluz.com" class="btn-web"><i class="fas fa-envelope"></i> Contato</a>
+                    </div>
+                </div>
+            </div>`;
     }
 
-    // --- [MÓDULO DE ANALYTICS - GRÁFICOS] ---
+    // --- SUA LÓGICA DE GRÁFICOS QUE FUNCIONA ---
     async function loadAnalytics() {
         setNav('nav-charts');
         const main = document.getElementById('main-content');
         main.innerHTML = `<div class="loader-overlay"><div class="spinner"></div><h2>Gerando Inteligência Nexus...</h2></div>`;
         const { data, error } = await _supabase.from('artigo').select('*');
         if (error) return main.innerHTML = `<h1>Erro ao carregar dados</h1>`;
-
-        main.innerHTML = `<div class="header-content"><h1>Nexus Analytics Pro</h1><p>Processando <b>${data.length}</b> registros.</p></div><div class="analytics-grid">
-            <div class="chart-card" style="grid-column: span 2;"><h3>Grupo Conceitual (Top Temas)</h3><div class="chart-container"><canvas id="cloud"></canvas></div></div>
+        main.innerHTML = `<div class="header-content"><h1>Nexus Analytics Pro</h1><p>Análise de produtividade e impacto</p></div><div class="analytics-grid">
             <div class="chart-card"><h3>Publicações / Ano</h3><div class="chart-container"><canvas id="c1"></canvas></div></div>
-            <div class="chart-card"><h3>Citações / Ano</h3><div class="chart-container"><canvas id="c2"></canvas></div></div>
+            <div class="chart-card"><h3>Citações / Ano</h3><div class="chart-container"><canvas id="chartCits"></canvas></div></div>
             <div class="chart-card"><h3>Top 15 Periódicos</h3><div class="chart-container"><canvas id="c3"></canvas></div></div>
             <div class="chart-card"><h3>Top 20 Autores</h3><div class="chart-container"><canvas id="c4"></canvas></div></div>
             <div class="chart-card"><h3>Top 15 Palavras-Chave</h3><div class="chart-container"><canvas id="c5"></canvas></div></div>
             <div class="chart-card"><h3>Acesso Aberto</h3><div class="chart-container"><canvas id="c6"></canvas></div></div>
             <div class="chart-card"><h3>Idioma</h3><div class="chart-container"><canvas id="c7"></canvas></div></div>
         </div>`;
-
         const yrs={}, cits={}, journals={}, auts={}, keys={}, acc={}, lang={};
         data.forEach(d => {
             if(d.ano) yrs[d.ano] = (yrs[d.ano] || 0) + 1;
             if(d.ano) cits[d.ano] = (cits[d.ano] || 0) + (d.qtd_citacao || 0);
-            
-            // CORREÇÃO: Nomes exatos das colunas do seu Supabase
-            if(d.source_title) journals[d.source_title.trim()] = (journals[d.source_title.trim()] || 0) + 1;
-            if(d.autores_raw) d.autores_raw.split(';').forEach(a => { let n=a.trim(); if(n) auts[n] = (auts[n]||0)+1 });
-            if(d.keywords_raw) d.keywords_raw.split(';').forEach(k => { let n=k.trim(); if(n) keys[n] = (keys[n]||0)+1 });
-            
-            let open = d.tipo_acesso?.toLowerCase().includes("open") ? "Acesso Aberto" : "Fechado"; acc[open] = (acc[open]||0)+1;
-            let l = d.linguagem || "English"; lang[l] = (lang[l]||0)+1;
+            if(d.source_title && d.source_title.trim() !== "") { let jName = d.source_title.trim(); journals[jName] = (journals[jName] || 0) + 1; }
+            if(d.autores_raw) d.autores_raw.split(';').forEach(a => { let n = a.trim(); if(n) auts[n] = (auts[n] || 0) + 1; });
+            if(d.keywords_raw) d.keywords_raw.split(';').forEach(k => { let n = k.trim(); if(n) keys[n] = (keys[n] || 0) + 1; });
+            let open = d.tipo_acesso?.toLowerCase().includes("open") ? "Acesso Aberto" : "Fechado";
+            acc[open] = (acc[open] || 0) + 1;
+            let l = d.linguagem || "English"; lang[l] = (lang[l] || 0) + 1;
         });
-
         const sortY = Object.keys(yrs).sort();
-        const topJ = Object.entries(journals).sort((a,b)=>b[1]-a[1]).slice(0,15);
-        const topA = Object.entries(auts).sort((a,b)=>b[1]-a[1]).slice(0,20);
-        const topK = Object.entries(keys).sort((a,b)=>b[1]-a[1]).slice(0,15);
+        const topJ = Object.entries(journals).sort((a,b) => b[1] - a[1]).slice(0, 15);
+        const topA = Object.entries(auts).sort((a,b) => b[1] - a[1]).slice(0, 20);
+        const topK = Object.entries(keys).sort((a,b) => b[1] - a[1]).slice(0, 15);
         const opt = { responsive: true, maintainAspectRatio: false };
-
-        // Nuvem de Palavras
-        try {
-            new Chart(document.getElementById('cloud'), { type: 'wordCloud', data: { labels: Object.keys(keys).slice(0,25), datasets: [{ label: '', data: Object.values(keys).slice(0,25).map(v => 10 + v * 5), color: ['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6'] }] } });
-        } catch(e) {}
-
+        new Chart(document.getElementById('c3'), { type: 'bar', options: { ...opt, indexAxis: 'y', plugins: { legend: { display: false } } }, data: { labels: topJ.map(x => x[0].length > 30 ? x[0].substring(0,30) + '...' : x[0]), datasets: [{ label: 'Artigos', data: topJ.map(x => x[1]), backgroundColor: '#10b981' }] } });
+        new Chart(document.getElementById('chartCits'), { type: 'line', data: { labels: sortY, datasets: [{ label: 'Citações', data: sortY.map(y=>cits[y]), borderColor: '#6366f1', fill: true, backgroundColor: 'rgba(99, 102, 241, 0.1)' }] }, options: opt });
         new Chart(document.getElementById('c1'), { type: 'bar', data: { labels: sortY, datasets: [{ label: 'Artigos', data: sortY.map(y=>yrs[y]), backgroundColor: '#3b82f6' }] }, options: opt });
-        new Chart(document.getElementById('c2'), { type: 'line', data: { labels: sortY, datasets: [{ label: 'Citações', data: sortY.map(y=>cits[y]), borderColor: '#6366f1', fill: true, backgroundColor: 'rgba(99, 102, 241, 0.1)' }] }, options: opt });
-        new Chart(document.getElementById('c3'), { type: 'bar', options: { ...opt, indexAxis: 'y' }, data: { labels: topJ.map(x=>x[0].substring(0,30)), datasets: [{ label: 'Artigos', data: topJ.map(x=>x[1]), backgroundColor: '#10b981' }] } });
         new Chart(document.getElementById('c4'), { type: 'bar', data: { labels: topA.map(x=>x[0]), datasets: [{ label: 'Artigos', data: topA.map(x=>x[1]), backgroundColor: '#f59e0b' }] }, options: opt });
         new Chart(document.getElementById('c5'), { type: 'pie', data: { labels: topK.map(x=>x[0]), datasets: [{ data: topK.map(x=>x[1]), backgroundColor: ['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6'] }] }, options: opt });
         new Chart(document.getElementById('c6'), { type: 'doughnut', data: { labels: Object.keys(acc), datasets: [{ data: Object.values(acc), backgroundColor: ['#10b981','#ef4444','#64748b'] }] }, options: opt });
-        new Chart(document.getElementById('c7'), { type: 'polarArea', data: { labels: Object.keys(lang), datasets: [{ data: Object.values(lang), backgroundColor: ['#3b82f6','#8b5cf6','#ec4899'] }] }, options: opt });
+        new Chart(document.getElementById('c7'), { type: 'polarArea', data: { labels: Object.keys(lang), datasets: [{ data: Object.values(lang), backgroundColor: ['#3b82f6','#8b5cf6','#ec4899','#f97316'] }] }, options: opt });
     }
 
     async function loadNetworkMap() {
         setNav('nav-maps');
         const main = document.getElementById('main-content');
-        main.innerHTML = `<div class="header-content"><h1>Mapas de Relacionamento</h1></div><div style="display:flex; gap:10px; margin-bottom:20px;"><button class="btn-web" onclick="genMap('auts')" style="margin:0">Coautoria</button><button class="btn-web" onclick="genMap('keys')" style="margin:0; background:var(--accent)">Termos</button></div><div id="network-map"></div>`;
-        genMap('auts');
+        main.innerHTML = `<div class="header-content"><h1>Mapas de Relacionamento</h1><p>Explore as conexões entre autores e temas.</p></div>
+            <div style="display:flex; gap:10px; margin-bottom:20px;"><button class="btn-web" onclick="generateMap('autores')" style="margin:0">Mapa de Coautoria</button>
+            <button class="btn-web" onclick="generateMap('tags')" style="margin:0; background:var(--accent)">Mapa de Termos</button></div>
+            <div id="network-map"></div>`;
+        generateMap('autores');
     }
 
-    async function genMap(mode) {
+    async function generateMap(mode) {
         const container = document.getElementById('network-map');
         container.innerHTML = `<div class="loader-overlay"><div class="spinner"></div><p>Gerando rede...</p></div>`;
-        const { data } = await _supabase.from('artigo').select(mode==='auts'?'autores_raw':'keywords_raw').limit(300);
-        let nodes = [], edges = [], conn = {};
+        const { data } = await _supabase.from('artigo').select(mode === 'autores' ? 'autores_raw' : 'keywords_raw').limit(300);
+        let nodes = [], edges = [], connections = {};
         data.forEach(d => {
-            let items = (mode==='auts'?(d.autores_raw||""):(d.keywords_raw||"")).split(';').map(s=>s.trim()).filter(s=>s.length > 2);
-            for(let i=0; i<items.length; i++) for(let j=i+1; j<items.length; j++) { let p = [items[i], items[j]].sort().join('|'); conn[p] = (conn[p]||0)+1; }
+            let items = (mode === 'autores' ? d.autores_raw : d.keywords_raw).split(';').map(s=>s.trim()).filter(s=>s.length > 2);
+            for(let i=0; i<items.length; i++) {
+                for(let j=i+1; j<items.length; j++) {
+                    let pair = [items[i], items[j]].sort().join('|');
+                    connections[pair] = (connections[pair] || 0) + 1;
+                }
+            }
         });
-        Object.entries(conn).slice(0, 100).forEach(([p, w]) => {
-            let [f, t] = p.split('|');
-            if(!nodes.find(n=>n.id===f)) nodes.push({id:f, label:f, shape:'dot', size:10});
-            if(!nodes.find(n=>n.id===t)) nodes.push({id:t, label:t, shape:'dot', size:10});
-            edges.push({from:f, to:t, width:w});
+        Object.entries(connections).slice(0, 100).forEach(([pair, weight]) => {
+            let [from, to] = pair.split('|');
+            if(!nodes.find(n => n.id === from)) nodes.push({ id: from, label: from, shape: 'dot', size: 10 });
+            if(!nodes.find(n => n.id === to)) nodes.push({ id: to, label: to, shape: 'dot', size: 10 });
+            edges.push({ from, to, width: weight });
         });
         container.innerHTML = "";
-        new vis.Network(container, { nodes: new vis.DataSet(nodes), edges: new vis.DataSet(edges) }, { physics: { enabled: true }, nodes: { font: { size: 12 }, color: mode==='auts'?'#3b82f6':'#10b981' } });
+        new vis.Network(container, { nodes: new vis.DataSet(nodes), edges: new vis.DataSet(edges) }, { physics: { enabled: true }, nodes: { font: { size: 12 }, color: mode==='autores'?'#3b82f6':'#10b981' } });
     }
 
     async function loadSection(tableName, orderCol) {
         currentTable = tableName; currentPage = 1;
-        setNav('nav-' + (tableName.includes('palavras') ? 'keywords' : tableName));
+        setNav('nav-' + tableName.split('_')[0]);
         const main = document.getElementById('main-content');
         main.innerHTML = `<div class="loader-overlay"><div class="spinner"></div><h2>Consultando Nexus...</h2></div>`;
         const { data, error } = await _supabase.from(tableName).select('*').order(orderCol, { ascending: true }).limit(2000);
-        allData = data; renderTable();
+        allData = data; filteredData = data; renderUI();
     }
 
-    function renderTable() {
+    function renderUI() {
         const main = document.getElementById('main-content');
         const years = [...new Set(allData.map(d => d.ano))].filter(Boolean).sort((a,b) => b-a);
-        main.innerHTML = `<div class="header-content"><h1>Tabela: ${currentTable} (${allData.length})</h1></div><div class="filter-bar"><input type="text" id="q" placeholder="Pesquisar registros..." oninput="filter()">${currentTable==='artigo' ? `<select id="fy" onchange="filter()"><option value="">Filtrar Ano</option>${years.map(y=>`<option value="${y}">${y}</option>`).join('')}</select>` : ''}</div><div id="results"></div><div id="pag"></div>`;
-        draw();
+        main.innerHTML = `<div class="header-content"><h1>Tabela: ${currentTable} (${allData.length})</h1></div>
+            <div class="filter-bar"><input type="text" id="search-box" placeholder="Pesquisar registros..." oninput="applyFilters()">
+            ${currentTable === 'artigo' ? `<select id="filter-year" onchange="applyFilters()"><option value="">Filtrar Ano</option>${years.map(y => `<option value="${y}">${y}</option>`).join('')}</select>` : ''}</div>
+            <div id="results"></div><div id="pag"></div>`;
+        updateTable();
     }
-    
-    function filter() { const q = document.getElementById('q').value.toLowerCase(); const y = document.getElementById('fy')?.value || ''; allData.filter(d => (d.titulo||d.nome||d.palavras_chaves||d.referencia||"").toLowerCase().includes(q) && (y === '' || String(d.ano) === y)); currentPage=1; draw(); }
 
-    function draw() {
-        const res = document.getElementById('results'); 
-        const q = document.getElementById('q')?.value.toLowerCase() || '';
-        const y = document.getElementById('fy')?.value || '';
-        const filtered = allData.filter(d => (d.titulo||d.nome||d.palavras_chaves||d.referencia||"").toLowerCase().includes(q) && (y === '' || String(d.ano) === y));
-        const items = filtered.slice((currentPage-1)*pageSize, currentPage*pageSize);
-        let h = `<div class="grid-table">`;
-        if(currentTable==='artigo') {
-            h += `<div class="grid-row row-artigo grid-header"><div>Título</div><div>Ano</div><div>Cits.</div><div>ISSN</div><div>Vol/Iss</div><div>Tipo</div></div>`;
-            items.forEach((item, i) => { h += `<div class="grid-row row-artigo data-row" onclick="toggle('p-${i}')"><div><b style="color:var(--sidebar)">${item.titulo}</b></div><div>${item.ano}</div><div style="color:var(--primary);font-weight:800">${item.qtd_citacao}</div><div><small>${item.issn||'-'}</small></div><div><small>${item.volume||'-'}/${item.issue||'-'}</small></div><div><span class="badge" style="background:#e0f2fe; color:#0369a1">${item.tipo_documento||'Article'}</span></div></div><div id="p-${i}" class="expandable-panel"><div class="details-content"><h3>Resumo</h3><p style="text-align:justify; line-height:1.7;">${item.resumo}</p><p><b>DOI:</b> ${item.doi}</p><a href="${item.link || 'https://doi.org/'+item.doi}" target="_blank" class="btn-web">VER NO SCOPUS</a></div></div>`; });
+    function applyFilters() {
+        const search = document.getElementById('search-box').value.toLowerCase();
+        const year = document.getElementById('filter-year')?.value || '';
+        filteredData = allData.filter(d => (d.titulo || d.nome || d.palavras_chaves || d.referencia || "").toLowerCase().includes(search) && (year === '' || String(d.ano) === year));
+        currentPage = 1; updateTable();
+    }
+
+    function updateTable() {
+        const res = document.getElementById('results');
+        const items = filteredData.slice((currentPage-1)*pageSize, currentPage*pageSize);
+        let html = `<div class="grid-table">`;
+        if(currentTable === 'artigo') {
+            html += `<div class="grid-row row-artigo grid-header"><div>Título</div><div>Ano</div><div>Cits.</div><div>ISSN</div><div>Vol/Iss</div><div>Tipo</div></div>`;
+            items.forEach((item, i) => {
+                html += `<div class="grid-row row-artigo data-row" onclick="toggle('p-${i}')"><div><b style="color:var(--sidebar)">${item.titulo}</b></div><div>${item.ano}</div><div style="color:var(--primary);font-weight:800">${item.qtd_citacao}</div><div><small>${item.issn||'-'}</small></div><div><small>${item.volume||'-'}/${item.issue||'-'}</small></div><div><span class="badge" style="background:#e0f2fe; color:#0369a1">${item.tipo_documento||'Article'}</span></div></div>
+                <div id="p-${i}" class="expandable-panel"><div class="details-content"><h3>Resumo (Abstract)</h3><p style="text-align:justify; line-height:1.7;">${item.resumo}</p><p><b>DOI:</b> ${item.doi}</p><a href="${item.link || 'https://doi.org/'+item.doi}" target="_blank" class="btn-web">VER NO SCOPUS</a></div></div>`;
+            });
         } else {
-            h += `<div class="grid-row row-simples grid-header"><div>Descrição</div><div>ID Nexus</div></div>`;
-            items.forEach(item => { h += `<div class="grid-row row-simples data-row"><div>${item.nome||item.palavras_chaves||item.referencia}</div><div>#${item.id}</div></div>` });
+            html += `<div class="grid-row row-simples grid-header"><div>Descrição</div><div>ID Nexus</div></div>`;
+            items.forEach(item => { html += `<div class="grid-row row-simples data-row"><div>${item.nome||item.palavras_chaves||item.referencia}</div><div style="color:var(--text-muted); font-size:0.85rem">#${item.id}</div></div>` });
         }
-        res.innerHTML = h + `</div>`;
-        drawPag(filtered.length);
+        res.innerHTML = html + `</div>`;
+        renderPagination();
     }
 
-    function drawPag(totalItems) {
-        const p = document.getElementById('pag'); const total = Math.ceil(totalItems / pageSize); if (total <= 1) { p.innerHTML = ''; return; }
+    function renderPagination() {
+        const p = document.getElementById('pag'); const total = Math.ceil(filteredData.length / pageSize); if (total <= 1) { p.innerHTML = ''; return; }
         let h = `<div class="pagination">`;
         for (let i = 1; i <= total; i++) {
-            if (total > 8 && (i > 3 && i < total - 2)) { if (i === 4) h += `<span>...</span>`; continue; }
-            h += `<button class="${i === currentPage ? 'active' : ''}" onclick="currentPage=${i}; draw(); document.querySelector('main').scrollTop=0;">${i}</button>`;
+            if (total > 8 && (i > 3 && i < total - 2)) { if (i === 4) h += `<span style="padding:10px">...</span>`; continue; }
+            h += `<button class="${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">${i}</button>`;
         }
         p.innerHTML = h + `</div>`;
     }
+
+    function changePage(page) { currentPage = page; updateTable(); document.querySelector('main').scrollTop = 0; }
 
     function toggle(id) { document.querySelectorAll('.expandable-panel').forEach(e => { if(e.id!==id) e.classList.remove('active') }); document.getElementById(id).classList.toggle('active'); }
 
     document.getElementById('csv-input').addEventListener('change', function(e) {
         const file = e.target.files[0]; if (!file) return;
         const main = document.getElementById('main-content');
-        main.innerHTML = `<div class="loader-overlay"><div class="spinner"></div><h2>Sincronizando Nexus...</h2></div>`;
+        main.innerHTML = `<div class="loader-overlay"><div class="spinner"></div><h2>Nexus Sync: Sincronizando Dados...</h2></div>`;
         Papa.parse(file, {
             header: true, skipEmptyLines: true,
             complete: async function(results) {
@@ -270,9 +303,12 @@
                 await _supabase.from('artigo').insert(artigos);
                 let autSet = new Set(), keySet = new Set(), refSet = new Set();
                 results.data.forEach(r => {
-                    const aut = r["Authors"] || r["Author(s)"] || ""; aut.split(';').forEach(a => { if(a.trim()) autSet.add(a.trim()) });
-                    const key = r["Author Keywords"] || r["Keywords"] || ""; key.split(';').forEach(k => { if(k.trim()) keySet.add(k.trim()) });
-                    const ref = r["References"] || r["references"] || ""; ref.split(';').forEach(rf => { if(rf.trim().length > 30) refSet.add(rf.trim()) });
+                    const aut = r["Authors"] || r["Author(s)"] || "";
+                    aut.split(';').forEach(a => { if(a.trim()) autSet.add(a.trim()) });
+                    const key = r["Author Keywords"] || r["Keywords"] || "";
+                    key.split(';').forEach(k => { if(k.trim()) keySet.add(k.trim()) });
+                    const ref = r["References"] || r["references"] || "";
+                    ref.split(';').forEach(rf => { if(rf.trim().length > 30) refSet.add(rf.trim()) });
                 });
                 await _supabase.from('autor').upsert([...autSet].map(n => ({ id: n.replace(/[^a-z0-9]/gi,'_').toLowerCase(), nome: n, nomecompleto: n })));
                 await _supabase.from('palavras_chaves').upsert([...keySet].map(k => ({ palavras_chaves: k })), { onConflict: 'palavras_chaves' });
