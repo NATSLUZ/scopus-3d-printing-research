@@ -34,14 +34,6 @@ O Nexus 3D está disponível online através do GitHub Pages:
 - **Processamento de Dados:** [PapaParse](https://www.papaparse.com/) (Parsing de CSV).
 - **Ícones:** Font Awesome 6.
 
-## 🚀 Como Utilizar
-
-1. Acesse o [Link do Projeto](https://natsluz.github.io/scopus-3d-printing-research/).
-2. No menu lateral, utilize o botão **"IMPORTAR CSV"**.
-3. Selecione o arquivo `.csv` exportado do Scopus.
-4. Aguarde a tela de **Sincronização Nexus Pro** terminar o processamento.
-5. Navegue pelas abas para explorar as descobertas!
-
 ## 👤 Desenvolvedor
 
 **Natan Luz**
