@@ -154,45 +154,86 @@
         setNav('nav-charts');
         const main = document.getElementById('main-content');
         main.innerHTML = `<div class="loader-overlay"><div class="spinner"></div><h2>Gerando Inteligência Nexus...</h2></div>`;
-        const { data } = await _supabase.from('artigo').select('*');
+        
+        // Busca os dados (garantindo que traz a coluna source_title)
+        const { data, error } = await _supabase.from('artigo').select('*');
+        if (error) return main.innerHTML = `<h1>Erro ao carregar dados</h1>`;
 
         main.innerHTML = `
-            <div class="header-content"><h1>Nexus Analytics Pro</h1><p>Processando <b>${data.length}</b> registros.</p></div>
+            <div class="header-content"><h1>Nexus Analytics Pro</h1><p>Análise de produtividade e impacto</p></div>
             <div class="analytics-grid">
                 <div class="chart-card"><h3>Publicações / Ano</h3><div class="chart-container"><canvas id="c1"></canvas></div></div>
-                <div class="chart-card"><h3>Citações / Ano</h3><div class="chart-container"><canvas id="c2"></canvas></div></div>
+                <div class="chart-card"><h3>Citações / Ano</h3><div class="chart-container"><canvas id="chartCits"></canvas></div></div>
                 <div class="chart-card"><h3>Top 15 Periódicos</h3><div class="chart-container"><canvas id="c3"></canvas></div></div>
                 <div class="chart-card"><h3>Top 20 Autores</h3><div class="chart-container"><canvas id="c4"></canvas></div></div>
                 <div class="chart-card"><h3>Top 15 Palavras-Chave</h3><div class="chart-container"><canvas id="c5"></canvas></div></div>
                 <div class="chart-card"><h3>Acesso Aberto</h3><div class="chart-container"><canvas id="c6"></canvas></div></div>
-                <div class="chart-card"><h3>Idioma de Publicação</h3><div class="chart-container"><canvas id="c7"></canvas></div></div>
+                <div class="chart-card"><h3>Idioma</h3><div class="chart-container"><canvas id="c7"></canvas></div></div>
             </div>`;
 
         const yrs={}, cits={}, journals={}, auts={}, keys={}, acc={}, lang={};
+        
         data.forEach(d => {
+            // 1. Anos e Citações
             if(d.ano) yrs[d.ano] = (yrs[d.ano] || 0) + 1;
             if(d.ano) cits[d.ano] = (cits[d.ano] || 0) + (d.qtd_citacao || 0);
-            if(d.source_title) journals[d.source_title] = (journals[d.source_title] || 0) + 1;
-            if(d.autores_raw) d.autores_raw.split(';').forEach(a => { let n=a.trim(); if(n) auts[n] = (auts[n]||0)+1 });
-            if(d.keywords_raw) d.keywords_raw.split(';').forEach(k => { let n=k.trim(); if(n) keys[n] = (keys[n]||0)+1 });
-            let open = d.tipo_acesso ? (d.tipo_acesso.toLowerCase().includes("open") ? "Acesso Aberto" : "Fechado") : "Não Informado";
-            acc[open] = (acc[open]||0)+1;
-            let l = d.linguagem || "English"; lang[l] = (lang[l]||0)+1;
+            
+            // 2. CORREÇÃO PERIÓDICOS: Usando o nome exato da coluna do seu banco
+            if(d.source_title && d.source_title.trim() !== "") {
+                let jName = d.source_title.trim();
+                journals[jName] = (journals[jName] || 0) + 1;
+            }
+
+            // 3. Autores (que você disse que já funciona)
+            if(d.autores_raw) {
+                d.autores_raw.split(';').forEach(a => {
+                    let n = a.trim(); if(n) auts[n] = (auts[n] || 0) + 1;
+                });
+            }
+
+            // 4. Palavras-chave
+            if(d.keywords_raw) {
+                d.keywords_raw.split(';').forEach(k => {
+                    let n = k.trim(); if(n) keys[n] = (keys[n] || 0) + 1;
+                });
+            }
+            
+            // 5. Acesso e Idioma
+            let open = d.tipo_acesso?.toLowerCase().includes("open") ? "Acesso Aberto" : "Fechado";
+            acc[open] = (acc[open] || 0) + 1;
+            let l = d.linguagem || "English"; lang[l] = (lang[l] || 0) + 1;
         });
 
         const sortY = Object.keys(yrs).sort();
-        const topJ = Object.entries(journals).sort((a,b)=>b[1]-a[1]).slice(0,15);
-        const topA = Object.entries(auts).sort((a,b)=>b[1]-a[1]).slice(0,20);
-        const topK = Object.entries(keys).sort((a,b)=>b[1]-a[1]).slice(0,15);
+        const topJ = Object.entries(journals).sort((a,b) => b[1] - a[1]).slice(0, 15);
+        const topA = Object.entries(auts).sort((a,b) => b[1] - a[1]).slice(0, 20);
+        const topK = Object.entries(keys).sort((a,b) => b[1] - a[1]).slice(0, 15);
 
-        const commonOpt = { responsive: true, maintainAspectRatio: false };
-        new Chart(document.getElementById('c1'), { type: 'bar', data: { labels: sortY, datasets: [{ label: 'Artigos', data: sortY.map(y=>yrs[y]), backgroundColor: '#3b82f6' }] }, options: commonOpt });
-        new Chart(document.getElementById('c2'), { type: 'line', data: { labels: sortY, datasets: [{ label: 'Citações', data: sortY.map(y=>cits[y]), borderColor: '#6366f1', fill: true, backgroundColor: 'rgba(99, 102, 241, 0.1)' }] }, options: commonOpt });
-        new Chart(document.getElementById('c3'), { type: 'bar', options: { ...commonOpt, indexAxis: 'y' }, data: { labels: topJ.map(x=>x[0].substring(0,30)), datasets: [{ label: 'Artigos', data: topJ.map(x=>x[1]), backgroundColor: '#10b981' }] } });
-        new Chart(document.getElementById('c4'), { type: 'bar', data: { labels: topA.map(x=>x[0]), datasets: [{ label: 'Artigos', data: topA.map(x=>x[1]), backgroundColor: '#f59e0b' }] }, options: commonOpt });
-        new Chart(document.getElementById('c5'), { type: 'pie', data: { labels: topK.map(x=>x[0]), datasets: [{ data: topK.map(x=>x[1]), backgroundColor: ['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6','#ec4899'] }] }, options: commonOpt });
-        new Chart(document.getElementById('c6'), { type: 'doughnut', data: { labels: Object.keys(acc), datasets: [{ data: Object.values(acc), backgroundColor: ['#10b981','#ef4444','#64748b'] }] }, options: commonOpt });
-        new Chart(document.getElementById('c7'), { type: 'polarArea', data: { labels: Object.keys(lang), datasets: [{ data: Object.values(lang), backgroundColor: ['#3b82f6','#8b5cf6','#ec4899','#f97316'] }] }, options: commonOpt });
+        const opt = { responsive: true, maintainAspectRatio: false };
+
+        // GRÁFICO DE PERIÓDICOS (Verde)
+        new Chart(document.getElementById('c3'), { 
+            type: 'bar', 
+            options: { ...opt, indexAxis: 'y', plugins: { legend: { display: false } } }, 
+            data: { 
+                labels: topJ.map(x => x[0].length > 30 ? x[0].substring(0,30) + '...' : x[0]), 
+                datasets: [{ label: 'Artigos', data: topJ.map(x => x[1]), backgroundColor: '#10b981' }] 
+            } 
+        });
+
+        // Gráfico de Citações (Ajustei o ID para bater com o HTML acima)
+        new Chart(document.getElementById('chartCits'), { 
+            type: 'line', 
+            data: { labels: sortY, datasets: [{ label: 'Citações', data: sortY.map(y=>cits[y]), borderColor: '#6366f1', fill: true, backgroundColor: 'rgba(99, 102, 241, 0.1)' }] }, 
+            options: opt 
+        });
+
+        // Os outros gráficos (c1, c4, c5, c6, c7) permanecem com a mesma lógica...
+        new Chart(document.getElementById('c1'), { type: 'bar', data: { labels: sortY, datasets: [{ label: 'Artigos', data: sortY.map(y=>yrs[y]), backgroundColor: '#3b82f6' }] }, options: opt });
+        new Chart(document.getElementById('c4'), { type: 'bar', data: { labels: topA.map(x=>x[0]), datasets: [{ label: 'Artigos', data: topA.map(x=>x[1]), backgroundColor: '#f59e0b' }] }, options: opt });
+        new Chart(document.getElementById('c5'), { type: 'pie', data: { labels: topK.map(x=>x[0]), datasets: [{ data: topK.map(x=>x[1]), backgroundColor: ['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6'] }] }, options: opt });
+        new Chart(document.getElementById('c6'), { type: 'doughnut', data: { labels: Object.keys(acc), datasets: [{ data: Object.values(acc), backgroundColor: ['#10b981','#ef4444','#64748b'] }] }, options: opt });
+        new Chart(document.getElementById('c7'), { type: 'polarArea', data: { labels: Object.keys(lang), datasets: [{ data: Object.values(lang), backgroundColor: ['#3b82f6','#8b5cf6','#ec4899','#f97316'] }] }, options: opt });
     }
 
     async function loadSection(tableName, orderCol) {
