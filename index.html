@@ -148,7 +148,6 @@
             </div>`;
     }
 
-    // --- SUA LÓGICA DE GRÁFICOS QUE FUNCIONA ---
     async function loadAnalytics() {
         setNav('nav-charts');
         const main = document.getElementById('main-content');
@@ -193,10 +192,43 @@
         setNav('nav-maps');
         const main = document.getElementById('main-content');
         main.innerHTML = `<div class="header-content"><h1>Mapas de Relacionamento</h1><p>Explore as conexões entre autores e temas.</p></div>
-            <div style="display:flex; gap:10px; margin-bottom:20px;"><button class="btn-web" onclick="generateMap('autores')" style="margin:0">Mapa de Coautoria</button>
-            <button class="btn-web" onclick="generateMap('tags')" style="margin:0; background:var(--accent)">Mapa de Termos</button></div>
+            <div style="display:flex; gap:10px; margin-bottom:20px;">
+            <button class="btn-web" onclick="generateMap('autores')" style="margin:0">Mapa de Coautoria</button>
+            <button class="btn-web" onclick="generateMap('tags')" style="margin:0; background:var(--accent)">Mapa de Termos</button>
+            <button class="btn-web" onclick="generateConceptualMap()" style="margin:0; background:var(--sidebar)">Grupo Conceitual (Top 15)</button>
+            </div>
             <div id="network-map"></div>`;
         generateMap('autores');
+    }
+
+    async function generateConceptualMap() {
+        const container = document.getElementById('network-map');
+        container.innerHTML = `<div class="loader-overlay"><div class="spinner"></div><p>Processando Grupo Conceitual...</p></div>`;
+        const { data } = await _supabase.from('artigo').select('keywords_raw');
+        let freq = {};
+        data.forEach(d => {
+            let keys = (d.keywords_raw || "").split(';').map(s=>s.trim()).filter(s=>s.length > 2);
+            keys.forEach(k => freq[k] = (freq[k] || 0) + 1);
+        });
+        const top15Entries = Object.entries(freq).sort((a,b) => b[1] - a[1]).slice(0, 15);
+        const top15Names = top15Entries.map(e => e[0]);
+        let nodes = top15Entries.map(e => ({ id: e[0], label: e[0], shape: 'dot', size: 5 + (e[1] * 1.5) }));
+        let edges = [], connections = {};
+        data.forEach(d => {
+            let items = (d.keywords_raw || "").split(';').map(s=>s.trim()).filter(s => top15Names.includes(s));
+            for(let i=0; i<items.length; i++) {
+                for(let j=i+1; j<items.length; j++) {
+                    let pair = [items[i], items[j]].sort().join('|');
+                    connections[pair] = (connections[pair] || 0) + 1;
+                }
+            }
+        });
+        Object.entries(connections).forEach(([pair, weight]) => {
+            let [from, to] = pair.split('|');
+            edges.push({ from, to, width: 1, color: '#cbd5e1' });
+        });
+        container.innerHTML = "";
+        new vis.Network(container, { nodes: new vis.DataSet(nodes), edges: new vis.DataSet(edges) }, { physics: { enabled: false }, nodes: { font: { size: 14, weight: 'bold' }, color: '#f59e0b' } });
     }
 
     async function generateMap(mode) {
@@ -205,7 +237,8 @@
         const { data } = await _supabase.from('artigo').select(mode === 'autores' ? 'autores_raw' : 'keywords_raw').limit(300);
         let nodes = [], edges = [], connections = {};
         data.forEach(d => {
-            let items = (mode === 'autores' ? d.autores_raw : d.keywords_raw).split(';').map(s=>s.trim()).filter(s=>s.length > 2);
+            let raw = mode === 'autores' ? d.autores_raw : d.keywords_raw;
+            let items = (raw || "").split(';').map(s=>s.trim()).filter(s=>s.length > 2);
             for(let i=0; i<items.length; i++) {
                 for(let j=i+1; j<items.length; j++) {
                     let pair = [items[i], items[j]].sort().join('|');
