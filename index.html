@@ -45,24 +45,25 @@
         .header-content h1 { font-size: 2.2rem; font-weight: 800; color: var(--sidebar); letter-spacing: -1px; }
 
         /* --- ANALYTICS --- */
-        .analytics-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 25px; margin-bottom: 50px; width: 100%; }
+        .analytics-grid { display: grid; grid-template-columns: repeat(2, 50%); gap: 25px; margin-bottom: 50px; width: 100%; box-sizing: border-box; }
         .chart-card { 
             background: white; padding: 25px; border-radius: 24px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); 
-            transition: var(--transition); cursor: pointer; position: relative; width: 100%;
+            transition: var(--transition); cursor: pointer; position: relative; width: 100%; max-width: 100%;
         }
         .chart-card:hover { transform: translateY(-5px); box-shadow: 0 12px 20px rgba(0,0,0,0.1); }
         
+        /* EXPANSÃO */
         .chart-card.expanded { 
-            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(1) !important; 
-            width: 90vw; height: 85vh; z-index: 2000; cursor: default; 
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) !important; 
+            width: 85vw; height: 80vh; z-index: 2000; cursor: default; 
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); 
         }
         .chart-overlay { display:none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(15, 23, 42, 0.85); z-index:1999; backdrop-filter: blur(8px); animation: fadeIn 0.4s ease; }
         .close-chart { display: none; position: absolute; top: 20px; right: 25px; font-size: 1.5rem; color: var(--text-muted); cursor: pointer; z-index: 2001; transition: 0.2s; }
-        .close-chart:hover { color: var(--sidebar); transform: rotate(90deg); }
+        .close-chart:hover { color: var(--sidebar); transform: scale(1.2); } /* Sem giro, apenas escala */
         .chart-card.expanded .close-chart { display: block; }
         
-        .chart-container { position: relative; height: 320px; width: 100%; }
+        .chart-container { position: relative; height: 320px; width: 100% !important; }
         .chart-card.expanded .chart-container { height: calc(100% - 60px) !important; }
 
         /* --- TABLES --- */
@@ -81,19 +82,17 @@
         #network-map { height: 600px; background: white; border-radius: 24px; border: 1px solid var(--border); box-shadow: 0 10px 25px rgba(0,0,0,0.05); margin-top: 20px; }
         .map-info { background: #eff6ff; padding: 20px; border-radius: 16px; border-left: 5px solid var(--primary); margin-top: 15px; display: none; color: var(--sidebar); animation: fadeIn 0.5s ease; }
 
-        /* --- ABOUT (NATAN LUZ) --- */
+        /* --- ABOUT --- */
         .about-card { 
             background: white; padding: 50px; border-radius: 32px; display: flex; gap: 40px; 
             align-items: center; max-width: 900px; margin: 40px auto; border: 1px solid var(--border); 
             box-shadow: 0 20px 40px rgba(0,0,0,0.05); animation: fadeInUp 0.7s ease; 
         }
         .about-img { width: 260px; height: 260px; border-radius: 24px; object-fit: cover; border: 5px solid white; box-shadow: 0 10px 25px rgba(0,0,0,0.1); flex-shrink: 0; }
-        .about-text h2 { font-size: 2rem; margin-top: 0; color: var(--sidebar); font-weight: 800; }
-        .about-text p { line-height: 1.8; color: var(--text-muted); font-size: 1.05rem; }
+        .about-text h2 { font-size: 2.2rem; margin-top: 0; color: var(--sidebar); font-weight: 800; letter-spacing: -1px; }
+        .about-text p { line-height: 1.8; color: var(--text-muted); font-size: 1.05rem; text-align: justify; }
 
-        /* --- UI COMPONENTS --- */
-        .filter-bar { background: white; padding: 20px; border-radius: 20px; border: 1px solid var(--border); margin-bottom: 30px; display: flex; gap: 15px; align-items: center; }
-        .filter-bar input { flex: 1; padding: 12px 20px; border-radius: 12px; border: 1px solid #e5e7eb; outline: none; }
+        /* --- UI --- */
         .pagination { display: flex; justify-content: center; gap: 8px; margin: 30px 0 60px; }
         .pagination button { padding: 12px 18px; border: 1px solid #e5e7eb; background: white; border-radius: 12px; cursor: pointer; font-weight: 700; transition: 0.2s; }
         .pagination button.active { background: var(--primary); color: white; }
@@ -161,10 +160,10 @@
                 <img src="natan.jpg" alt="Natan Luz" class="about-img" onerror="this.src='https://ui-avatars.com/api/?name=Natan+Luz&size=250&background=0f172a&color=fff'">
                 <div class="about-text">
                     <h2>Natan Luz</h2>
-                    <p>Sou estudante de Engenharia de Software na UNEB e desenvolvedor do <b>NEXUS 3D</b>, uma plataforma criada para organizar e conectar pesquisas científicas sobre impressão 3D. Tenho interesse em desenvolvimento de software, análise de dados e tecnologias que facilitam o acesso ao conhecimento acadêmico.</p>
-                    <div style="display:flex; gap:10px; margin-top:20px">
-                        <a href="https://github.com/NATSLUZ" target="_blank" class="btn-web" style="background:#24292e"><i class="fab fa-github"></i> GitHub</a>
-                        <a href="mailto:contato@natanluz.com" class="btn-web"><i class="fas fa-envelope"></i> Contato</a>
+                    <p>Sou estudante de Engenharia de Software na UNEB e desenvolvedor do <b>NEXUS 3D</b>, uma plataforma criada para organizar, explorar e conectar pesquisas científicas sobre impressão 3D. Tenho interesse em desenvolvimento de software, análise de dados, acessibilidade e tecnologias que facilitam o acesso ao conhecimento.</p>
+                    <div style="display:flex; gap:12px; margin-top:25px">
+                        <a href="https://github.com/NATSLUZ" target="_blank" class="btn-web" style="background:#1e293b"><i class="fab fa-github"></i> GitHub</a>
+                        <a href="mailto:contato@natanluz.com" class="btn-web" style="background:#3b82f6"><i class="fas fa-envelope"></i> E-mail</a>
                     </div>
                 </div>
             </div>`;
@@ -228,7 +227,7 @@
         if(card.classList.contains('expanded') || event.target.tagName === 'CANVAS') return;
         document.getElementById('chartOverlay').style.display = 'block';
         card.classList.add('expanded');
-        setTimeout(() => { if(chartInstances[chartId]) chartInstances[chartId].resize(); }, 400);
+        setTimeout(() => { if(chartInstances[chartId]) chartInstances[chartId].resize(); }, 450);
     }
 
     function closeExpandedChart(event) {
@@ -238,10 +237,17 @@
             const canvasId = expanded.querySelector('canvas').id;
             expanded.classList.remove('expanded');
             document.getElementById('chartOverlay').style.display = 'none';
+            
+            // Limpeza forçada para evitar estiramento
+            const canvas = document.getElementById(canvasId);
+            canvas.style.width = ""; canvas.style.height = "";
+            
             setTimeout(() => { 
-                if(chartInstances[canvasId]) chartInstances[canvasId].resize(); 
-                window.dispatchEvent(new Event('resize'));
-            }, 400);
+                if(chartInstances[canvasId]) {
+                    chartInstances[canvasId].resize(); 
+                    window.dispatchEvent(new Event('resize'));
+                }
+            }, 450);
         }
     }
 
