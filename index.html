@@ -64,25 +64,28 @@
 
         /* --- ANALYTICS --- */
         .analytics-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 25px; margin-bottom: 50px; }
-        .chart-card { background: white; padding: 25px; border-radius: 24px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); transition: var(--transition); cursor: zoom-in; position: relative; }
-        .chart-card:hover { transform: translateY(-5px); box-shadow: 0 12px 20px rgba(0,0,0,0.1); }
+        .chart-card { background: white; padding: 25px; border-radius: 24px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); transition: var(--transition); cursor: pointer; position: relative; }
+        .chart-card:hover { transform: translateY(-3px); box-shadow: 0 10px 15px rgba(0,0,0,0.08); }
+        
+        /* FOCO NO GRÁFICO (MODAL) */
         .chart-card.expanded { 
-            position: fixed; top: 5%; left: 5%; width: 90%; height: 90%; z-index: 1000; 
-            cursor: zoom-out; animation: zoomIn 0.3s ease forwards;
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) !important; 
+            width: 85vw; height: 85vh; z-index: 2000; cursor: default; 
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); border: 1px solid var(--border);
         }
-        .chart-overlay { display:none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:999; backdrop-filter: blur(4px); }
-        .chart-container { position: relative; height: 320px; width: 100%; }
-        .chart-card.expanded .chart-container { height: 80% !important; }
+        .chart-overlay { display:none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(15, 23, 42, 0.8); z-index:1999; backdrop-filter: blur(6px); animation: fadeIn 0.3s ease; }
+        .close-chart { display: none; position: absolute; top: 20px; right: 25px; font-size: 1.5rem; color: var(--text-muted); cursor: pointer; z-index: 2001; }
+        .chart-card.expanded .close-chart { display: block; }
+        .chart-card.expanded .close-chart:hover { color: var(--sidebar); }
+        
+        .chart-container { position: relative; height: 320px; width: 100%; transition: height 0.3s ease; }
+        .chart-card.expanded .chart-container { height: calc(100% - 60px) !important; }
 
         /* --- MAPAS --- */
         #network-map { height: 600px; background: white; border-radius: 24px; border: 1px solid var(--border); box-shadow: 0 10px 25px rgba(0,0,0,0.05); margin-top: 20px; }
-        .map-info { background: #eff6ff; padding: 20px; border-radius: 16px; border-left: 5px solid var(--primary); margin-top: 15px; display: none; animation: fadeIn 0.5s ease; }
+        .map-info { background: #eff6ff; padding: 20px; border-radius: 16px; border-left: 5px solid var(--primary); margin-top: 15px; display: none; animation: fadeIn 0.5s ease; font-size: 0.95rem; line-height: 1.5; color: var(--sidebar); }
 
-        /* --- ABOUT --- */
-        .about-card { background: white; padding: 50px; border-radius: 32px; display: flex; gap: 40px; align-items: center; max-width: 850px; margin: auto; border: 1px solid var(--border); box-shadow: 0 20px 40px rgba(0,0,0,0.05); animation: fadeInUp 0.7s ease; }
-        .about-img { width: 240px; height: 240px; border-radius: 24px; object-fit: cover; border: 5px solid white; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
-
-        /* --- UI --- */
+        /* --- UI COMPONENTS --- */
         .pagination { display: flex; justify-content: center; gap: 8px; margin: 30px 0 60px; }
         .pagination button { padding: 12px 18px; border: 1px solid #e5e7eb; background: white; border-radius: 12px; cursor: pointer; font-weight: 700; color: var(--text-muted); transition: 0.2s; }
         .pagination button.active { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3); }
@@ -90,10 +93,9 @@
         .spinner { width: 60px; height: 60px; border: 6px solid #e2e8f0; border-top: 6px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
         
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes zoomIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
 
         .btn-web { display: inline-flex; align-items: center; gap: 8px; background: var(--sidebar); color: white; padding: 14px 22px; border-radius: 12px; text-decoration: none; font-size: 0.9rem; margin-top: 20px; font-weight: 700; cursor: pointer; }
         #csv-input { display: none; }
@@ -161,7 +163,7 @@
             </div>`;
     }
 
-    // --- GRÁFICOS COM ÍCONES RESTAURADOS ---
+    // --- ANALYTICS COM INTERATIVIDADE RESTAURADA ---
     async function loadAnalytics() {
         setNav('nav-charts');
         const main = document.getElementById('main-content');
@@ -169,14 +171,15 @@
         const { data, error } = await _supabase.from('artigo').select('*');
         if (error) return main.innerHTML = `<h1>Erro ao carregar dados</h1>`;
         
-        main.innerHTML = `<div class="header-content"><h1>Nexus Analytics Pro</h1><p>Clique em um gráfico para ampliar</p></div><div class="analytics-grid">
-            <div class="chart-card" onclick="expandChart(this, 'c1')"><h3><i class="fas fa-calendar-alt" style="color:#3b82f6"></i> Publicações / Ano</h3><div class="chart-container"><canvas id="c1"></canvas></div></div>
-            <div class="chart-card" onclick="expandChart(this, 'chartCits')"><h3><i class="fas fa-quote-right" style="color:#6366f1"></i> Citações / Ano</h3><div class="chart-container"><canvas id="chartCits"></canvas></div></div>
-            <div class="chart-card" onclick="expandChart(this, 'c3')"><h3><i class="fas fa-book" style="color:#10b981"></i> Top 15 Periódicos</h3><div class="chart-container"><canvas id="c3"></canvas></div></div>
-            <div class="chart-card" onclick="expandChart(this, 'c4')"><h3><i class="fas fa-users" style="color:#f59e0b"></i> Top 20 Autores</h3><div class="chart-container"><canvas id="c4"></canvas></div></div>
-            <div class="chart-card" onclick="expandChart(this, 'c5')"><h3><i class="fas fa-tags" style="color:#8b5cf6"></i> Top 15 Palavras-Chave</h3><div class="chart-container"><canvas id="c5"></canvas></div></div>
-            <div class="chart-card" onclick="expandChart(this, 'c6')"><h3><i class="fas fa-unlock-alt" style="color:#ef4444"></i> Acesso Aberto</h3><div class="chart-container"><canvas id="c6"></canvas></div></div>
-            <div class="chart-card" onclick="expandChart(this, 'c7')"><h3><i class="fas fa-language" style="color:#0f172a"></i> Idioma</h3><div class="chart-container"><canvas id="c7"></canvas></div></div>
+        main.innerHTML = `<div class="header-content"><h1>Nexus Analytics Pro</h1><p>Clique em um gráfico para destacar. Use as legendas para filtrar itens.</p></div>
+        <div class="analytics-grid">
+            ${createChartCard('c1', 'calendar-alt', '#3b82f6', 'Publicações / Ano')}
+            ${createChartCard('chartCits', 'quote-right', '#6366f1', 'Citações / Ano')}
+            ${createChartCard('c3', 'book', '#10b981', 'Top 15 Periódicos')}
+            ${createChartCard('c4', 'users', '#f59e0b', 'Top 20 Autores')}
+            ${createChartCard('c5', 'tags', '#8b5cf6', 'Top 15 Palavras-Chave')}
+            ${createChartCard('c6', 'unlock-alt', '#ef4444', 'Acesso Aberto')}
+            ${createChartCard('c7', 'language', '#0f172a', 'Idioma')}
         </div>`;
 
         const yrs={}, cits={}, journals={}, auts={}, keys={}, acc={}, lang={};
@@ -195,7 +198,7 @@
         const topJ = Object.entries(journals).sort((a,b) => b[1] - a[1]).slice(0, 15);
         const topA = Object.entries(auts).sort((a,b) => b[1] - a[1]).slice(0, 20);
         const topK = Object.entries(keys).sort((a,b) => b[1] - a[1]).slice(0, 15);
-        const opt = { responsive: true, maintainAspectRatio: false };
+        const opt = { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true, position: 'bottom' } } };
 
         chartInstances['c3'] = new Chart(document.getElementById('c3'), { type: 'bar', options: { ...opt, indexAxis: 'y' }, data: { labels: topJ.map(x => x[0].length > 30 ? x[0].substring(0,30) + '...' : x[0]), datasets: [{ label: 'Artigos', data: topJ.map(x => x[1]), backgroundColor: '#10b981' }] } });
         chartInstances['chartCits'] = new Chart(document.getElementById('chartCits'), { type: 'line', data: { labels: sortY, datasets: [{ label: 'Citações', data: sortY.map(y=>cits[y]), borderColor: '#6366f1', fill: true, backgroundColor: 'rgba(99, 102, 241, 0.1)' }] }, options: opt });
@@ -206,29 +209,40 @@
         chartInstances['c7'] = new Chart(document.getElementById('c7'), { type: 'polarArea', data: { labels: Object.keys(lang), datasets: [{ data: Object.values(lang), backgroundColor: ['#3b82f6','#8b5cf6','#ec4899','#f97316'] }] }, options: opt });
     }
 
-    function expandChart(card, chartId) {
-        if(card.classList.contains('expanded')) { closeExpandedChart(); return; }
-        document.getElementById('chartOverlay').style.display = 'block';
-        card.classList.add('expanded');
-        if(chartInstances[chartId]) chartInstances[chartId].resize();
+    function createChartCard(id, icon, color, title) {
+        return `<div class="chart-card" id="card-${id}" onclick="expandChart(event, '${id}')">
+                    <div class="close-chart" onclick="closeExpandedChart(event)"><i class="fas fa-times"></i></div>
+                    <h3><i class="fas fa-${icon}" style="color:${color}"></i> ${title}</h3>
+                    <div class="chart-container"><canvas id="${id}"></canvas></div>
+                </div>`;
     }
 
-    function closeExpandedChart() {
+    function expandChart(event, chartId) {
+        const card = document.getElementById('card-' + chartId);
+        // Se já estiver expandido ou se clicou no canvas/legenda, não faz nada para permitir interatividade do Chart.js
+        if(card.classList.contains('expanded') || event.target.tagName === 'CANVAS') return;
+        
+        document.getElementById('chartOverlay').style.display = 'block';
+        card.classList.add('expanded');
+        setTimeout(() => { if(chartInstances[chartId]) chartInstances[chartId].resize(); }, 300);
+    }
+
+    function closeExpandedChart(event) {
+        if(event) event.stopPropagation();
         const expanded = document.querySelector('.chart-card.expanded');
         if(expanded) {
+            const canvasId = expanded.querySelector('canvas').id;
             expanded.classList.remove('expanded');
             document.getElementById('chartOverlay').style.display = 'none';
-            // Pega o id do canvas dentro do card para dar resize
-            const canvasId = expanded.querySelector('canvas').id;
-            if(chartInstances[canvasId]) chartInstances[canvasId].resize();
+            setTimeout(() => { if(chartInstances[canvasId]) chartInstances[canvasId].resize(); }, 300);
         }
     }
 
-    // --- MAPAS COM DESCRIÇÕES ---
+    // --- MAPAS COM EXPLICAÇÕES ---
     async function loadNetworkMap() {
         setNav('nav-maps');
         const main = document.getElementById('main-content');
-        main.innerHTML = `<div class="header-content"><h1>Mapas de Relacionamento</h1><p>Explore as conexões entre autores e temas.</p></div>
+        main.innerHTML = `<div class="header-content"><h1>Mapas de Relacionamento</h1><p>Explore conexões acadêmicas e temáticas.</p></div>
             <div style="display:flex; gap:10px; margin-bottom:10px;">
                 <button class="btn-web" onclick="generateMap('autores')" style="margin:0">Mapa de Coautoria</button>
                 <button class="btn-web" onclick="generateMap('tags')" style="margin:0; background:var(--accent)">Mapa de Termos</button>
@@ -242,13 +256,13 @@
     function showMapDesc(text) {
         const box = document.getElementById('map-desc');
         box.style.display = 'block';
-        box.innerHTML = `<i class="fas fa-circle-info"></i> ${text}`;
+        box.innerHTML = `<i class="fas fa-info-circle"></i> ${text}`;
     }
 
     async function generateConceptualMap() {
-        showMapDesc("<b>Grupo Conceitual (Top 15):</b> Este mapa foca nas 15 palavras-chave mais citadas em toda a base. Ele revela o núcleo temático da pesquisa, conectando os termos mais fortes e ignorando ruídos periféricos para uma visão estratégica.");
+        showMapDesc("<b>Grupo Conceitual (Top 15):</b> Este mapa foca exclusivamente nas 15 palavras-chave com maior frequência. Ele ajuda a entender o 'coração' da pesquisa em Impressão 3D, mostrando como os temas centrais se interligam de forma simplificada e direta.");
         const container = document.getElementById('network-map');
-        container.innerHTML = `<div class="loader-overlay"><div class="spinner"></div><p>Processando Grupo Conceitual...</p></div>`;
+        container.innerHTML = `<div class="loader-overlay"><div class="spinner"></div><p>Sintonizando Rede Conceitual...</p></div>`;
         const { data } = await _supabase.from('artigo').select('keywords_raw');
         let freq = {};
         data.forEach(d => {
@@ -257,7 +271,7 @@
         });
         const top15Entries = Object.entries(freq).sort((a,b) => b[1] - a[1]).slice(0, 15);
         const top15Names = top15Entries.map(e => e[0]);
-        let nodes = top15Entries.map(e => ({ id: e[0], label: e[0], shape: 'dot', size: 5 + (e[1] * 1.5) }));
+        let nodes = top15Entries.map(e => ({ id: e[0], label: e[0], shape: 'dot', size: 5 + (e[1] * 1.8) }));
         let edges = [], connections = {};
         data.forEach(d => {
             let items = (d.keywords_raw || "").split(';').map(s=>s.trim()).filter(s => top15Names.includes(s));
@@ -273,17 +287,17 @@
             edges.push({ from, to, width: 1, color: '#cbd5e1' });
         });
         container.innerHTML = "";
-        new vis.Network(container, { nodes: new vis.DataSet(nodes), edges: new vis.DataSet(edges) }, { physics: { enabled: false }, nodes: { font: { size: 14, weight: 'bold' }, color: '#f59e0b' } });
+        new vis.Network(container, { nodes: new vis.DataSet(nodes), edges: new vis.DataSet(edges) }, { physics: { enabled: false }, nodes: { font: { size: 14, weight: '600' }, color: '#f59e0b' } });
     }
 
     async function generateMap(mode) {
         const desc = mode === 'autores' ? 
-            "<b>Mapa de Coautoria:</b> Visualiza a colaboração entre pesquisadores. Círculos (nós) representam autores e as linhas representam artigos publicados em conjunto." : 
-            "<b>Mapa de Termos:</b> Explora a conexão entre as palavras-chave. Ajuda a identificar quais tecnologias ou conceitos costumam aparecer juntos nas pesquisas.";
+            "<b>Mapa de Coautoria:</b> Exibe a rede de colaboração entre pesquisadores. Cada nó é um autor e as linhas indicam trabalhos realizados em conjunto. Grupos mais densos indicam fortes núcleos de pesquisa." : 
+            "<b>Mapa de Termos:</b> Analisa a co-ocorrência de palavras-chave. Isso permite identificar quais tecnologias ou campos de estudo costumam ser explorados simultaneamente.";
         showMapDesc(desc);
 
         const container = document.getElementById('network-map');
-        container.innerHTML = `<div class="loader-overlay"><div class="spinner"></div><p>Gerando rede...</p></div>`;
+        container.innerHTML = `<div class="loader-overlay"><div class="spinner"></div><p>Mapeando Conexões...</p></div>`;
         const { data } = await _supabase.from('artigo').select(mode === 'autores' ? 'autores_raw' : 'keywords_raw').limit(300);
         let nodes = [], edges = [], connections = {};
         data.forEach(d => {
