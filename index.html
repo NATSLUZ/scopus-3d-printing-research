@@ -5,9 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nexus 3D | Intelligence Analytics</title>
     
+    <!-- [FONTES E ÍCONES] -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
+    <!-- [SCRIPTS] -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -37,7 +39,7 @@
         nav button:hover { background: rgba(255,255,255,0.05); color: white; }
         nav button.active { background: var(--primary); color: white; box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.4); }
 
-        .btn-import { background: var(--accent) !important; color: white !important; margin-top: auto; justify-content: center; font-weight: 700; }
+        .btn-import { background: var(--accent) !important; color: white !important; margin-top: auto; justify-content: center; font-weight: 700; cursor: pointer; }
 
         /* --- CONTENT --- */
         main { flex: 1; padding: 40px; overflow-y: auto; position: relative; scroll-behavior: smooth; }
@@ -70,21 +72,18 @@
         /* --- MAPAS --- */
         #network-map { height: 600px; background: white; border-radius: 24px; border: 1px solid var(--border); box-shadow: 0 10px 25px rgba(0,0,0,0.05); margin-top: 20px; }
 
-        /* --- ABOUT (NATAN LUZ) --- */
-        .about-card { background: white; padding: 50px; border-radius: 32px; display: flex; gap: 40px; align-items: center; max-width: 850px; margin: auto; border: 1px solid var(--border); box-shadow: 0 20px 40px rgba(0,0,0,0.05); animation: fadeInUp 0.7s ease; }
+        /* --- ABOUT --- */
+        .about-card { background: white; padding: 50px; border-radius: 32px; display: flex; gap: 40px; align-items: center; max-width: 850px; margin: auto; border: 1px solid var(--border); box-shadow: 0 20px 40px rgba(0,0,0,0.05); }
         .about-img { width: 240px; height: 240px; border-radius: 24px; object-fit: cover; border: 5px solid white; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
 
-        /* --- UI COMPONENTS --- */
+        /* --- UI UTILS --- */
         .pagination { display: flex; justify-content: center; gap: 8px; margin: 30px 0 60px; }
         .pagination button { padding: 12px 18px; border: 1px solid #e5e7eb; background: white; border-radius: 12px; cursor: pointer; font-weight: 700; color: var(--text-muted); transition: 0.2s; }
-        .pagination button:hover { border-color: var(--primary); color: var(--primary); }
-        .pagination button.active { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3); }
+        .pagination button.active { background: var(--primary); color: white; }
         .loader-overlay { display: flex; flex-direction: column; align-items: center; justify-content: center; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 500; }
         .spinner { width: 60px; height: 60px; border: 6px solid #e2e8f0; border-top: 6px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
-
+        
         .btn-web { display: inline-flex; align-items: center; gap: 8px; background: var(--sidebar); color: white; padding: 14px 22px; border-radius: 12px; text-decoration: none; font-size: 0.9rem; margin-top: 20px; font-weight: 700; cursor: pointer; }
         #csv-input { display: none; }
     </style>
@@ -101,7 +100,7 @@
         <button onclick="loadNetworkMap()" id="nav-maps"><i class="fas fa-circle-nodes"></i> Mapas de Rede</button>
         <button onclick="loadSection('artigo', 'titulo')" id="nav-artigo"><i class="fas fa-file-alt"></i> Artigos</button>
         <button onclick="loadSection('autor', 'nome')" id="nav-autor"><i class="fas fa-users"></i> Autores</button>
-        <button onclick="loadSection('palavras_chaves', 'palavras_chaves')" id="nav-palavras"><i class="fas fa-tags"></i> Keywords</button>
+        <button onclick="loadSection('palavras_chaves', 'palavras_chaves')" id="nav-keywords"><i class="fas fa-tags"></i> Keywords</button>
         <button onclick="loadSection('referencia', 'referencia')" id="nav-referencia"><i class="fas fa-bookmark"></i> Referências</button>
         <button onclick="showAbout()" id="nav-about"><i class="fas fa-id-card"></i> Sobre o Dev</button>
         
@@ -137,27 +136,20 @@
             <div class="header-content"><h1>Desenvolvedor</h1></div>
             <div class="about-card" style="animation: fadeInUp 0.6s ease;">
                 <img src="natan.jpg" alt="Natan Luz" class="about-img" onerror="this.src='https://ui-avatars.com/api/?name=Natan+Luz&size=250&background=0f172a&color=fff'">
-                <div>
-                    <h2>Natan Luz</h2>
-                    <p>Sou estudante de Engenharia de Software na UNEB e desenvolvedor do <b>NEXUS 3D</b>, uma plataforma criada para organizar, explorar e conectar pesquisas científicas sobre impressão 3D. Tenho interesse em desenvolvimento de software, análise de dados, acessibilidade e tecnologias que facilitam o acesso ao conhecimento.</p>
-                    <div style="display:flex; gap:10px; margin-top:20px">
-                        <a href="https://github.com/NATSLUZ" target="_blank" class="btn-web" style="background:#24292e"><i class="fab fa-github"></i> GitHub</a>
-                        <a href="mailto:contato@natanluz.com" class="btn-web"><i class="fas fa-envelope"></i> Contato</a>
-                    </div>
-                </div>
+                <div><h2>Natan Luz</h2><p>Sou estudante de Engenharia de Software na UNEB e desenvolvedor do <b>NEXUS 3D</b>, uma plataforma criada para organizar, explorar e conectar pesquisas científicas sobre impressão 3D. Tenho interesse em desenvolvimento de software, análise de dados, acessibilidade e tecnologias que facilitam o acesso ao conhecimento.</p>
+                <div style="display:flex; gap:10px; margin-top:20px"><a href="https://github.com/NATSLUZ" target="_blank" class="btn-web" style="background:#24292e"><i class="fab fa-github"></i> GitHub</a><a href="mailto:contato@natanluz.com" class="btn-web"><i class="fas fa-envelope"></i> Contato</a></div></div>
             </div>`;
     }
 
-    // --- SUA LÓGICA DE GRÁFICOS QUE FUNCIONA ---
     async function loadAnalytics() {
         setNav('nav-charts');
         const main = document.getElementById('main-content');
         main.innerHTML = `<div class="loader-overlay"><div class="spinner"></div><h2>Gerando Inteligência Nexus...</h2></div>`;
         const { data, error } = await _supabase.from('artigo').select('*');
         if (error) return main.innerHTML = `<h1>Erro ao carregar dados</h1>`;
-        main.innerHTML = `<div class="header-content"><h1>Nexus Analytics Pro</h1><p>Análise de produtividade e impacto</p></div><div class="analytics-grid">
+        main.innerHTML = `<div class="header-content"><h1>Nexus Analytics Pro</h1><p>Processando <b>${data.length}</b> registros.</p></div><div class="analytics-grid">
             <div class="chart-card"><h3>Publicações / Ano</h3><div class="chart-container"><canvas id="c1"></canvas></div></div>
-            <div class="chart-card"><h3>Citações / Ano</h3><div class="chart-container"><canvas id="chartCits"></canvas></div></div>
+            <div class="chart-card"><h3>Citações / Ano</h3><div class="chart-container"><canvas id="c2"></canvas></div></div>
             <div class="chart-card"><h3>Top 15 Periódicos</h3><div class="chart-container"><canvas id="c3"></canvas></div></div>
             <div class="chart-card"><h3>Top 20 Autores</h3><div class="chart-container"><canvas id="c4"></canvas></div></div>
             <div class="chart-card"><h3>Top 15 Palavras-Chave</h3><div class="chart-container"><canvas id="c5"></canvas></div></div>
@@ -168,7 +160,7 @@
         data.forEach(d => {
             if(d.ano) yrs[d.ano] = (yrs[d.ano] || 0) + 1;
             if(d.ano) cits[d.ano] = (cits[d.ano] || 0) + (d.qtd_citacao || 0);
-            if(d.source_title && d.source_title.trim() !== "") { let jName = d.source_title.trim(); journals[jName] = (journals[jName] || 0) + 1; }
+            if(d.source_title) journals[d.source_title.trim()] = (journals[d.source_title.trim()] || 0) + 1;
             if(d.autores_raw) d.autores_raw.split(';').forEach(a => { let n = a.trim(); if(n) auts[n] = (auts[n] || 0) + 1; });
             if(d.keywords_raw) d.keywords_raw.split(';').forEach(k => { let n = k.trim(); if(n) keys[n] = (keys[n] || 0) + 1; });
             let open = d.tipo_acesso?.toLowerCase().includes("open") ? "Acesso Aberto" : "Fechado";
@@ -180,32 +172,42 @@
         const topA = Object.entries(auts).sort((a,b) => b[1] - a[1]).slice(0, 20);
         const topK = Object.entries(keys).sort((a,b) => b[1] - a[1]).slice(0, 15);
         const opt = { responsive: true, maintainAspectRatio: false };
-        new Chart(document.getElementById('c3'), { type: 'bar', options: { ...opt, indexAxis: 'y', plugins: { legend: { display: false } } }, data: { labels: topJ.map(x => x[0].length > 30 ? x[0].substring(0,30) + '...' : x[0]), datasets: [{ label: 'Artigos', data: topJ.map(x => x[1]), backgroundColor: '#10b981' }] } });
-        new Chart(document.getElementById('chartCits'), { type: 'line', data: { labels: sortY, datasets: [{ label: 'Citações', data: sortY.map(y=>cits[y]), borderColor: '#6366f1', fill: true, backgroundColor: 'rgba(99, 102, 241, 0.1)' }] }, options: opt });
+        new Chart(document.getElementById('c3'), { type: 'bar', options: { ...opt, indexAxis: 'y', plugins: { legend: { display: false } } }, data: { labels: topJ.map(x => x[0].substring(0,30)), datasets: [{ label: 'Artigos', data: topJ.map(x => x[1]), backgroundColor: '#10b981' }] } });
+        new Chart(document.getElementById('c2'), { type: 'line', data: { labels: sortY, datasets: [{ label: 'Citações', data: sortY.map(y=>cits[y]), borderColor: '#6366f1', fill: true, backgroundColor: 'rgba(99, 102, 241, 0.1)' }] }, options: opt });
         new Chart(document.getElementById('c1'), { type: 'bar', data: { labels: sortY, datasets: [{ label: 'Artigos', data: sortY.map(y=>yrs[y]), backgroundColor: '#3b82f6' }] }, options: opt });
         new Chart(document.getElementById('c4'), { type: 'bar', data: { labels: topA.map(x=>x[0]), datasets: [{ label: 'Artigos', data: topA.map(x=>x[1]), backgroundColor: '#f59e0b' }] }, options: opt });
         new Chart(document.getElementById('c5'), { type: 'pie', data: { labels: topK.map(x=>x[0]), datasets: [{ data: topK.map(x=>x[1]), backgroundColor: ['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6'] }] }, options: opt });
         new Chart(document.getElementById('c6'), { type: 'doughnut', data: { labels: Object.keys(acc), datasets: [{ data: Object.values(acc), backgroundColor: ['#10b981','#ef4444','#64748b'] }] }, options: opt });
-        new Chart(document.getElementById('c7'), { type: 'polarArea', data: { labels: Object.keys(lang), datasets: [{ data: Object.values(lang), backgroundColor: ['#3b82f6','#8b5cf6','#ec4899','#f97316'] }] }, options: opt });
+        new Chart(document.getElementById('c7'), { type: 'polarArea', data: { labels: Object.keys(lang), datasets: [{ data: Object.values(lang), backgroundColor: ['#3b82f6','#8b5cf6','#ec4899'] }] }, options: opt });
     }
 
     async function loadNetworkMap() {
         setNav('nav-maps');
         const main = document.getElementById('main-content');
         main.innerHTML = `<div class="header-content"><h1>Mapas de Relacionamento</h1><p>Explore as conexões entre autores e temas.</p></div>
-            <div style="display:flex; gap:10px; margin-bottom:20px;"><button class="btn-web" onclick="generateMap('autores')" style="margin:0">Mapa de Coautoria</button>
-            <button class="btn-web" onclick="generateMap('tags')" style="margin:0; background:var(--accent)">Mapa de Termos</button></div>
+            <div style="display:flex; gap:10px; margin-bottom:20px;">
+                <button class="btn-web" onclick="generateMap('autores')" style="margin:0">Mapa de Coautoria</button>
+                <button class="btn-web" onclick="generateMap('tags')" style="margin:0; background:var(--accent)">Mapa de Termos</button>
+                <!-- NOVO: GRUPO CONCEITUAL TOP 15 -->
+                <button class="btn-web" onclick="generateMap('concepts')" style="margin:0; background:var(--primary)">Grupo Conceitual (Top 15)</button>
+            </div>
             <div id="network-map"></div>`;
         generateMap('autores');
     }
 
     async function generateMap(mode) {
         const container = document.getElementById('network-map');
-        container.innerHTML = `<div class="loader-overlay"><div class="spinner"></div><p>Gerando rede...</p></div>`;
-        const { data } = await _supabase.from('artigo').select(mode === 'autores' ? 'autores_raw' : 'keywords_raw').limit(300);
-        let nodes = [], edges = [], connections = {};
+        container.innerHTML = `<div class="loader-overlay"><div class="spinner"></div><p>Gerando rede Nexus...</p></div>`;
+        const { data } = await _supabase.from('artigo').select('autores_raw, keywords_raw').limit(mode === 'concepts' ? 544 : 300);
+        let nodes = [], edges = [], connections = {}, freq = {};
+
         data.forEach(d => {
-            let items = (mode === 'autores' ? d.autores_raw : d.keywords_raw).split(';').map(s=>s.trim()).filter(s=>s.length > 2);
+            let items = [];
+            if(mode === 'autores') items = (d.autores_raw || "").split(';').map(s=>s.trim()).filter(s=>s.length > 2);
+            else items = (d.keywords_raw || "").split(';').map(s=>s.trim()).filter(s=>s.length > 2);
+
+            items.forEach(it => freq[it] = (freq[it] || 0) + 1);
+
             for(let i=0; i<items.length; i++) {
                 for(let j=i+1; j<items.length; j++) {
                     let pair = [items[i], items[j]].sort().join('|');
@@ -213,19 +215,28 @@
                 }
             }
         });
-        Object.entries(connections).slice(0, 100).forEach(([pair, weight]) => {
+
+        let topItems = Object.entries(freq).sort((a,b) => b[1] - a[1]).slice(0, mode === 'concepts' ? 15 : 100).map(x => x[0]);
+
+        Object.entries(connections).forEach(([pair, weight]) => {
             let [from, to] = pair.split('|');
-            if(!nodes.find(n => n.id === from)) nodes.push({ id: from, label: from, shape: 'dot', size: 10 });
-            if(!nodes.find(n => n.id === to)) nodes.push({ id: to, label: to, shape: 'dot', size: 10 });
-            edges.push({ from, to, width: weight });
+            if(topItems.includes(from) && topItems.includes(to)) {
+                if(!nodes.find(n => n.id === from)) nodes.push({ id: from, label: from, shape: 'dot', size: 10 + (freq[from] * 2) });
+                if(!nodes.find(n => n.id === to)) nodes.push({ id: to, label: to, shape: 'dot', size: 10 + (freq[to] * 2) });
+                edges.push({ from, to, width: weight });
+            }
         });
+
         container.innerHTML = "";
-        new vis.Network(container, { nodes: new vis.DataSet(nodes), edges: new vis.DataSet(edges) }, { physics: { enabled: true }, nodes: { font: { size: 12 }, color: mode==='autores'?'#3b82f6':'#10b981' } });
+        new vis.Network(container, { nodes: new vis.DataSet(nodes), edges: new vis.DataSet(edges) }, { 
+            physics: { enabled: true, barnesHut: { gravitationalConstant: -2000 } }, 
+            nodes: { font: { size: 14, face: 'Inter' }, color: mode==='autores'?'#3b82f6':(mode==='concepts'?'#6366f1':'#10b981') } 
+        });
     }
 
     async function loadSection(tableName, orderCol) {
         currentTable = tableName; currentPage = 1;
-        setNav('nav-' + tableName.split('_')[0]);
+        setNav('nav-' + (tableName.includes('palavras') ? 'keywords' : tableName));
         const main = document.getElementById('main-content');
         main.innerHTML = `<div class="loader-overlay"><div class="spinner"></div><h2>Consultando Nexus...</h2></div>`;
         const { data, error } = await _supabase.from(tableName).select('*').order(orderCol, { ascending: true }).limit(2000);
@@ -271,7 +282,7 @@
         const p = document.getElementById('pag'); const total = Math.ceil(filteredData.length / pageSize); if (total <= 1) { p.innerHTML = ''; return; }
         let h = `<div class="pagination">`;
         for (let i = 1; i <= total; i++) {
-            if (total > 8 && (i > 3 && i < total - 2)) { if (i === 4) h += `<span style="padding:10px">...</span>`; continue; }
+            if (total > 8 && (i > 3 && i < total - 2)) { if (i === 4) h += `<span>...</span>`; continue; }
             h += `<button class="${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">${i}</button>`;
         }
         p.innerHTML = h + `</div>`;
@@ -284,7 +295,7 @@
     document.getElementById('csv-input').addEventListener('change', function(e) {
         const file = e.target.files[0]; if (!file) return;
         const main = document.getElementById('main-content');
-        main.innerHTML = `<div class="loader-overlay"><div class="spinner"></div><h2>Nexus Sync: Sincronizando Dados...</h2></div>`;
+        main.innerHTML = `<div class="loader-overlay"><div class="spinner"></div><h2>Sincronizando Nexus...</h2></div>`;
         Papa.parse(file, {
             header: true, skipEmptyLines: true,
             complete: async function(results) {
