@@ -33,7 +33,6 @@
             background: transparent; border: none; color: #94a3b8; padding: 12px 15px; text-align: left;
             border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 12px; font-weight: 500; transition: var(--transition);
         }
-        nav button i { width: 24px; font-size: 1.2rem; }
         nav button:hover { background: rgba(255,255,255,0.05); color: white; }
         nav button.active { background: var(--primary); color: white; box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.4); }
 
@@ -44,7 +43,7 @@
         .header-content { margin-bottom: 35px; animation: fadeInDown 0.5s ease; }
         .header-content h1 { font-size: 2.2rem; font-weight: 800; color: var(--sidebar); letter-spacing: -1px; }
 
-        /* --- FILTROS (ESTILO RESTAURADO) --- */
+        /* --- FILTROS --- */
         .filter-bar { 
             background: white; padding: 15px 25px; border-radius: 18px; border: 1px solid var(--border); 
             margin-bottom: 25px; display: flex; gap: 15px; align-items: center; 
@@ -60,11 +59,11 @@
             outline: none; cursor: pointer; background: white; min-width: 160px; font-weight: 500;
         }
 
-        /* --- ANALYTICS --- */
+        /* --- ANALYTICS (FIX: 1fr impede estiramento) --- */
         .analytics-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 25px; margin-bottom: 50px; width: 100%; }
         .chart-card { 
             background: white; padding: 25px; border-radius: 24px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); 
-            transition: var(--transition); cursor: pointer; position: relative; width: 100%;
+            transition: var(--transition); cursor: pointer; position: relative; width: 100%; min-width: 0;
         }
         .chart-card:hover { transform: translateY(-5px); box-shadow: 0 12px 20px rgba(0,0,0,0.1); }
         
@@ -74,23 +73,22 @@
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); 
         }
         .chart-overlay { display:none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(15, 23, 42, 0.85); z-index:1999; backdrop-filter: blur(8px); }
-        .close-chart { display: none; position: absolute; top: 20px; right: 25px; font-size: 1.5rem; color: var(--text-muted); cursor: pointer; z-index: 2001; transition: 0.2s; }
-        .close-chart:hover { color: var(--sidebar); transform: scale(1.2); }
+        .close-chart { display: none; position: absolute; top: 20px; right: 25px; font-size: 1.5rem; color: var(--text-muted); cursor: pointer; z-index: 2001; }
+        .close-chart:hover { color: var(--sidebar); transform: scale(1.1); }
         .chart-card.expanded .close-chart { display: block; }
         
         .chart-container { position: relative; height: 320px; width: 100%; }
+        .chart-card.expanded .chart-container { height: calc(100% - 60px) !important; }
 
         /* --- TABLES --- */
         .grid-table { background: var(--white); border-radius: 24px; border: 1px solid #e5e7eb; box-shadow: 0 15px 30px rgba(0,0,0,0.05); overflow-x: auto; }
         .grid-row { display: grid; align-items: center; border-bottom: 1px solid #f1f5f9; padding: 18px 24px; min-width: 1000px; }
         .row-artigo { grid-template-columns: 1fr 80px 80px 120px 90px 120px; }
-        .row-simples { grid-template-columns: 1fr 120px; }
         .grid-header { background: #f8fafc; font-weight: 700; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); }
-        .data-row { cursor: pointer; transition: 0.2s; }
         .data-row:hover { background-color: #f8fafc; }
-        .expandable-panel { max-height: 0; overflow: hidden; transition: var(--transition); opacity: 0; background: #fafbfc; }
+        .expandable-panel { max-height: 0; overflow: hidden; transition: var(--transition); opacity: 0; }
         .expandable-panel.active { max-height: 1200px; opacity: 1; border-bottom: 3px solid var(--primary); }
-        .details-content { padding: 35px; border-left: 8px solid var(--primary); margin: 20px; background: white; border-radius: 16px; box-shadow: 0 4px 10px rgba(0,0,0,0.02); }
+        .details-content { padding: 35px; border-left: 8px solid var(--primary); margin: 20px; background: white; border-radius: 16px; }
 
         /* --- ABOUT --- */
         .about-card { 
@@ -99,13 +97,13 @@
             box-shadow: 0 20px 40px rgba(0,0,0,0.05); animation: fadeInUp 0.7s ease; 
         }
         .about-img { width: 260px; height: 260px; border-radius: 24px; object-fit: cover; border: 5px solid white; box-shadow: 0 10px 25px rgba(0,0,0,0.1); flex-shrink: 0; }
-        .about-text h2 { font-size: 2.2rem; margin-top: 0; color: var(--sidebar); font-weight: 800; letter-spacing: -1px; }
-        .about-text p { line-height: 1.8; color: var(--text-muted); font-size: 1.05rem; }
+        .about-text h2 { font-size: 2.2rem; margin-top: 0; color: var(--sidebar); font-weight: 800; }
+        .about-text p { line-height: 1.8; color: var(--text-muted); font-size: 1.05rem; text-align: justify; }
 
         /* --- UI --- */
         .pagination { display: flex; justify-content: center; gap: 8px; margin: 30px 0 60px; }
         .pagination button { padding: 12px 18px; border: 1px solid #e5e7eb; background: white; border-radius: 12px; cursor: pointer; font-weight: 700; }
-        .pagination button.active { background: var(--primary); color: white; border-color: var(--primary); }
+        .pagination button.active { background: var(--primary); color: white; }
         .loader-overlay { display: flex; flex-direction: column; align-items: center; justify-content: center; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 500; }
         .spinner { width: 60px; height: 60px; border: 6px solid #e2e8f0; border-top: 6px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
         
@@ -213,7 +211,6 @@
         const topA = Object.entries(auts).sort((a,b) => b[1] - a[1]).slice(0, 20);
         const topK = Object.entries(keys).sort((a,b) => b[1] - a[1]).slice(0, 15);
         
-        // OPÇÕES LIMPANDO GRADES RADIAIS DE GRÁFICOS DE BARRA
         const barOpt = { responsive: true, maintainAspectRatio: false, scales: { x: { grid: { display: true } }, y: { grid: { display: true } } }, plugins: { legend: { display: true, position: 'bottom' } } };
         const polarOpt = { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true, position: 'bottom' } } };
 
@@ -239,7 +236,7 @@
         if(card.classList.contains('expanded') || event.target.tagName === 'CANVAS') return;
         document.getElementById('chartOverlay').style.display = 'block';
         card.classList.add('expanded');
-        setTimeout(() => { if(chartInstances[chartId]) chartInstances[chartId].resize(); }, 450);
+        setTimeout(() => { if(chartInstances[chartId]) chartInstances[chartId].resize(); }, 500);
     }
 
     function closeExpandedChart(event) {
@@ -247,16 +244,20 @@
         const expanded = document.querySelector('.chart-card.expanded');
         if(expanded) {
             const canvasId = expanded.querySelector('canvas').id;
+            const canvas = document.getElementById(canvasId);
+            
             expanded.classList.remove('expanded');
             document.getElementById('chartOverlay').style.display = 'none';
-            const canvas = document.getElementById(canvasId);
-            canvas.style.width = ""; canvas.style.height = "";
+            
+            // Reset crucial: limpa o estiramento injetado pelo Chart.js
+            canvas.style.width = "100%"; canvas.style.height = "100%";
+            
             setTimeout(() => { 
                 if(chartInstances[canvasId]) {
                     chartInstances[canvasId].resize(); 
-                    window.dispatchEvent(new Event('resize'));
+                    window.dispatchEvent(new Event('resize')); // Fallback final
                 }
-            }, 450);
+            }, 500);
         }
     }
 
@@ -281,7 +282,7 @@
     }
 
     async function generateConceptualMap() {
-        showMapDesc("<b>Grupo Conceitual (Top 15):</b> Foca nas 15 palavras-chave mais frequentes. Revela o núcleo temático principal.");
+        showMapDesc("<b>Grupo Conceitual (Top 15):</b> Foca nas 15 palavras-chave mais frequentes.");
         const container = document.getElementById('network-map');
         container.innerHTML = `<div class="loader-overlay"><div class="spinner"></div><p>Gerando Rede...</p></div>`;
         const { data } = await _supabase.from('artigo').select('keywords_raw');
@@ -351,7 +352,7 @@
         const years = [...new Set(allData.map(d => d.ano))].filter(Boolean).sort((a,b) => b-a);
         main.innerHTML = `<div class="header-content"><h1>Tabela: ${currentTable} (${allData.length})</h1></div>
             <div class="filter-bar">
-                <input type="text" id="search-box" placeholder="Pesquisar por título ou termo..." oninput="applyFilters()">
+                <input type="text" id="search-box" placeholder="Pesquisar..." oninput="applyFilters()">
                 ${currentTable === 'artigo' ? `<select id="filter-year" onchange="applyFilters()"><option value="">Todos os Anos</option>${years.map(y => `<option value="${y}">${y}</option>`).join('')}</select>` : ''}
             </div>
             <div id="results"></div><div id="pag"></div>`;
