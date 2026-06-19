@@ -50,34 +50,19 @@
             margin-bottom: 25px; display: flex; gap: 15px; align-items: center; 
             box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); animation: fadeIn 0.5s ease;
         }
-        .filter-bar input { 
-            flex: 1; padding: 12px 20px; border-radius: 12px; border: 1px solid #e2e8f0; 
-            outline: none; font-size: 0.95rem; transition: 0.3s;
-        }
+        .filter-bar input { flex: 1; padding: 12px 20px; border-radius: 12px; border: 1px solid #e2e8f0; outline: none; transition: 0.3s; }
         .filter-bar input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
-        .filter-bar select { 
-            padding: 12px 15px; border-radius: 12px; border: 1px solid #e2e8f0; 
-            outline: none; cursor: pointer; background: white; min-width: 160px; font-weight: 500;
-        }
+        .filter-bar select { padding: 12px 15px; border-radius: 12px; border: 1px solid #e2e8f0; outline: none; background: white; min-width: 160px; font-weight: 500; }
 
         /* --- ANALYTICS --- */
         .analytics-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 25px; margin-bottom: 50px; width: 100%; }
-        .chart-card { 
-            background: white; padding: 25px; border-radius: 24px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); 
-            transition: var(--transition); cursor: pointer; position: relative; width: 100%; min-width: 0;
-        }
+        .chart-card { background: white; padding: 25px; border-radius: 24px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); transition: var(--transition); cursor: pointer; position: relative; width: 100%; min-width: 0; }
         .chart-card:hover { transform: translateY(-5px); box-shadow: 0 12px 20px rgba(0,0,0,0.1); }
-        
-        .chart-card.expanded { 
-            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) !important; 
-            width: 85vw; height: 80vh; z-index: 2000; cursor: default; 
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); 
-        }
+        .chart-card.expanded { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) !important; width: 85vw; height: 80vh; z-index: 2000; cursor: default; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
         .chart-overlay { display:none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(15, 23, 42, 0.85); z-index:1999; backdrop-filter: blur(8px); }
         .close-chart { display: none; position: absolute; top: 20px; right: 25px; font-size: 1.5rem; color: var(--text-muted); cursor: pointer; z-index: 2001; transition: 0.2s; }
         .close-chart:hover { color: var(--sidebar); transform: scale(1.1); }
         .chart-card.expanded .close-chart { display: block; }
-        
         .chart-container { position: relative; height: 320px; width: 100%; }
 
         /* --- TABLES --- */
@@ -90,35 +75,23 @@
         .data-row:hover { background-color: #f8fafc; }
         .expandable-panel { max-height: 0; overflow: hidden; transition: var(--transition); opacity: 0; background: #fafbfc; }
         .expandable-panel.active { max-height: 1200px; opacity: 1; border-bottom: 3px solid var(--primary); }
-        .details-content { padding: 35px; border-left: 8px solid var(--primary); margin: 20px; background: white; border-radius: 16px; box-shadow: 0 4px 10px rgba(0,0,0,0.02); }
+        .details-content { padding: 35px; border-left: 8px solid var(--primary); margin: 20px; background: white; border-radius: 16px; }
 
-        /* --- ABOUT (NATAN LUZ) --- */
-        .about-card { 
-            background: white; padding: 50px; border-radius: 32px; display: flex; gap: 40px; 
-            align-items: center; max-width: 900px; margin: 40px auto; border: 1px solid var(--border); 
-            box-shadow: 0 20px 40px rgba(0,0,0,0.05); animation: fadeInUp 0.7s ease; 
-        }
+        /* --- ABOUT --- */
+        .about-card { background: white; padding: 50px; border-radius: 32px; display: flex; gap: 40px; align-items: center; max-width: 900px; margin: 40px auto; border: 1px solid var(--border); box-shadow: 0 20px 40px rgba(0,0,0,0.05); animation: fadeInUp 0.7s ease; }
         .about-img { width: 260px; height: 260px; border-radius: 24px; object-fit: cover; border: 5px solid white; box-shadow: 0 10px 25px rgba(0,0,0,0.1); flex-shrink: 0; }
-        .about-text h2 { font-size: 2.2rem; margin-top: 0; color: var(--sidebar); font-weight: 800; letter-spacing: -1px; }
+        .about-text h2 { font-size: 2.2rem; margin-top: 0; color: var(--sidebar); font-weight: 800; }
         .about-text p { line-height: 1.8; color: var(--text-muted); font-size: 1.05rem; text-align: justify; }
 
-        /* --- MAPAS --- */
-        #network-map { 
-            width: 100%; height: 600px; background: white; border-radius: 24px; 
-            border: 1px solid var(--border); box-shadow: 0 10px 25px rgba(0,0,0,0.05); 
-            margin-top: 20px; position: relative; overflow: hidden; display: block;
-        }
+        /* --- MAPS --- */
+        #network-map { width: 100%; height: 600px; background: white; border-radius: 24px; border: 1px solid var(--border); box-shadow: 0 10px 25px rgba(0,0,0,0.05); margin-top: 20px; position: relative; overflow: hidden; }
         .map-info { background: #eff6ff; padding: 20px; border-radius: 16px; border-left: 5px solid var(--primary); margin-top: 15px; display: none; color: var(--sidebar); animation: fadeIn 0.5s ease; }
 
-        /* --- UI --- */
         .pagination { display: flex; justify-content: center; gap: 8px; margin: 30px 0 60px; }
         .pagination button { padding: 12px 18px; border: 1px solid #e5e7eb; background: white; border-radius: 12px; cursor: pointer; font-weight: 700; }
         .pagination button.active { background: var(--primary); color: white; border-color: var(--primary); }
-        .loader-overlay { display: flex; flex-direction: column; align-items: center; justify-content: center; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 500; }
-        .spinner { width: 60px; height: 60px; border: 6px solid #e2e8f0; border-top: 6px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
         
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes fadeInDown { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
 
@@ -139,7 +112,7 @@
         <button onclick="loadNetworkMap()" id="nav-maps"><i class="fas fa-circle-nodes"></i> Mapas de Rede</button>
         <button onclick="loadSection('artigo', 'titulo')" id="nav-artigo"><i class="fas fa-file-alt"></i> Artigos</button>
         <button onclick="loadSection('autor', 'nome')" id="nav-autor"><i class="fas fa-users"></i> Autores</button>
-        <button onclick="loadSection('palavras_chaves', 'palavras_chaves')" id="nav-palavras"><i class="fas fa-tags"></i> Keywords</button>
+        <button onclick="loadSection('palavras_chaves', 'palavras_chaves')" id="nav-palavras"><i class="fas fa-tags"></i> Palavras-Chave</button>
         <button onclick="loadSection('referencia', 'referencia')" id="nav-referencia"><i class="fas fa-bookmark"></i> Referências</button>
         <button onclick="showAbout()" id="nav-about"><i class="fas fa-id-card"></i> Sobre o Dev</button>
         <input type="file" id="csv-input" accept=".csv">
@@ -288,7 +261,7 @@
     }
 
     async function generateConceptualMap() {
-        showMapDesc("<b>Grupo Conceitual (Top 15):</b> Foca nas 15 palavras-chave mais frequentes. Revela o núcleo temático principal.");
+        showMapDesc("<b>Grupo Conceitual (Top 15):</b> Foca nas 15 palavras-chave mais frequentes.");
         const container = document.getElementById('network-map');
         container.innerHTML = `<div class="loader-overlay"><div class="spinner"></div><p>Gerando Rede...</p></div>`;
         const { data } = await _supabase.from('artigo').select('keywords_raw');
@@ -413,24 +386,76 @@
     function changePage(page) { currentPage = page; updateTable(); document.querySelector('main').scrollTop = 0; }
     function toggle(id) { document.querySelectorAll('.expandable-panel').forEach(e => { if(e.id!==id) e.classList.remove('active') }); document.getElementById(id).classList.toggle('active'); }
 
+    // --- IMPORTADOR CSV TOTALMENTE RESTAURADO ---
     document.getElementById('csv-input').addEventListener('change', function(e) {
         const file = e.target.files[0]; if (!file) return;
+        const main = document.getElementById('main-content');
+        main.innerHTML = `<div class="loader-overlay"><div class="spinner"></div><h2>Sincronizando Nexus Pro...</h2></div>`;
+        
         Papa.parse(file, {
             header: true, skipEmptyLines: true,
             complete: async function(results) {
+                // 1. Processar Artigos e Idiomas
                 const artigos = results.data.map(r => ({
-                    titulo: r["Title"] || r["Document Title"], ano: parseInt(r["Year"]) || 0,
-                    qtd_citacao: parseInt(r["Cited by"]) || 0, doi: r["DOI"] || "",
-                    link: r["Link"] || "", resumo: r["Abstract"] || "",
-                    tipo_documento: r["Document Type"] || "", issn: r["ISSN"] || "",
-                    volume: r["Volume"] || "", issue: r["Issue"] || "",
-                    source_title: r["Source title"] || r["Publication Title"] || "", 
-                    tipo_acesso: r["Open Access"] || "", linguagem: r["Language"] || "",
+                    titulo: r["Title"] || r["Document Title"], 
+                    ano: parseInt(r["Year"]) || 0,
+                    qtd_citacao: parseInt(r["Cited by"]) || 0, 
+                    doi: r["DOI"] || "",
+                    link: r["Link"] || "", 
+                    resumo: r["Abstract"] || "",
+                    tipo_documento: r["Document Type"] || "", 
+                    issn: r["ISSN"] || "",
+                    volume: r["Volume"] || "", 
+                    issue: r["Issue"] || "",
+                    source_title: r["Source title"] || r["Publication Title"] || r["Source Title"] || "", 
+                    tipo_acesso: r["Open Access"] || r["Open access"] || "",
+                    linguagem: r["Language of Original Document"] || r["Language"] || "English",
                     autores_raw: r["Authors"] || r["Author(s)"] || "",
                     keywords_raw: r["Author Keywords"] || r["Keywords"] || ""
                 }));
                 await _supabase.from('artigo').insert(artigos);
-                alert("Dados Importados!"); loadAnalytics();
+
+                // 2. Extrair Autores, Palavras-Chave e Referências para tabelas vinculadas
+                let autSet = new Set(), keySet = new Set(), refSet = new Set();
+                results.data.forEach(r => {
+                    // Autores
+                    const autRaw = r["Authors"] || r["Author(s)"] || "";
+                    autRaw.split(';').forEach(a => { if(a.trim()) autSet.add(a.trim()) });
+                    
+                    // Palavras-Chave
+                    const keyRaw = r["Author Keywords"] || r["Keywords"] || "";
+                    keyRaw.split(';').forEach(k => { if(k.trim()) keySet.add(k.trim()) });
+                    
+                    // Referências
+                    const refRaw = r["References"] || r["references"] || "";
+                    refRaw.split(';').forEach(rf => { if(rf.trim().length > 30) refSet.add(rf.trim()) });
+                });
+
+                // 3. Upsert nas tabelas relacionais
+                if(autSet.size > 0) {
+                    await _supabase.from('autor').upsert([...autSet].map(n => ({ 
+                        id: n.replace(/[^a-z0-9]/gi,'_').toLowerCase(), 
+                        nome: n, 
+                        nomecompleto: n 
+                    })));
+                }
+
+                if(keySet.size > 0) {
+                    await _supabase.from('palavras_chaves').upsert([...keySet].map(k => ({ 
+                        palavras_chaves: k 
+                    })), { onConflict: 'palavras_chaves' });
+                }
+
+                if(refSet.size > 0) {
+                    const rArr = [...refSet];
+                    // Referências são enviadas em lotes para evitar erro de payload do Supabase
+                    for (let i = 0; i < rArr.length; i += 50) { 
+                        await _supabase.from('referencia').insert(rArr.slice(i, i + 50).map(r => ({ referencia: r }))); 
+                    }
+                }
+
+                alert("Sincronização Completa com Sucesso!");
+                loadAnalytics();
             }
         });
     });
