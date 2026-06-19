@@ -64,32 +64,44 @@
 
         /* --- ANALYTICS --- */
         .analytics-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 25px; margin-bottom: 50px; }
-        .chart-card { background: white; padding: 25px; border-radius: 24px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .chart-card { background: white; padding: 25px; border-radius: 24px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); transition: var(--transition); cursor: zoom-in; position: relative; }
+        .chart-card:hover { transform: translateY(-5px); box-shadow: 0 12px 20px rgba(0,0,0,0.1); }
+        .chart-card.expanded { 
+            position: fixed; top: 5%; left: 5%; width: 90%; height: 90%; z-index: 1000; 
+            cursor: zoom-out; animation: zoomIn 0.3s ease forwards;
+        }
+        .chart-overlay { display:none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:999; backdrop-filter: blur(4px); }
         .chart-container { position: relative; height: 320px; width: 100%; }
+        .chart-card.expanded .chart-container { height: 80% !important; }
 
         /* --- MAPAS --- */
         #network-map { height: 600px; background: white; border-radius: 24px; border: 1px solid var(--border); box-shadow: 0 10px 25px rgba(0,0,0,0.05); margin-top: 20px; }
+        .map-info { background: #eff6ff; padding: 20px; border-radius: 16px; border-left: 5px solid var(--primary); margin-top: 15px; display: none; animation: fadeIn 0.5s ease; }
 
-        /* --- ABOUT (NATAN LUZ) --- */
+        /* --- ABOUT --- */
         .about-card { background: white; padding: 50px; border-radius: 32px; display: flex; gap: 40px; align-items: center; max-width: 850px; margin: auto; border: 1px solid var(--border); box-shadow: 0 20px 40px rgba(0,0,0,0.05); animation: fadeInUp 0.7s ease; }
         .about-img { width: 240px; height: 240px; border-radius: 24px; object-fit: cover; border: 5px solid white; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
 
-        /* --- UI COMPONENTS --- */
+        /* --- UI --- */
         .pagination { display: flex; justify-content: center; gap: 8px; margin: 30px 0 60px; }
         .pagination button { padding: 12px 18px; border: 1px solid #e5e7eb; background: white; border-radius: 12px; cursor: pointer; font-weight: 700; color: var(--text-muted); transition: 0.2s; }
-        .pagination button:hover { border-color: var(--primary); color: var(--primary); }
         .pagination button.active { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3); }
         .loader-overlay { display: flex; flex-direction: column; align-items: center; justify-content: center; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 500; }
         .spinner { width: 60px; height: 60px; border: 6px solid #e2e8f0; border-top: 6px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
+        
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes fadeInDown { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes zoomIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
         .btn-web { display: inline-flex; align-items: center; gap: 8px; background: var(--sidebar); color: white; padding: 14px 22px; border-radius: 12px; text-decoration: none; font-size: 0.9rem; margin-top: 20px; font-weight: 700; cursor: pointer; }
         #csv-input { display: none; }
     </style>
 </head>
 <body>
+
+    <div class="chart-overlay" id="chartOverlay" onclick="closeExpandedChart()"></div>
 
     <nav>
         <div class="logo-box" onclick="showHome()">
@@ -117,6 +129,7 @@
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     let allData = []; let filteredData = []; let currentTable = ''; let currentPage = 1; const pageSize = 15;
+    let chartInstances = {};
 
     function setNav(id) { document.querySelectorAll('nav button').forEach(b => b.classList.remove('active')); if(id) document.getElementById(id).classList.add('active'); }
 
@@ -148,21 +161,24 @@
             </div>`;
     }
 
+    // --- GRÁFICOS COM ÍCONES RESTAURADOS ---
     async function loadAnalytics() {
         setNav('nav-charts');
         const main = document.getElementById('main-content');
         main.innerHTML = `<div class="loader-overlay"><div class="spinner"></div><h2>Gerando Inteligência Nexus...</h2></div>`;
         const { data, error } = await _supabase.from('artigo').select('*');
         if (error) return main.innerHTML = `<h1>Erro ao carregar dados</h1>`;
-        main.innerHTML = `<div class="header-content"><h1>Nexus Analytics Pro</h1><p>Análise de produtividade e impacto</p></div><div class="analytics-grid">
-            <div class="chart-card"><h3>Publicações / Ano</h3><div class="chart-container"><canvas id="c1"></canvas></div></div>
-            <div class="chart-card"><h3>Citações / Ano</h3><div class="chart-container"><canvas id="chartCits"></canvas></div></div>
-            <div class="chart-card"><h3>Top 15 Periódicos</h3><div class="chart-container"><canvas id="c3"></canvas></div></div>
-            <div class="chart-card"><h3>Top 20 Autores</h3><div class="chart-container"><canvas id="c4"></canvas></div></div>
-            <div class="chart-card"><h3>Top 15 Palavras-Chave</h3><div class="chart-container"><canvas id="c5"></canvas></div></div>
-            <div class="chart-card"><h3>Acesso Aberto</h3><div class="chart-container"><canvas id="c6"></canvas></div></div>
-            <div class="chart-card"><h3>Idioma</h3><div class="chart-container"><canvas id="c7"></canvas></div></div>
+        
+        main.innerHTML = `<div class="header-content"><h1>Nexus Analytics Pro</h1><p>Clique em um gráfico para ampliar</p></div><div class="analytics-grid">
+            <div class="chart-card" onclick="expandChart(this, 'c1')"><h3><i class="fas fa-calendar-alt" style="color:#3b82f6"></i> Publicações / Ano</h3><div class="chart-container"><canvas id="c1"></canvas></div></div>
+            <div class="chart-card" onclick="expandChart(this, 'chartCits')"><h3><i class="fas fa-quote-right" style="color:#6366f1"></i> Citações / Ano</h3><div class="chart-container"><canvas id="chartCits"></canvas></div></div>
+            <div class="chart-card" onclick="expandChart(this, 'c3')"><h3><i class="fas fa-book" style="color:#10b981"></i> Top 15 Periódicos</h3><div class="chart-container"><canvas id="c3"></canvas></div></div>
+            <div class="chart-card" onclick="expandChart(this, 'c4')"><h3><i class="fas fa-users" style="color:#f59e0b"></i> Top 20 Autores</h3><div class="chart-container"><canvas id="c4"></canvas></div></div>
+            <div class="chart-card" onclick="expandChart(this, 'c5')"><h3><i class="fas fa-tags" style="color:#8b5cf6"></i> Top 15 Palavras-Chave</h3><div class="chart-container"><canvas id="c5"></canvas></div></div>
+            <div class="chart-card" onclick="expandChart(this, 'c6')"><h3><i class="fas fa-unlock-alt" style="color:#ef4444"></i> Acesso Aberto</h3><div class="chart-container"><canvas id="c6"></canvas></div></div>
+            <div class="chart-card" onclick="expandChart(this, 'c7')"><h3><i class="fas fa-language" style="color:#0f172a"></i> Idioma</h3><div class="chart-container"><canvas id="c7"></canvas></div></div>
         </div>`;
+
         const yrs={}, cits={}, journals={}, auts={}, keys={}, acc={}, lang={};
         data.forEach(d => {
             if(d.ano) yrs[d.ano] = (yrs[d.ano] || 0) + 1;
@@ -174,34 +190,63 @@
             acc[open] = (acc[open] || 0) + 1;
             let l = d.linguagem || "English"; lang[l] = (lang[l] || 0) + 1;
         });
+
         const sortY = Object.keys(yrs).sort();
         const topJ = Object.entries(journals).sort((a,b) => b[1] - a[1]).slice(0, 15);
         const topA = Object.entries(auts).sort((a,b) => b[1] - a[1]).slice(0, 20);
         const topK = Object.entries(keys).sort((a,b) => b[1] - a[1]).slice(0, 15);
         const opt = { responsive: true, maintainAspectRatio: false };
-        new Chart(document.getElementById('c3'), { type: 'bar', options: { ...opt, indexAxis: 'y', plugins: { legend: { display: false } } }, data: { labels: topJ.map(x => x[0].length > 30 ? x[0].substring(0,30) + '...' : x[0]), datasets: [{ label: 'Artigos', data: topJ.map(x => x[1]), backgroundColor: '#10b981' }] } });
-        new Chart(document.getElementById('chartCits'), { type: 'line', data: { labels: sortY, datasets: [{ label: 'Citações', data: sortY.map(y=>cits[y]), borderColor: '#6366f1', fill: true, backgroundColor: 'rgba(99, 102, 241, 0.1)' }] }, options: opt });
-        new Chart(document.getElementById('c1'), { type: 'bar', data: { labels: sortY, datasets: [{ label: 'Artigos', data: sortY.map(y=>yrs[y]), backgroundColor: '#3b82f6' }] }, options: opt });
-        new Chart(document.getElementById('c4'), { type: 'bar', data: { labels: topA.map(x=>x[0]), datasets: [{ label: 'Artigos', data: topA.map(x=>x[1]), backgroundColor: '#f59e0b' }] }, options: opt });
-        new Chart(document.getElementById('c5'), { type: 'pie', data: { labels: topK.map(x=>x[0]), datasets: [{ data: topK.map(x=>x[1]), backgroundColor: ['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6'] }] }, options: opt });
-        new Chart(document.getElementById('c6'), { type: 'doughnut', data: { labels: Object.keys(acc), datasets: [{ data: Object.values(acc), backgroundColor: ['#10b981','#ef4444','#64748b'] }] }, options: opt });
-        new Chart(document.getElementById('c7'), { type: 'polarArea', data: { labels: Object.keys(lang), datasets: [{ data: Object.values(lang), backgroundColor: ['#3b82f6','#8b5cf6','#ec4899','#f97316'] }] }, options: opt });
+
+        chartInstances['c3'] = new Chart(document.getElementById('c3'), { type: 'bar', options: { ...opt, indexAxis: 'y' }, data: { labels: topJ.map(x => x[0].length > 30 ? x[0].substring(0,30) + '...' : x[0]), datasets: [{ label: 'Artigos', data: topJ.map(x => x[1]), backgroundColor: '#10b981' }] } });
+        chartInstances['chartCits'] = new Chart(document.getElementById('chartCits'), { type: 'line', data: { labels: sortY, datasets: [{ label: 'Citações', data: sortY.map(y=>cits[y]), borderColor: '#6366f1', fill: true, backgroundColor: 'rgba(99, 102, 241, 0.1)' }] }, options: opt });
+        chartInstances['c1'] = new Chart(document.getElementById('c1'), { type: 'bar', data: { labels: sortY, datasets: [{ label: 'Artigos', data: sortY.map(y=>yrs[y]), backgroundColor: '#3b82f6' }] }, options: opt });
+        chartInstances['c4'] = new Chart(document.getElementById('c4'), { type: 'bar', data: { labels: topA.map(x=>x[0]), datasets: [{ label: 'Artigos', data: topA.map(x=>x[1]), backgroundColor: '#f59e0b' }] }, options: opt });
+        chartInstances['c5'] = new Chart(document.getElementById('c5'), { type: 'pie', data: { labels: topK.map(x=>x[0]), datasets: [{ data: topK.map(x=>x[1]), backgroundColor: ['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6'] }] }, options: opt });
+        chartInstances['c6'] = new Chart(document.getElementById('c6'), { type: 'doughnut', data: { labels: Object.keys(acc), datasets: [{ data: Object.values(acc), backgroundColor: ['#10b981','#ef4444','#64748b'] }] }, options: opt });
+        chartInstances['c7'] = new Chart(document.getElementById('c7'), { type: 'polarArea', data: { labels: Object.keys(lang), datasets: [{ data: Object.values(lang), backgroundColor: ['#3b82f6','#8b5cf6','#ec4899','#f97316'] }] }, options: opt });
     }
 
+    function expandChart(card, chartId) {
+        if(card.classList.contains('expanded')) { closeExpandedChart(); return; }
+        document.getElementById('chartOverlay').style.display = 'block';
+        card.classList.add('expanded');
+        if(chartInstances[chartId]) chartInstances[chartId].resize();
+    }
+
+    function closeExpandedChart() {
+        const expanded = document.querySelector('.chart-card.expanded');
+        if(expanded) {
+            expanded.classList.remove('expanded');
+            document.getElementById('chartOverlay').style.display = 'none';
+            // Pega o id do canvas dentro do card para dar resize
+            const canvasId = expanded.querySelector('canvas').id;
+            if(chartInstances[canvasId]) chartInstances[canvasId].resize();
+        }
+    }
+
+    // --- MAPAS COM DESCRIÇÕES ---
     async function loadNetworkMap() {
         setNav('nav-maps');
         const main = document.getElementById('main-content');
         main.innerHTML = `<div class="header-content"><h1>Mapas de Relacionamento</h1><p>Explore as conexões entre autores e temas.</p></div>
-            <div style="display:flex; gap:10px; margin-bottom:20px;">
-            <button class="btn-web" onclick="generateMap('autores')" style="margin:0">Mapa de Coautoria</button>
-            <button class="btn-web" onclick="generateMap('tags')" style="margin:0; background:var(--accent)">Mapa de Termos</button>
-            <button class="btn-web" onclick="generateConceptualMap()" style="margin:0; background:var(--sidebar)">Grupo Conceitual (Top 15)</button>
+            <div style="display:flex; gap:10px; margin-bottom:10px;">
+                <button class="btn-web" onclick="generateMap('autores')" style="margin:0">Mapa de Coautoria</button>
+                <button class="btn-web" onclick="generateMap('tags')" style="margin:0; background:var(--accent)">Mapa de Termos</button>
+                <button class="btn-web" onclick="generateConceptualMap()" style="margin:0; background:var(--sidebar)">Grupo Conceitual (Top 15)</button>
             </div>
+            <div id="map-desc" class="map-info"></div>
             <div id="network-map"></div>`;
         generateMap('autores');
     }
 
+    function showMapDesc(text) {
+        const box = document.getElementById('map-desc');
+        box.style.display = 'block';
+        box.innerHTML = `<i class="fas fa-circle-info"></i> ${text}`;
+    }
+
     async function generateConceptualMap() {
+        showMapDesc("<b>Grupo Conceitual (Top 15):</b> Este mapa foca nas 15 palavras-chave mais citadas em toda a base. Ele revela o núcleo temático da pesquisa, conectando os termos mais fortes e ignorando ruídos periféricos para uma visão estratégica.");
         const container = document.getElementById('network-map');
         container.innerHTML = `<div class="loader-overlay"><div class="spinner"></div><p>Processando Grupo Conceitual...</p></div>`;
         const { data } = await _supabase.from('artigo').select('keywords_raw');
@@ -232,6 +277,11 @@
     }
 
     async function generateMap(mode) {
+        const desc = mode === 'autores' ? 
+            "<b>Mapa de Coautoria:</b> Visualiza a colaboração entre pesquisadores. Círculos (nós) representam autores e as linhas representam artigos publicados em conjunto." : 
+            "<b>Mapa de Termos:</b> Explora a conexão entre as palavras-chave. Ajuda a identificar quais tecnologias ou conceitos costumam aparecer juntos nas pesquisas.";
+        showMapDesc(desc);
+
         const container = document.getElementById('network-map');
         container.innerHTML = `<div class="loader-overlay"><div class="spinner"></div><p>Gerando rede...</p></div>`;
         const { data } = await _supabase.from('artigo').select(mode === 'autores' ? 'autores_raw' : 'keywords_raw').limit(300);
@@ -290,7 +340,8 @@
             html += `<div class="grid-row row-artigo grid-header"><div>Título</div><div>Ano</div><div>Cits.</div><div>ISSN</div><div>Vol/Iss</div><div>Tipo</div></div>`;
             items.forEach((item, i) => {
                 html += `<div class="grid-row row-artigo data-row" onclick="toggle('p-${i}')"><div><b style="color:var(--sidebar)">${item.titulo}</b></div><div>${item.ano}</div><div style="color:var(--primary);font-weight:800">${item.qtd_citacao}</div><div><small>${item.issn||'-'}</small></div><div><small>${item.volume||'-'}/${item.issue||'-'}</small></div><div><span class="badge" style="background:#e0f2fe; color:#0369a1">${item.tipo_documento||'Article'}</span></div></div>
-                <div id="p-${i}" class="expandable-panel"><div class="details-content"><h3>Resumo (Abstract)</h3><p style="text-align:justify; line-height:1.7;">${item.resumo}</p><p><b>DOI:</b> ${item.doi}</p><a href="${item.link || 'https://doi.org/'+item.doi}" target="_blank" class="btn-web">VER NO SCOPUS</a></div></div>`;
+                <div id="p-${i}" class="expandable-panel"><div class="details-content"><h3>Resumo (Abstract)</h3><p style="text-align:justify; line-height:1.7;">${item.resumo}</p>
+                <p><b><i class="fas fa-fingerprint"></i> DOI:</b> ${item.doi}</p><a href="${item.link || 'https://doi.org/'+item.doi}" target="_blank" class="btn-web">ACESSAR NO SCOPUS</a></div></div>`;
             });
         } else {
             html += `<div class="grid-row row-simples grid-header"><div>Descrição</div><div>ID Nexus</div></div>`;
