@@ -44,43 +44,53 @@
         .header-content { margin-bottom: 35px; animation: fadeInDown 0.5s ease; }
         .header-content h1 { font-size: 2.2rem; font-weight: 800; color: var(--sidebar); letter-spacing: -1px; }
 
+        /* --- FILTROS (ESTILO RESTAURADO) --- */
+        .filter-bar { 
+            background: white; padding: 15px 25px; border-radius: 18px; border: 1px solid var(--border); 
+            margin-bottom: 25px; display: flex; gap: 15px; align-items: center; 
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); animation: fadeIn 0.5s ease;
+        }
+        .filter-bar input { 
+            flex: 1; padding: 12px 20px; border-radius: 12px; border: 1px solid #e2e8f0; 
+            outline: none; font-size: 0.95rem; transition: 0.3s;
+        }
+        .filter-bar input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+        .filter-bar select { 
+            padding: 12px 15px; border-radius: 12px; border: 1px solid #e2e8f0; 
+            outline: none; cursor: pointer; background: white; min-width: 160px; font-weight: 500;
+        }
+
         /* --- ANALYTICS --- */
-        .analytics-grid { display: grid; grid-template-columns: repeat(2, 50%); gap: 25px; margin-bottom: 50px; width: 100%; box-sizing: border-box; }
+        .analytics-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 25px; margin-bottom: 50px; width: 100%; }
         .chart-card { 
             background: white; padding: 25px; border-radius: 24px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); 
-            transition: var(--transition); cursor: pointer; position: relative; width: 100%; max-width: 100%;
+            transition: var(--transition); cursor: pointer; position: relative; width: 100%;
         }
         .chart-card:hover { transform: translateY(-5px); box-shadow: 0 12px 20px rgba(0,0,0,0.1); }
         
-        /* EXPANSÃO */
         .chart-card.expanded { 
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) !important; 
             width: 85vw; height: 80vh; z-index: 2000; cursor: default; 
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); 
         }
-        .chart-overlay { display:none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(15, 23, 42, 0.85); z-index:1999; backdrop-filter: blur(8px); animation: fadeIn 0.4s ease; }
+        .chart-overlay { display:none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(15, 23, 42, 0.85); z-index:1999; backdrop-filter: blur(8px); }
         .close-chart { display: none; position: absolute; top: 20px; right: 25px; font-size: 1.5rem; color: var(--text-muted); cursor: pointer; z-index: 2001; transition: 0.2s; }
-        .close-chart:hover { color: var(--sidebar); transform: scale(1.2); } /* Sem giro, apenas escala */
+        .close-chart:hover { color: var(--sidebar); transform: scale(1.2); }
         .chart-card.expanded .close-chart { display: block; }
         
-        .chart-container { position: relative; height: 320px; width: 100% !important; }
-        .chart-card.expanded .chart-container { height: calc(100% - 60px) !important; }
+        .chart-container { position: relative; height: 320px; width: 100%; }
 
         /* --- TABLES --- */
-        .grid-table { background: var(--white); border-radius: 24px; border: 1px solid #e5e7eb; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.05); overflow-x: auto; }
+        .grid-table { background: var(--white); border-radius: 24px; border: 1px solid #e5e7eb; box-shadow: 0 15px 30px rgba(0,0,0,0.05); overflow-x: auto; }
         .grid-row { display: grid; align-items: center; border-bottom: 1px solid #f1f5f9; padding: 18px 24px; min-width: 1000px; }
         .row-artigo { grid-template-columns: 1fr 80px 80px 120px 90px 120px; }
         .row-simples { grid-template-columns: 1fr 120px; }
         .grid-header { background: #f8fafc; font-weight: 700; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); }
-        .data-row { cursor: pointer; }
-        .data-row:hover { background-color: #f1f5f9; }
+        .data-row { cursor: pointer; transition: 0.2s; }
+        .data-row:hover { background-color: #f8fafc; }
         .expandable-panel { max-height: 0; overflow: hidden; transition: var(--transition); opacity: 0; background: #fafbfc; }
         .expandable-panel.active { max-height: 1200px; opacity: 1; border-bottom: 3px solid var(--primary); }
-        .details-content { padding: 35px; border-left: 8px solid var(--primary); margin: 20px; background: white; border-radius: 16px; }
-
-        /* --- MAPAS --- */
-        #network-map { height: 600px; background: white; border-radius: 24px; border: 1px solid var(--border); box-shadow: 0 10px 25px rgba(0,0,0,0.05); margin-top: 20px; }
-        .map-info { background: #eff6ff; padding: 20px; border-radius: 16px; border-left: 5px solid var(--primary); margin-top: 15px; display: none; color: var(--sidebar); animation: fadeIn 0.5s ease; }
+        .details-content { padding: 35px; border-left: 8px solid var(--primary); margin: 20px; background: white; border-radius: 16px; box-shadow: 0 4px 10px rgba(0,0,0,0.02); }
 
         /* --- ABOUT --- */
         .about-card { 
@@ -90,12 +100,12 @@
         }
         .about-img { width: 260px; height: 260px; border-radius: 24px; object-fit: cover; border: 5px solid white; box-shadow: 0 10px 25px rgba(0,0,0,0.1); flex-shrink: 0; }
         .about-text h2 { font-size: 2.2rem; margin-top: 0; color: var(--sidebar); font-weight: 800; letter-spacing: -1px; }
-        .about-text p { line-height: 1.8; color: var(--text-muted); font-size: 1.05rem; text-align: justify; }
+        .about-text p { line-height: 1.8; color: var(--text-muted); font-size: 1.05rem; }
 
         /* --- UI --- */
         .pagination { display: flex; justify-content: center; gap: 8px; margin: 30px 0 60px; }
-        .pagination button { padding: 12px 18px; border: 1px solid #e5e7eb; background: white; border-radius: 12px; cursor: pointer; font-weight: 700; transition: 0.2s; }
-        .pagination button.active { background: var(--primary); color: white; }
+        .pagination button { padding: 12px 18px; border: 1px solid #e5e7eb; background: white; border-radius: 12px; cursor: pointer; font-weight: 700; }
+        .pagination button.active { background: var(--primary); color: white; border-color: var(--primary); }
         .loader-overlay { display: flex; flex-direction: column; align-items: center; justify-content: center; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 500; }
         .spinner { width: 60px; height: 60px; border: 6px solid #e2e8f0; border-top: 6px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
         
@@ -104,8 +114,7 @@
         @keyframes fadeInDown { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
 
-        .btn-web { display: inline-flex; align-items: center; gap: 8px; background: var(--sidebar); color: white; padding: 14px 22px; border-radius: 12px; text-decoration: none; font-weight: 700; cursor: pointer; transition: 0.3s; }
-        .btn-web:hover { opacity: 0.9; transform: translateY(-2px); }
+        .btn-web { display: inline-flex; align-items: center; gap: 8px; background: var(--sidebar); color: white; padding: 14px 22px; border-radius: 12px; text-decoration: none; font-weight: 700; cursor: pointer; }
         #csv-input { display: none; }
     </style>
 </head>
@@ -176,7 +185,7 @@
         const { data, error } = await _supabase.from('artigo').select('*');
         if (error) return main.innerHTML = `<h1>Erro ao carregar dados</h1>`;
         
-        main.innerHTML = `<div class="header-content"><h1>Nexus Analytics Pro</h1><p>Clique no título de um gráfico para destacar. Use as legendas para interagir.</p></div>
+        main.innerHTML = `<div class="header-content"><h1>Nexus Analytics Pro</h1><p>Clique no título de um gráfico para destacar.</p></div>
         <div class="analytics-grid">
             ${createChartCard('c1', 'calendar-alt', '#3b82f6', 'Publicações / Ano')}
             ${createChartCard('chartCits', 'quote-right', '#6366f1', 'Citações / Ano')}
@@ -203,15 +212,18 @@
         const topJ = Object.entries(journals).sort((a,b) => b[1] - a[1]).slice(0, 15);
         const topA = Object.entries(auts).sort((a,b) => b[1] - a[1]).slice(0, 20);
         const topK = Object.entries(keys).sort((a,b) => b[1] - a[1]).slice(0, 15);
-        const commonOpt = { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true, position: 'bottom' } } };
+        
+        // OPÇÕES LIMPANDO GRADES RADIAIS DE GRÁFICOS DE BARRA
+        const barOpt = { responsive: true, maintainAspectRatio: false, scales: { x: { grid: { display: true } }, y: { grid: { display: true } } }, plugins: { legend: { display: true, position: 'bottom' } } };
+        const polarOpt = { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true, position: 'bottom' } } };
 
-        chartInstances['c3'] = new Chart(document.getElementById('c3'), { type: 'bar', options: { ...commonOpt, indexAxis: 'y' }, data: { labels: topJ.map(x => x[0].substring(0,30)), datasets: [{ label: 'Artigos', data: topJ.map(x => x[1]), backgroundColor: '#10b981' }] } });
-        chartInstances['chartCits'] = new Chart(document.getElementById('chartCits'), { type: 'line', data: { labels: sortY, datasets: [{ label: 'Citações', data: sortY.map(y=>cits[y]), borderColor: '#6366f1', fill: true, backgroundColor: 'rgba(99, 102, 241, 0.1)' }] }, options: commonOpt });
-        chartInstances['c1'] = new Chart(document.getElementById('c1'), { type: 'bar', data: { labels: sortY, datasets: [{ label: 'Artigos', data: sortY.map(y=>yrs[y]), backgroundColor: '#3b82f6' }] }, options: commonOpt });
-        chartInstances['c4'] = new Chart(document.getElementById('c4'), { type: 'bar', data: { labels: topA.map(x=>x[0]), datasets: [{ label: 'Artigos', data: topA.map(x=>x[1]), backgroundColor: '#f59e0b' }] }, options: commonOpt });
-        chartInstances['c5'] = new Chart(document.getElementById('c5'), { type: 'pie', data: { labels: topK.map(x=>x[0]), datasets: [{ data: topK.map(x=>x[1]), backgroundColor: ['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6'] }] }, options: commonOpt });
-        chartInstances['c6'] = new Chart(document.getElementById('c6'), { type: 'doughnut', data: { labels: Object.keys(acc), datasets: [{ data: Object.values(acc), backgroundColor: ['#10b981','#ef4444','#64748b'] }] }, options: commonOpt });
-        chartInstances['c7'] = new Chart(document.getElementById('c7'), { type: 'polarArea', data: { labels: Object.keys(lang), datasets: [{ data: Object.values(lang), backgroundColor: ['#3b82f6','#8b5cf6','#ec4899','#f97316'] }] }, options: commonOpt });
+        chartInstances['c3'] = new Chart(document.getElementById('c3'), { type: 'bar', options: { ...barOpt, indexAxis: 'y' }, data: { labels: topJ.map(x => x[0].substring(0,30)), datasets: [{ label: 'Artigos', data: topJ.map(x => x[1]), backgroundColor: '#10b981' }] } });
+        chartInstances['chartCits'] = new Chart(document.getElementById('chartCits'), { type: 'line', data: { labels: sortY, datasets: [{ label: 'Citações', data: sortY.map(y=>cits[y]), borderColor: '#6366f1', fill: true, backgroundColor: 'rgba(99, 102, 241, 0.1)' }] }, options: barOpt });
+        chartInstances['c1'] = new Chart(document.getElementById('c1'), { type: 'bar', data: { labels: sortY, datasets: [{ label: 'Artigos', data: sortY.map(y=>yrs[y]), backgroundColor: '#3b82f6' }] }, options: barOpt });
+        chartInstances['c4'] = new Chart(document.getElementById('c4'), { type: 'bar', data: { labels: topA.map(x=>x[0]), datasets: [{ label: 'Artigos', data: topA.map(x=>x[1]), backgroundColor: '#f59e0b' }] }, options: barOpt });
+        chartInstances['c5'] = new Chart(document.getElementById('c5'), { type: 'pie', data: { labels: topK.map(x=>x[0]), datasets: [{ data: topK.map(x=>x[1]), backgroundColor: ['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6'] }] }, options: polarOpt });
+        chartInstances['c6'] = new Chart(document.getElementById('c6'), { type: 'doughnut', data: { labels: Object.keys(acc), datasets: [{ data: Object.values(acc), backgroundColor: ['#10b981','#ef4444','#64748b'] }] }, options: polarOpt });
+        chartInstances['c7'] = new Chart(document.getElementById('c7'), { type: 'polarArea', data: { labels: Object.keys(lang), datasets: [{ data: Object.values(lang), backgroundColor: ['#3b82f6','#8b5cf6','#ec4899','#f97316'] }] }, options: polarOpt });
     }
 
     function createChartCard(id, icon, color, title) {
@@ -237,11 +249,8 @@
             const canvasId = expanded.querySelector('canvas').id;
             expanded.classList.remove('expanded');
             document.getElementById('chartOverlay').style.display = 'none';
-            
-            // Limpeza forçada para evitar estiramento
             const canvas = document.getElementById(canvasId);
             canvas.style.width = ""; canvas.style.height = "";
-            
             setTimeout(() => { 
                 if(chartInstances[canvasId]) {
                     chartInstances[canvasId].resize(); 
@@ -341,8 +350,10 @@
         const main = document.getElementById('main-content');
         const years = [...new Set(allData.map(d => d.ano))].filter(Boolean).sort((a,b) => b-a);
         main.innerHTML = `<div class="header-content"><h1>Tabela: ${currentTable} (${allData.length})</h1></div>
-            <div class="filter-bar"><input type="text" id="search-box" placeholder="Pesquisar..." oninput="applyFilters()">
-            ${currentTable === 'artigo' ? `<select id="filter-year" onchange="applyFilters()"><option value="">Todos os Anos</option>${years.map(y => `<option value="${y}">${y}</option>`).join('')}</select>` : ''}</div>
+            <div class="filter-bar">
+                <input type="text" id="search-box" placeholder="Pesquisar por título ou termo..." oninput="applyFilters()">
+                ${currentTable === 'artigo' ? `<select id="filter-year" onchange="applyFilters()"><option value="">Todos os Anos</option>${years.map(y => `<option value="${y}">${y}</option>`).join('')}</select>` : ''}
+            </div>
             <div id="results"></div><div id="pag"></div>`;
         updateTable();
     }
