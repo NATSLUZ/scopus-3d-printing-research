@@ -17,7 +17,7 @@
         :root {
             --primary: #3b82f6; --sidebar: #0f172a; --bg: #f3f4f6; --white: #ffffff;
             --text-main: #1e293b; --text-muted: #64748b; --accent: #10b981;
-            --border: #e5e7eb; --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --border: #e5e7eb; --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         * { box-sizing: border-box; }
@@ -44,64 +44,58 @@
         .header-content { margin-bottom: 35px; animation: fadeInDown 0.5s ease; }
         .header-content h1 { font-size: 2.2rem; font-weight: 800; color: var(--sidebar); letter-spacing: -1px; }
 
-        /* --- ANALYTICS GRID --- */
-        .analytics-grid { 
-            display: grid; 
-            grid-template-columns: repeat(2, 1fr); 
-            gap: 25px; 
-            margin-bottom: 50px; 
-            width: 100%;
-            max-width: 100%;
-        }
-
+        /* --- ANALYTICS --- */
+        .analytics-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 25px; margin-bottom: 50px; width: 100%; }
         .chart-card { 
-            background: white; 
-            padding: 25px; 
-            border-radius: 24px; 
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05); 
-            transition: transform 0.3s ease, box-shadow 0.3s ease; 
-            cursor: pointer; 
-            position: relative;
-            overflow: hidden;
-            width: 100%;
+            background: white; padding: 25px; border-radius: 24px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); 
+            transition: var(--transition); cursor: pointer; position: relative; width: 100%;
         }
-        .chart-card:hover { transform: translateY(-3px); box-shadow: 0 10px 15px rgba(0,0,0,0.08); }
+        .chart-card:hover { transform: translateY(-5px); box-shadow: 0 12px 20px rgba(0,0,0,0.1); }
         
-        /* FOCO NO GRÁFICO (MODAL) */
         .chart-card.expanded { 
-            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) !important; 
-            width: 85vw; height: 85vh; z-index: 2000; cursor: default; 
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(1) !important; 
+            width: 90vw; height: 85vh; z-index: 2000; cursor: default; 
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); 
-            border: 1px solid var(--border);
         }
-        .chart-overlay { display:none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(15, 23, 42, 0.85); z-index:1999; backdrop-filter: blur(8px); animation: fadeIn 0.3s ease; }
-        .close-chart { display: none; position: absolute; top: 20px; right: 25px; font-size: 1.5rem; color: var(--text-muted); cursor: pointer; z-index: 2001; }
+        .chart-overlay { display:none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(15, 23, 42, 0.85); z-index:1999; backdrop-filter: blur(8px); animation: fadeIn 0.4s ease; }
+        .close-chart { display: none; position: absolute; top: 20px; right: 25px; font-size: 1.5rem; color: var(--text-muted); cursor: pointer; z-index: 2001; transition: 0.2s; }
+        .close-chart:hover { color: var(--sidebar); transform: rotate(90deg); }
         .chart-card.expanded .close-chart { display: block; }
         
-        .chart-container { position: relative; height: 320px; width: 100% !important; }
+        .chart-container { position: relative; height: 320px; width: 100%; }
         .chart-card.expanded .chart-container { height: calc(100% - 60px) !important; }
 
-        /* --- TABELAS --- */
-        .grid-table { background: var(--white); border-radius: 24px; border: 1px solid #e5e7eb; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.05); overflow: hidden; min-width: 1000px; }
-        .grid-row { display: grid; align-items: center; border-bottom: 1px solid #f1f5f9; padding: 18px 24px; }
+        /* --- TABLES --- */
+        .grid-table { background: var(--white); border-radius: 24px; border: 1px solid #e5e7eb; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.05); overflow-x: auto; }
+        .grid-row { display: grid; align-items: center; border-bottom: 1px solid #f1f5f9; padding: 18px 24px; min-width: 1000px; }
         .row-artigo { grid-template-columns: 1fr 80px 80px 120px 90px 120px; }
         .row-simples { grid-template-columns: 1fr 120px; }
         .grid-header { background: #f8fafc; font-weight: 700; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); }
         .data-row { cursor: pointer; }
         .data-row:hover { background-color: #f1f5f9; }
-        .expandable-panel { max-height: 0; overflow: hidden; transition: all 0.5s ease; opacity: 0; background: #fafbfc; }
+        .expandable-panel { max-height: 0; overflow: hidden; transition: var(--transition); opacity: 0; background: #fafbfc; }
         .expandable-panel.active { max-height: 1200px; opacity: 1; border-bottom: 3px solid var(--primary); }
         .details-content { padding: 35px; border-left: 8px solid var(--primary); margin: 20px; background: white; border-radius: 16px; }
 
         /* --- MAPAS --- */
         #network-map { height: 600px; background: white; border-radius: 24px; border: 1px solid var(--border); box-shadow: 0 10px 25px rgba(0,0,0,0.05); margin-top: 20px; }
-        .map-info { background: #eff6ff; padding: 20px; border-radius: 16px; border-left: 5px solid var(--primary); margin-top: 15px; display: none; font-size: 0.95rem; line-height: 1.5; color: var(--sidebar); }
+        .map-info { background: #eff6ff; padding: 20px; border-radius: 16px; border-left: 5px solid var(--primary); margin-top: 15px; display: none; color: var(--sidebar); animation: fadeIn 0.5s ease; }
 
-        /* --- UI --- */
+        /* --- ABOUT (NATAN LUZ) --- */
+        .about-card { 
+            background: white; padding: 50px; border-radius: 32px; display: flex; gap: 40px; 
+            align-items: center; max-width: 900px; margin: 40px auto; border: 1px solid var(--border); 
+            box-shadow: 0 20px 40px rgba(0,0,0,0.05); animation: fadeInUp 0.7s ease; 
+        }
+        .about-img { width: 260px; height: 260px; border-radius: 24px; object-fit: cover; border: 5px solid white; box-shadow: 0 10px 25px rgba(0,0,0,0.1); flex-shrink: 0; }
+        .about-text h2 { font-size: 2rem; margin-top: 0; color: var(--sidebar); font-weight: 800; }
+        .about-text p { line-height: 1.8; color: var(--text-muted); font-size: 1.05rem; }
+
+        /* --- UI COMPONENTS --- */
         .filter-bar { background: white; padding: 20px; border-radius: 20px; border: 1px solid var(--border); margin-bottom: 30px; display: flex; gap: 15px; align-items: center; }
         .filter-bar input { flex: 1; padding: 12px 20px; border-radius: 12px; border: 1px solid #e5e7eb; outline: none; }
         .pagination { display: flex; justify-content: center; gap: 8px; margin: 30px 0 60px; }
-        .pagination button { padding: 12px 18px; border: 1px solid #e5e7eb; background: white; border-radius: 12px; cursor: pointer; font-weight: 700; }
+        .pagination button { padding: 12px 18px; border: 1px solid #e5e7eb; background: white; border-radius: 12px; cursor: pointer; font-weight: 700; transition: 0.2s; }
         .pagination button.active { background: var(--primary); color: white; }
         .loader-overlay { display: flex; flex-direction: column; align-items: center; justify-content: center; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 500; }
         .spinner { width: 60px; height: 60px; border: 6px solid #e2e8f0; border-top: 6px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
@@ -109,8 +103,10 @@
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes fadeInDown { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
 
-        .btn-web { display: inline-flex; align-items: center; gap: 8px; background: var(--sidebar); color: white; padding: 14px 22px; border-radius: 12px; text-decoration: none; font-weight: 700; cursor: pointer; }
+        .btn-web { display: inline-flex; align-items: center; gap: 8px; background: var(--sidebar); color: white; padding: 14px 22px; border-radius: 12px; text-decoration: none; font-weight: 700; cursor: pointer; transition: 0.3s; }
+        .btn-web:hover { opacity: 0.9; transform: translateY(-2px); }
         #csv-input { display: none; }
     </style>
 </head>
@@ -161,11 +157,11 @@
         setNav('nav-about');
         document.getElementById('main-content').innerHTML = `
             <div class="header-content"><h1>Desenvolvedor</h1></div>
-            <div class="about-card" style="animation: fadeInUp 0.6s ease; background:white; padding:50px; border-radius:32px; display:flex; gap:40px; align-items:center; max-width:850px; margin:auto;">
-                <img src="natan.jpg" alt="Natan Luz" style="width:240px; height:240px; border-radius:24px; object-fit:cover;" onerror="this.src='https://ui-avatars.com/api/?name=Natan+Luz&size=250&background=0f172a&color=fff'">
-                <div>
+            <div class="about-card">
+                <img src="natan.jpg" alt="Natan Luz" class="about-img" onerror="this.src='https://ui-avatars.com/api/?name=Natan+Luz&size=250&background=0f172a&color=fff'">
+                <div class="about-text">
                     <h2>Natan Luz</h2>
-                    <p>Sou estudante de Engenharia de Software na UNEB e desenvolvedor do <b>NEXUS 3D</b>. Tenho interesse em análise de dados e tecnologias educacionais.</p>
+                    <p>Sou estudante de Engenharia de Software na UNEB e desenvolvedor do <b>NEXUS 3D</b>, uma plataforma criada para organizar e conectar pesquisas científicas sobre impressão 3D. Tenho interesse em desenvolvimento de software, análise de dados e tecnologias que facilitam o acesso ao conhecimento acadêmico.</p>
                     <div style="display:flex; gap:10px; margin-top:20px">
                         <a href="https://github.com/NATSLUZ" target="_blank" class="btn-web" style="background:#24292e"><i class="fab fa-github"></i> GitHub</a>
                         <a href="mailto:contato@natanluz.com" class="btn-web"><i class="fas fa-envelope"></i> Contato</a>
@@ -232,11 +228,7 @@
         if(card.classList.contains('expanded') || event.target.tagName === 'CANVAS') return;
         document.getElementById('chartOverlay').style.display = 'block';
         card.classList.add('expanded');
-        setTimeout(() => { 
-            if(chartInstances[chartId]) {
-                chartInstances[chartId].resize();
-            }
-        }, 350);
+        setTimeout(() => { if(chartInstances[chartId]) chartInstances[chartId].resize(); }, 400);
     }
 
     function closeExpandedChart(event) {
@@ -246,14 +238,10 @@
             const canvasId = expanded.querySelector('canvas').id;
             expanded.classList.remove('expanded');
             document.getElementById('chartOverlay').style.display = 'none';
-            
-            // Corrige o bug de estiramento: resetando o tamanho e disparando evento global
             setTimeout(() => { 
-                if(chartInstances[canvasId]) {
-                    chartInstances[canvasId].resize();
-                    window.dispatchEvent(new Event('resize')); 
-                }
-            }, 350);
+                if(chartInstances[canvasId]) chartInstances[canvasId].resize(); 
+                window.dispatchEvent(new Event('resize'));
+            }, 400);
         }
     }
 
@@ -278,7 +266,7 @@
     }
 
     async function generateConceptualMap() {
-        showMapDesc("<b>Grupo Conceitual (Top 15):</b> Foca nas 15 palavras-chave mais frequentes. Revela o núcleo temático principal da base de dados.");
+        showMapDesc("<b>Grupo Conceitual (Top 15):</b> Foca nas 15 palavras-chave mais frequentes. Revela o núcleo temático principal.");
         const container = document.getElementById('network-map');
         container.innerHTML = `<div class="loader-overlay"><div class="spinner"></div><p>Gerando Rede...</p></div>`;
         const { data } = await _supabase.from('artigo').select('keywords_raw');
