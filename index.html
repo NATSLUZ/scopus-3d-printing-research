@@ -151,6 +151,8 @@
 
     // --- SUA LÓGICA DE GRÁFICOS QUE FUNCIONA ---
     async function loadAnalytics() {
+        // Registra o plugin de nuvem de palavras para o Chart.js reconhecer
+Chart.register(ChartjsChartWordCloud.WordCloudController, ChartjsChartWordCloud.WordElement);
         setNav('nav-charts');
         const main = document.getElementById('main-content');
         main.innerHTML = `<div class="loader-overlay"><div class="spinner"></div><h2>Gerando Inteligência Nexus...</h2></div>`;
