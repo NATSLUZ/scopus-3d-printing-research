@@ -1,16 +1,16 @@
-# Nexus 3D | Intelligence Analytics 🚀
+# Nexus 3D | Intelligence Analytics
 
 **Nexus 3D** é um dashboard acadêmico de alta performance desenvolvido para organizar, explorar e conectar dados científicos extraídos do Scopus, com foco exclusivo em pesquisas sobre **Impressão 3D**.
 
 A plataforma transforma arquivos CSV brutos em inteligência visual, permitindo identificar tendências, núcleos de coautoria e grupos conceituais através de uma interface moderna e intuitiva.
 
-## 🔗 Acesse o Sistema
+## Acesse o Sistema
 O Nexus 3D está disponível online através do GitHub Pages:
-👉 **[https://natsluz.github.io/scopus-3d-printing-research/](https://natsluz.github.io/scopus-3d-printing-research/)**
+ **[https://natsluz.github.io/scopus-3d-printing-research/](https://natsluz.github.io/scopus-3d-printing-research/)**
 
 ---
 
-## ✨ Funcionalidades Principais
+## Funcionalidades Principais
 
 - **Nexus Analytics Pro:** 7 gráficos interativos (Chart.js) que analisam:
   - Produtividade anual (Publicações e Citações).
@@ -25,7 +25,7 @@ O Nexus 3D está disponível online através do GitHub Pages:
 - **Explorador de Dados:** Busca em tempo real com painéis de detalhes (Abstracts) justificados e elegantes.
 - **Interface Premium:** Design escuro (Sidebar), animações suaves e modo foco para gráficos.
 
-## 🛠️ Tecnologias Utilizadas
+## Tecnologias Utilizadas
 
 - **Frontend:** HTML5, CSS3 (Modern UI), JavaScript (ES6+).
 - **Banco de Dados:** PostgreSQL hospedado via [Supabase](https://supabase.com/).
@@ -34,7 +34,7 @@ O Nexus 3D está disponível online através do GitHub Pages:
 - **Processamento de Dados:** [PapaParse](https://www.papaparse.com/) (Parsing de CSV).
 - **Ícones:** Font Awesome 6.
 
-## 👤 Desenvolvedor
+## Desenvolvedor
 
 **Natan Luz**
 Estudante de Engenharia de Software na **UNEB** (Universidade do Estado da Bahia).
